@@ -23,7 +23,7 @@ public class SpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
         var cmd = this.cmdBufferSystem.CreateCommandBuffer();
-
+        
         this.Entities
         .WithAll<SpawnerUnusedTag>()
         .ForEach((ref Entity spawnerEntity, in Spawner spawner) =>
@@ -31,7 +31,8 @@ public class SpawnerSystem : SystemBase
             for (int i = 0; i < spawner.Count; ++i)
             {
                 var ant = cmd.Instantiate(spawner.Prefab);
-                float3 position = spawner.Origin + UnityRand.insideUnitSphere * 2f;
+                var rand = UnityRand.insideUnitSphere;
+                float3 position = spawner.Origin + rand.normalized * 10f + rand * 20f;
 
                 cmd.SetComponent(ant, new Translation { Value = position });
             }
