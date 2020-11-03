@@ -33,7 +33,6 @@ public class SpawnerSystem : SystemBase
                 float3 position = spawner.Origin + rand.normalized * 10f + rand * 20f;
 
                 cmd.SetComponent(entity, new Translation { Value = position });
-                //cmd.SetComponent(entity, new URPMaterialPropertyBaseColor { Value = color });
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
