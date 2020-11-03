@@ -30,9 +30,11 @@ public class SpawnerSystem : SystemBase
             {
                 var entity = cmd.Instantiate(spawner.Prefab);
                 var rand = UnityRand.insideUnitSphere;
-                float3 position = spawner.Origin + rand.normalized * 10f + rand * 20f;
+                float3 position = spawner.Origin + rand.normalized * 10f + rand * 5f;
 
                 cmd.SetComponent(entity, new Translation { Value = position });
+                cmd.AddComponent<EntityTag>(entity);
+                cmd.AddComponent<URPMaterialPropertyBaseColor>(entity);
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);

@@ -4,3 +4,5 @@ using Unity.Entities;
 using UnityEngine;
 
 public struct SpawnerUnusedTag : IComponentData { }
+
+public struct EntityTag : IComponentData { }
