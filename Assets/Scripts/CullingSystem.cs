@@ -23,16 +23,17 @@ public class CullingSystem : SystemBase
             var v = math.mul(worldToNDC, new float4(p.x, p.y, p.z, 1));
             var w = math.abs(v.w);
 
-            if (
-                v.x < -w || v.x > w
-            ||  v.y < -w || v.y > w
-            ||  v.z < -w || v.z > w)
+            var isInX = v.x > -w && v.x < w;
+            var isInY = v.y > -w && v.y < w;
+            var isInZ = v.z > -w && v.z < w;
+
+            if (isInX && isInY && isInZ)
             {
-                color.Value = entityOutFrumstrumColor;
+                color.Value = entityInFrumstrumColor;
             }
             else
             {
-                color.Value = entityInFrumstrumColor;
+                color.Value = entityOutFrumstrumColor;
             }
         })
         .ScheduleParallel();
