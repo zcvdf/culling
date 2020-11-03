@@ -15,8 +15,6 @@ public class SpawnerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        base.OnCreate();
-
         this.cmdBufferSystem = this.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
@@ -30,11 +28,12 @@ public class SpawnerSystem : SystemBase
         {
             for (int i = 0; i < spawner.Count; ++i)
             {
-                var ant = cmd.Instantiate(spawner.Prefab);
+                var entity = cmd.Instantiate(spawner.Prefab);
                 var rand = UnityRand.insideUnitSphere;
                 float3 position = spawner.Origin + rand.normalized * 10f + rand * 20f;
 
-                cmd.SetComponent(ant, new Translation { Value = position });
+                cmd.SetComponent(entity, new Translation { Value = position });
+                //cmd.SetComponent(entity, new URPMaterialPropertyBaseColor { Value = color });
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
