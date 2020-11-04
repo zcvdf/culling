@@ -32,7 +32,8 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityOutFrumstrumColor;
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color boudingSphereColor;
-    bool displayBoundingSphere = false;
+    [SerializeField] MeshFilter frustrumPlanesMesh;
+    bool displayBoundingSpheres = false;
 
     private void Awake()
     {
@@ -48,25 +49,26 @@ public class Main : MonoBehaviour
         this.camera.transform.Rotate(this.transform.up, Time.deltaTime * this.rotationSensitivity * horizontal);
         this.camera.transform.Rotate(this.transform.right, Time.deltaTime * this.rotationSensitivity * vertical);
 
+        this.frustrumPlanesMesh.mesh = this.camera.GenerateFrustumMesh();
         FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.camera);
-
+        
         WorldToNDC = this.camera.projectionMatrix * this.camera.worldToCameraMatrix;
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            this.displayBoundingSphere = !this.displayBoundingSphere;
+            this.displayBoundingSpheres = !this.displayBoundingSpheres;
         }
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.matrix = this.camera.transform.localToWorldMatrix;
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.yellow;
         Gizmos.DrawFrustum(Vector3.zero, this.camera.fieldOfView, this.camera.farClipPlane, this.camera.nearClipPlane, this.camera.aspect);
 
-        if (World.IsCreated)
+        if (!World.Equals(null))
         {
-            if (this.displayBoundingSphere)
+            if (this.displayBoundingSpheres)
             {
                 var translations = EntityQuery.ToComponentDataArray<Translation>(Allocator.Temp);
                 var radiuses = EntityQuery.ToComponentDataArray<WorldBoundingRadius>(Allocator.Temp);
