@@ -223,6 +223,7 @@ MonoBehaviour:
   camera: {fileID: 911220652}
   entityOutFrumstrumColor: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0.39215687}
   entityInFrustrumColor: {r: 0.8773585, g: 0.20426588, b: 0, a: 1}
+  boudingSphereColor: {r: 0.23113209, g: 0.5802986, b: 1, a: 0.39215687}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

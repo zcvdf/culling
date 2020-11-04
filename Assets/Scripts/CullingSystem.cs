@@ -6,6 +6,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 public class CullingSystem : SystemBase
 {
     protected override void OnUpdate()
@@ -16,7 +17,7 @@ public class CullingSystem : SystemBase
 
         this.Entities
         .WithAll<EntityTag>()
-        .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation) =>
+        .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radius) =>
         {
             var p = translation.Value;
 

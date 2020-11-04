@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
+using Unity.Scenes;
 using Unity.Transforms;
 using UnityEngine;
 using UnityRand = UnityEngine.Random;
@@ -16,6 +17,9 @@ public class SpawnerSystem : SystemBase
     protected override void OnCreate()
     {
         this.cmdBufferSystem = this.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        Main.World = this.World;
+        Main.EntityManager = this.EntityManager;
+        Main.EntityQuery = GetEntityQuery(typeof(EntityTag), typeof(Translation), typeof(WorldBoundingRadius));
     }
 
     protected override void OnUpdate()
@@ -35,6 +39,7 @@ public class SpawnerSystem : SystemBase
                 cmd.SetComponent(entity, new Translation { Value = position });
                 cmd.AddComponent<EntityTag>(entity);
                 cmd.AddComponent<URPMaterialPropertyBaseColor>(entity);
+                cmd.AddComponent<WorldBoundingRadius>(entity);
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
