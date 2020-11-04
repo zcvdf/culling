@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -17,6 +19,7 @@ public static class MainExt
 public class Main : MonoBehaviour
 {
     public static float4x4 WorldToNDC;
+    public static Plane[] FrustrumPlanes;
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
 
@@ -44,6 +47,9 @@ public class Main : MonoBehaviour
 
         this.camera.transform.Rotate(this.transform.up, Time.deltaTime * this.rotationSensitivity * horizontal);
         this.camera.transform.Rotate(this.transform.right, Time.deltaTime * this.rotationSensitivity * vertical);
+
+        FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.camera);
+
         WorldToNDC = this.camera.projectionMatrix * this.camera.worldToCameraMatrix;
 
         if (Input.GetKeyDown(KeyCode.A))
@@ -58,7 +64,7 @@ public class Main : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawFrustum(Vector3.zero, this.camera.fieldOfView, this.camera.farClipPlane, this.camera.nearClipPlane, this.camera.aspect);
 
-        if (!EntityQuery.IsEmpty)
+        if (World.IsCreated)
         {
             if (this.displayBoundingSphere)
             {

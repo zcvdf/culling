@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -15,28 +16,32 @@ public class CullingSystem : SystemBase
         var entityOutFrumstrumColor = Main.EntityOutFrumstrumColor;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
 
+        var frustrumPlanes = new NativeArray<Plane>(Main.FrustrumPlanes, Allocator.TempJob);
+
         this.Entities
         .WithAll<EntityTag>()
+        .WithReadOnly(frustrumPlanes)
         .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radius) =>
         {
-            var p = translation.Value;
+            bool inFrustrum = true;
 
-            var v = math.mul(worldToNDC, new float4(p.x, p.y, p.z, 1));
-            var w = math.abs(v.w);
-
-            var isInX = v.x > -w && v.x < w;
-            var isInY = v.y > -w && v.y < w;
-            var isInZ = v.z > -w && v.z < w;
-
-            if (isInX && isInY && isInZ)
+            for (int i = 0; i < 6; ++i)
             {
-                color.Value = entityInFrumstrumColor;
+                float3 normal = frustrumPlanes[i].normal;
+                float distance = frustrumPlanes[i].distance;
+                float3 point = -normal * distance;
+                var delta = translation.Value - point;
+
+                if (math.dot(normal, delta) < -radius.Value)
+                {
+                    inFrustrum = false;
+                    break;
+                }
             }
-            else
-            {
-                color.Value = entityOutFrumstrumColor;
-            }
+
+            color.Value = inFrustrum ? entityInFrumstrumColor : entityOutFrumstrumColor;
         })
+        .WithDisposeOnCompletion(frustrumPlanes)
         .ScheduleParallel();
     }
 }
