@@ -35,7 +35,7 @@ public class CullingSystem : SystemBase
             var radius = radiusComponent.Value;
 
             var isInFrustrum = IsInFrustrum(center, radius, frustrumPlanes);
-            var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses);
+            var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses, frustrumPlanes);
 
             if (!isInFrustrum)
             {
@@ -52,16 +52,21 @@ public class CullingSystem : SystemBase
         .ScheduleParallel();
     }
 
+    static bool IsClipped(float3 center, float radius, Plane plane)
+    {
+        float3 normal = plane.normal;
+        float distance = plane.distance;
+        float3 point = -normal * distance;
+        var delta = center - point;
+
+        return -math.dot(normal, delta) > radius;
+    }
+
     static bool IsInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
     {
         for (int i = 0; i < 6; ++i)
         {
-            float3 normal = planes[i].normal;
-            float distance = planes[i].distance;
-            float3 point = -normal * distance;
-            var delta = center - point;
-
-            if (math.dot(normal, delta) < -radius)
+            if (IsClipped(center, radius, planes[i]))
             {
                 return false;
             }
@@ -70,33 +75,71 @@ public class CullingSystem : SystemBase
         return true;
     }
 
-    static bool IsOccluded(float3 center, float radius, float3 viewer, float3 occluderDirection, float occluderDistance, float3 occluderCenter, float occluderRadius)
+    static bool IsOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
     {
-        var viewerToObject = center - viewer;
+        // Special handling of the near clipping plane for occluders (planes[4])
+        // We want the occluder to be discarded if its center is behind the near plane
+        // Otherwise the objects made visible by the clipping of the near plane get culled out
+        if 
+        (
+            IsClipped(center, radius, planes[0])
+            || IsClipped(center, radius, planes[1])
+            || IsClipped(center, radius, planes[2])
+            || IsClipped(center, radius, planes[3])
+            || IsClipped(center, 0f, planes[4])
+            || IsClipped(center, radius, planes[5])
+        )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    static bool IsOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection, float occluderDistance, float occluderRadius)
+    {
         var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
-        var objectProjection = viewer + occluderDirection * objectProjectedDistance;
+        var objectProjectedNear = objectProjectedDistance - objectRadius;
+
+        // Not occluded if behind the near slice of the occlusion cone
+        if (objectProjectedNear < occluderDistance) return false;
+
+        var occluderToObject = viewerToObject - viewerToOccluder;
+
+        var minDistToOccluderSq = occluderRadius + objectRadius;
+        minDistToOccluderSq *= minDistToOccluderSq;
+
+        // Not occluded if in the occluder sphere
+        if (math.lengthsq(occluderToObject) < minDistToOccluderSq) return false;
+
+        var objectProjection = occluderDirection * objectProjectedDistance;
         var ratio = objectProjectedDistance / occluderDistance;
 
-        var maxDist = ratio * occluderRadius - radius;
+        var maxDist = ratio * occluderRadius - objectRadius;
         var maxDistSq = maxDist * maxDist;
 
-        var projectionToObject = center - objectProjection;
+        var projectionToObject = viewerToObject - objectProjection;
 
+        // If the boudning sphere fits in the occlusion cone, cull it out
         return math.lengthsq(projectionToObject) < maxDistSq;
     }
 
-    static bool IsOccluded(float3 center, float radius, float3 viewer,
-        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses)
+    static bool IsOccluded(float3 testedCenter, float testedRadius, float3 viewer,
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in NativeArray<Plane> frustrumPlanes)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
         {
             var occluderCenter = occluderTranslations[i].Value;
             var occluderRadius = occluderRadiuses[i].Value;
+
+            if (!IsOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes)) continue;
+
+            var viewerToTested = testedCenter - viewer;
             var viewerToOccluder = occluderCenter - viewer;
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
 
-            if (IsOccluded(center, radius, viewer, occluderDirection, occluderDistance, occluderCenter, occluderRadius))
+            if (IsOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius))
             {
                 return true;
             }
