@@ -656,6 +656,7 @@ MonoBehaviour:
   ZoomSensitivity: 2
   MinZoom: 2
   MaxZoom: 100
+  TargetTransform: {fileID: 911220650}
 --- !u!850595691 &1376171569
 LightingSettings:
   m_ObjectHideFlags: 0

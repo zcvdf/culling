@@ -10,6 +10,7 @@ public class OrbitalCamera : MonoBehaviour
     public float ZoomSensitivity = 2f;
     public float MinZoom = 2f;
     public float MaxZoom = 100f;
+    public Transform TargetTransform;
 
     private Vector3 target;
     private Vector3 translation;
@@ -23,12 +24,14 @@ public class OrbitalCamera : MonoBehaviour
 
     private void Start()
     {
-        this.Target = Vector3.zero;
+        UpdateTarget();
+        this.translation = this.transform.position - this.target;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        this.transform.position = this.Target + this.translation;
+        UpdateTarget();
+        this.transform.position = this.target + this.translation;
 
         if (!this.isUsed) return;
 
@@ -36,21 +39,24 @@ public class OrbitalCamera : MonoBehaviour
         {
             Zoom(-Input.mouseScrollDelta.y * this.ZoomSensitivity);
         }
-    }
-
-    private void LateUpdate()
-    {
-        if (!this.isUsed) return;
 
         if (Input.GetMouseButton(1))
         {
             float horizontal = Input.GetAxis(this.MouseXAxis) * this.RotationSensitivity;
             float vertical = -Input.GetAxis(this.MouseYAxis) * this.RotationSensitivity;
 
-            this.transform.RotateAround(this.Target, Vector3.up, horizontal);
-            this.transform.RotateAround(this.Target, this.transform.right, vertical);
+            this.transform.RotateAround(this.target, Vector3.up, horizontal);
+            this.transform.RotateAround(this.target, this.transform.right, vertical);
 
-            this.translation = this.transform.position - this.Target;
+            this.translation = this.transform.position - this.target;
+        }
+    }
+
+    private void UpdateTarget()
+    {
+        if (this.TargetTransform != null)
+        {
+            this.target = this.TargetTransform.position;
         }
     }
 
@@ -73,19 +79,6 @@ public class OrbitalCamera : MonoBehaviour
     public void ToggleUse()
     {
         Use(!this.isUsed);
-    }
-
-    public Vector3 Target
-    {
-        get => this.target;
-        set
-        {
-            if (value != null)
-            {
-                this.target = value;
-                this.translation = this.transform.position - value;
-            }
-        }
     }
 
     public Camera Camera => this.camera;
