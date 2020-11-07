@@ -52,14 +52,19 @@ public class CullingSystem : SystemBase
         .ScheduleParallel();
     }
 
-    static bool IsClipped(float3 center, float radius, Plane plane)
+    static float SignedDistanceToPlane(float3 point, Plane plane)
     {
         float3 normal = plane.normal;
         float distance = plane.distance;
-        float3 point = -normal * distance;
-        var delta = center - point;
+        float3 planePoint = -normal * distance;
+        var delta = point - planePoint;
 
-        return -math.dot(normal, delta) > radius;
+        return math.dot(normal, delta);
+    }
+
+    static bool IsClipped(float3 center, float radius, Plane plane)
+    {
+        return SignedDistanceToPlane(center, plane) < -radius;
     }
 
     static bool IsInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
@@ -75,43 +80,66 @@ public class CullingSystem : SystemBase
         return true;
     }
 
-    static bool IsOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
+    static bool IsOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes, out bool hasNearIntersection)
     {
         // Special handling of the near clipping plane for occluders (planes[4])
         // We want the occluder to be discarded if its center is behind the near plane
         // Otherwise the objects made visible by the clipping of the near plane get culled out
+
+        var nearPlane = planes[4];
+        hasNearIntersection = false;
+
         if 
         (
             IsClipped(center, radius, planes[0])
             || IsClipped(center, radius, planes[1])
             || IsClipped(center, radius, planes[2])
             || IsClipped(center, radius, planes[3])
-            || IsClipped(center, 0f, planes[4])
             || IsClipped(center, radius, planes[5])
         )
         {
             return false;
         }
 
+        var nearDist = SignedDistanceToPlane(center, nearPlane);
+        if (nearDist < 0f)
+        {
+            return false;
+        }
+
+        if (math.abs(nearDist) < radius)
+        {
+            hasNearIntersection = true;
+        }
+
         return true;
     }
 
-    static bool IsOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection, float occluderDistance, float occluderRadius)
+    static bool IsOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection, 
+        float occluderDistance, float occluderRadius, bool cullInside)
     {
+        // Handling of the objects in occluder sphere handling
+        var occluderToObject = viewerToObject - viewerToOccluder;
+
+        // If it is requested to cull the inside of the sphere, we need to check if the bounding sphere of the object is completely submerged by the occluder.
+        // But if we don't want to cull the inside, the bounding sphere is still visible when it is completely in the occluder AND when it intersects with it.
+        var maxDistToOccluderSq = occluderRadius + (cullInside ? -objectRadius : objectRadius);
+        maxDistToOccluderSq *= maxDistToOccluderSq;
+
+        var isInMaxDistToOccluder = math.lengthsq(occluderToObject) < maxDistToOccluderSq;
+        if (isInMaxDistToOccluder)
+        {
+            return cullInside;
+        }
+
+        // Handling of the objects behind the near slice of the occlusion cone
         var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
         var objectProjectedNear = objectProjectedDistance - objectRadius;
 
-        // Not occluded if behind the near slice of the occlusion cone
-        if (objectProjectedNear < occluderDistance) return false;
+        var isBehindNearSlice = objectProjectedNear < occluderDistance;
+        if (isBehindNearSlice) return false;
 
-        var occluderToObject = viewerToObject - viewerToOccluder;
-
-        var minDistToOccluderSq = occluderRadius + objectRadius;
-        minDistToOccluderSq *= minDistToOccluderSq;
-
-        // Not occluded if in the occluder sphere
-        if (math.lengthsq(occluderToObject) < minDistToOccluderSq) return false;
-
+        // Occlusion cone culling
         var objectProjection = occluderDirection * objectProjectedDistance;
         var ratio = objectProjectedDistance / occluderDistance;
 
@@ -132,14 +160,15 @@ public class CullingSystem : SystemBase
             var occluderCenter = occluderTranslations[i].Value;
             var occluderRadius = occluderRadiuses[i].Value;
 
-            if (!IsOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes)) continue;
+            bool hasNearIntersection = false;
+            if (!IsOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
 
             var viewerToTested = testedCenter - viewer;
             var viewerToOccluder = occluderCenter - viewer;
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
 
-            if (IsOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius))
+            if (IsOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
             {
                 return true;
             }
