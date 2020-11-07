@@ -159,7 +159,7 @@ public class CullingSystem : SystemBase
             var occluderCenter = occluderTranslations[i].Value;
             var occluderRadius = occluderRadiuses[i].Value;
 
-            bool hasNearIntersection = false;
+            bool hasNearIntersection;
             if (!IsOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
 
             var viewerToTested = testedCenter - viewer;
