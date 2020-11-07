@@ -13,6 +13,13 @@ public class OrbitalCamera : MonoBehaviour
 
     private Vector3 target;
     private Vector3 translation;
+    private bool isUsed = false;
+    private new Camera camera;
+
+    private void Awake()
+    {
+        this.camera = GetComponent<Camera>();
+    }
 
     private void Start()
     {
@@ -23,6 +30,8 @@ public class OrbitalCamera : MonoBehaviour
     {
         this.transform.position = this.Target + this.translation;
 
+        if (!this.isUsed) return;
+
         if (Input.mouseScrollDelta.y != 0)
         {
             Zoom(-Input.mouseScrollDelta.y * this.ZoomSensitivity);
@@ -31,6 +40,8 @@ public class OrbitalCamera : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!this.isUsed) return;
+
         if (Input.GetMouseButton(1))
         {
             float horizontal = Input.GetAxis(this.MouseXAxis) * this.RotationSensitivity;
@@ -53,6 +64,17 @@ public class OrbitalCamera : MonoBehaviour
         this.translation = direction * newMagnitude;
     }
 
+    public void Use(bool use)
+    {
+        this.isUsed = use;
+        this.camera.enabled = use;
+    }
+
+    public void ToggleUse()
+    {
+        Use(!this.isUsed);
+    }
+
     public Vector3 Target
     {
         get => this.target;
@@ -65,4 +87,6 @@ public class OrbitalCamera : MonoBehaviour
             }
         }
     }
+
+    public Camera Camera => this.camera;
 }

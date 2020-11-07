@@ -14,6 +14,15 @@ public static class MainExt
     {
         return new float4(color.r, color.g, color.b, color.a);
     }
+
+    public static void DrawFrustrum(this Camera camera, Color color)
+    {
+        if (camera == null) return;
+
+        Gizmos.matrix = camera.transform.localToWorldMatrix;
+        Gizmos.color = color;
+        Gizmos.DrawFrustum(Vector3.zero, camera.fieldOfView, camera.farClipPlane, camera.nearClipPlane, camera.aspect);
+    }
 }
 
 public class Main : MonoBehaviour
@@ -29,8 +38,8 @@ public class Main : MonoBehaviour
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
 
-    [SerializeField] float rotationSensitivity = 20f;
-    [SerializeField] new Camera camera;
+    [SerializeField] ViewerCamera viewerCamera;
+    [SerializeField] OrbitalCamera orbitalCamera;
     [SerializeField] Color entityOutFrumstrumColor;
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
@@ -48,34 +57,23 @@ public class Main : MonoBehaviour
     private void Start()
     {
         this.frustrumPlanesMesh.GetComponent<MeshRenderer>().enabled = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        this.viewerCamera.Use(true);
     }
 
     private void Update()
     {
-        var horizontal = Input.GetAxisRaw("Horizontal");
-        var vertical = Input.GetAxisRaw("Vertical");
+        Inputs();
 
-        this.camera.transform.Rotate(this.transform.up, Time.deltaTime * this.rotationSensitivity * horizontal);
-        this.camera.transform.Rotate(this.transform.right, Time.deltaTime * this.rotationSensitivity * vertical);
-
-        this.frustrumPlanesMesh.mesh = this.camera.GenerateFrustumMesh();
-        FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.camera);
-        
-        WorldToNDC = this.camera.projectionMatrix * this.camera.worldToCameraMatrix;
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            this.displayBoundingSpheres = !this.displayBoundingSpheres;
-        }
-
-        Viewer = this.camera.transform.position;
+        this.frustrumPlanesMesh.mesh = this.viewerCamera.Camera.GenerateFrustumMesh();
+        FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.viewerCamera.Camera);
+        WorldToNDC = this.viewerCamera.Camera.projectionMatrix * this.viewerCamera.Camera.worldToCameraMatrix;
+        Viewer = this.viewerCamera.transform.position;
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.matrix = this.camera.transform.localToWorldMatrix;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawFrustum(Vector3.zero, this.camera.fieldOfView, this.camera.farClipPlane, this.camera.nearClipPlane, this.camera.aspect);
+        this.viewerCamera.Camera.DrawFrustrum(Color.yellow);
 
         if (World != null && !World.Equals(null))
         {
@@ -94,6 +92,20 @@ public class Main : MonoBehaviour
                     Gizmos.DrawSphere(center, radius);
                 }
             }
+        }
+    }
+
+    void Inputs()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            this.viewerCamera.ToggleUse();
+            this.orbitalCamera.ToggleUse();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            this.displayBoundingSpheres = !this.displayBoundingSpheres;
         }
     }
 }
