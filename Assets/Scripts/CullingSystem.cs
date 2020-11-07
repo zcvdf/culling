@@ -15,6 +15,7 @@ public class CullingSystem : SystemBase
         var worldToNDC = Main.WorldToNDC;
         var entityOutFrumstrumColor = Main.EntityOutFrumstrumColor;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
+        var entityOccludedColor = Main.EntityOccludedColor;
 
         var occluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
 
@@ -32,9 +33,17 @@ public class CullingSystem : SystemBase
             var center = translation.Value;
             var radius = radiusComponent.Value;
 
-            bool isVisible = IsInFrustrum(center, radius, frustrumPlanes) && !IsOccluded(center, radius, occluderTranslations, occluderRadiuses);
+            var isInFrustrum = IsInFrustrum(center, radius, frustrumPlanes);
+            var isOccluded = IsOccluded(center, radius, occluderTranslations, occluderRadiuses);
 
-            color.Value = isVisible ? entityInFrumstrumColor : entityOutFrumstrumColor;
+            if (!isInFrustrum)
+            {
+                color.Value = entityOutFrumstrumColor;
+            }
+            else
+            {
+                color.Value = isOccluded ? entityOccludedColor : entityInFrumstrumColor;
+            }
         })
         .WithDisposeOnCompletion(occluderRadiuses)
         .WithDisposeOnCompletion(occluderTranslations)

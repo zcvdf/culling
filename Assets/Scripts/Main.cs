@@ -22,6 +22,7 @@ public class Main : MonoBehaviour
     public static Plane[] FrustrumPlanes;
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
+    public static float4 EntityOccludedColor;
 
     public static World World;
     public static EntityManager EntityManager;
@@ -31,6 +32,7 @@ public class Main : MonoBehaviour
     [SerializeField] new Camera camera;
     [SerializeField] Color entityOutFrumstrumColor;
     [SerializeField] Color entityInFrustrumColor;
+    [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
@@ -39,6 +41,7 @@ public class Main : MonoBehaviour
     {
         EntityOutFrumstrumColor = this.entityOutFrumstrumColor.ToFloat4();
         EntityInFrustrumColor = this.entityInFrustrumColor.ToFloat4();
+        EntityOccludedColor = this.entityOccludedColor.ToFloat4();
     }
 
     private void Start()

@@ -34,7 +34,7 @@ public class SpawnerSystem : SystemBase
             {
                 var entity = cmd.Instantiate(spawner.Prefab);
                 var rand = UnityRand.insideUnitSphere;
-                float3 position = spawner.Origin + rand.normalized * 10f + rand * 5f;
+                float3 position = spawner.Origin + rand.normalized * 20f + rand * 10f;
 
                 cmd.SetComponent(entity, new Translation { Value = position });
                 cmd.AddComponent<EntityTag>(entity);
