@@ -35,14 +35,13 @@ public class CullingSystem : SystemBase
             var radius = radiusComponent.Value;
 
             var isInFrustrum = IsInFrustrum(center, radius, frustrumPlanes);
-            var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses, frustrumPlanes);
-
             if (!isInFrustrum)
             {
                 color.Value = entityOutFrumstrumColor;
             }
             else
             {
+                var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses, frustrumPlanes);
                 color.Value = isOccluded ? entityOccludedColor : entityInFrumstrumColor;
             }
         })
