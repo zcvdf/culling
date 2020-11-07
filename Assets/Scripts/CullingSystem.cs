@@ -12,6 +12,7 @@ public class CullingSystem : SystemBase
 {
     protected override void OnUpdate()
     {
+        var viewer = Main.Viewer;
         var worldToNDC = Main.WorldToNDC;
         var entityOutFrumstrumColor = Main.EntityOutFrumstrumColor;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
@@ -34,7 +35,7 @@ public class CullingSystem : SystemBase
             var radius = radiusComponent.Value;
 
             var isInFrustrum = IsInFrustrum(center, radius, frustrumPlanes);
-            var isOccluded = IsOccluded(center, radius, occluderTranslations, occluderRadiuses);
+            var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses);
 
             if (!isInFrustrum)
             {
@@ -84,14 +85,13 @@ public class CullingSystem : SystemBase
         return math.lengthsq(projectionToObject) < maxDistSq;
     }
 
-    static bool IsOccluded(float3 center, float radius, 
+    static bool IsOccluded(float3 center, float radius, float3 viewer,
         in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
         {
             var occluderCenter = occluderTranslations[i].Value;
             var occluderRadius = occluderRadiuses[i].Value;
-            var viewer = float3.zero;
             var viewerToOccluder = occluderCenter - viewer;
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;

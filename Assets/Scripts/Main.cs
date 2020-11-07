@@ -18,6 +18,7 @@ public static class MainExt
 
 public class Main : MonoBehaviour
 {
+    public static float3 Viewer;
     public static float4x4 WorldToNDC;
     public static Plane[] FrustrumPlanes;
     public static float4 EntityOutFrumstrumColor;
@@ -66,6 +67,8 @@ public class Main : MonoBehaviour
         {
             this.displayBoundingSpheres = !this.displayBoundingSpheres;
         }
+
+        Viewer = this.camera.transform.position;
     }
 
     private void OnDrawGizmos()
