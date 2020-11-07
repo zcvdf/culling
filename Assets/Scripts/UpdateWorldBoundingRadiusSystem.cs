@@ -14,6 +14,7 @@ public class UpdateWorldBoundingRadiusSystem : SystemBase
     protected override void OnUpdate()
     {
         this.Entities
+        .WithChangeFilter<WorldRenderBounds>()
         .ForEach((ref WorldBoundingRadius radius, in WorldRenderBounds bounds) =>
         {
             var extents = bounds.Value.Extents;

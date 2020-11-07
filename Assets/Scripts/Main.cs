@@ -41,6 +41,11 @@ public class Main : MonoBehaviour
         EntityInFrustrumColor = this.entityInFrustrumColor.ToFloat4();
     }
 
+    private void Start()
+    {
+        this.frustrumPlanesMesh.GetComponent<MeshRenderer>().enabled = true;
+    }
+
     private void Update()
     {
         var horizontal = Input.GetAxisRaw("Horizontal");
@@ -66,7 +71,7 @@ public class Main : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawFrustum(Vector3.zero, this.camera.fieldOfView, this.camera.farClipPlane, this.camera.nearClipPlane, this.camera.aspect);
 
-        if (!World.Equals(null))
+        if (World != null && !World.Equals(null))
         {
             if (this.displayBoundingSpheres)
             {

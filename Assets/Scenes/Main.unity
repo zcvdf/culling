@@ -222,8 +222,8 @@ MonoBehaviour:
   rotationSensitivity: 10
   camera: {fileID: 911220652}
   entityOutFrumstrumColor: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0.39215687}
-  entityInFrustrumColor: {r: 0.8773585, g: 0.20426588, b: 0, a: 1}
-  boudingSphereColor: {r: 0.23113209, g: 0.5802986, b: 1, a: 0.39215687}
+  entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
+  boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
   frustrumPlanesMesh: {fileID: 753912383}
 --- !u!1 &705507993
 GameObject:
@@ -356,7 +356,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 753912380}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
