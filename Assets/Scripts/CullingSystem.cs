@@ -19,22 +19,25 @@ public class CullingSystem : SystemBase
         var occluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
 
         var frustrumPlanes = new NativeArray<Plane>(Main.FrustrumPlanes, Allocator.TempJob);
-        //var occluderTranslations = occluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
-        //var occluderRadiuses = occluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
+        var occluderTranslations = occluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
+        var occluderRadiuses = occluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
 
         this.Entities
         .WithAll<EntityTag>()
         .WithReadOnly(frustrumPlanes)
-        /*.WithReadOnly(occluderTranslations)
-        .WithReadOnly(occluderRadiuses)*/
-        .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radius) =>
+        .WithReadOnly(occluderTranslations)
+        .WithReadOnly(occluderRadiuses)
+        .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent) =>
         {
-            bool inFrustrum = IsInFrustrum(translation.Value, radius.Value, frustrumPlanes);
+            var center = translation.Value;
+            var radius = radiusComponent.Value;
 
-            color.Value = inFrustrum ? entityInFrumstrumColor : entityOutFrumstrumColor;
+            bool isVisible = IsInFrustrum(center, radius, frustrumPlanes) && !IsOccluded(center, radius, occluderTranslations, occluderRadiuses);
+
+            color.Value = isVisible ? entityInFrumstrumColor : entityOutFrumstrumColor;
         })
-        /*.WithDisposeOnCompletion(occluderRadiuses)
-        .WithDisposeOnCompletion(occluderTranslations)*/
+        .WithDisposeOnCompletion(occluderRadiuses)
+        .WithDisposeOnCompletion(occluderTranslations)
         .WithDisposeOnCompletion(frustrumPlanes)
         .ScheduleParallel();
     }
@@ -55,5 +58,41 @@ public class CullingSystem : SystemBase
         }
 
         return true;
+    }
+
+    static bool IsOccluded(float3 center, float radius, float3 viewer, float3 occluderDirection, float occluderDistance, float3 occluderCenter, float occluderRadius)
+    {
+        var viewerToObject = center - viewer;
+        var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
+        var objectProjection = viewer + occluderDirection * objectProjectedDistance;
+        var ratio = objectProjectedDistance / occluderDistance;
+
+        var maxDist = ratio * occluderRadius - radius;
+        var maxDistSq = maxDist * maxDist;
+
+        var projectionToObject = center - objectProjection;
+
+        return math.lengthsq(projectionToObject) < maxDistSq;
+    }
+
+    static bool IsOccluded(float3 center, float radius, 
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses)
+    {
+        for (int i = 0; i < occluderTranslations.Length; ++i)
+        {
+            var occluderCenter = occluderTranslations[i].Value;
+            var occluderRadius = occluderRadiuses[i].Value;
+            var viewer = float3.zero;
+            var viewerToOccluder = occluderCenter - viewer;
+            var occluderDistance = math.length(viewerToOccluder);
+            var occluderDirection = viewerToOccluder / occluderDistance;
+
+            if (IsOccluded(center, radius, viewer, occluderDirection, occluderDistance, occluderCenter, occluderRadius))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
