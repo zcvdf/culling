@@ -10,10 +10,17 @@ public class WorldOccluderExtentsAuthoring : MonoBehaviour, IConvertGameObjectTo
     {
         var scale = this.transform.lossyScale;
 
+        var localRight = this.transform.right;
+        var localRightLength = scale.x * 5f;
+        var localUp = this.transform.forward;
+        var localUpLength = scale.z * 5f;
+
         var extents = new WorldOccluderExtents
         {
-            Right = this.transform.right * scale.x * 5f,
-            Up = this.transform.up * scale.y * 5f
+            LocalRight = localRight,
+            LocalRightLength = localRightLength,
+            LocalUp = localUp,
+            LocalUpLength = localUpLength,
         };
 
         dstManager.AddComponentData(entity, extents);

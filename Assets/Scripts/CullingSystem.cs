@@ -7,6 +7,15 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct OccluderPlanes
+{
+    public Plane Left;
+    public Plane Right;
+    public Plane Up;
+    public Plane Down;
+    public Plane Near;
+}
+
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 public class CullingSystem : SystemBase
 {
@@ -18,17 +27,23 @@ public class CullingSystem : SystemBase
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
         var entityOccludedColor = Main.EntityOccludedColor;
 
-        var occluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
+        var sphereOccluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
+        var planeOccluderQuery = GetEntityQuery(typeof(WorldOccluderExtents), typeof(Translation));
 
         var frustrumPlanes = new NativeArray<Plane>(Main.FrustrumPlanes, Allocator.TempJob);
-        var occluderTranslations = occluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
-        var occluderRadiuses = occluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
+        var sphereOccluderTranslations = sphereOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
+        var sphereOccluderRadiuses = sphereOccluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
+
+        var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
+        var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
         this.Entities
         .WithAll<EntityTag>()
         .WithReadOnly(frustrumPlanes)
-        .WithReadOnly(occluderTranslations)
-        .WithReadOnly(occluderRadiuses)
+        .WithReadOnly(sphereOccluderTranslations)
+        .WithReadOnly(sphereOccluderRadiuses)
+        .WithReadOnly(planeOccluderTranslations)
+        .WithReadOnly(planeOccluderExtents)
         .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent) =>
         {
             var center = translation.Value;
@@ -41,12 +56,17 @@ public class CullingSystem : SystemBase
             }
             else
             {
-                var isOccluded = IsOccluded(center, radius, viewer, occluderTranslations, occluderRadiuses, frustrumPlanes);
-                color.Value = isOccluded ? entityOccludedColor : entityInFrumstrumColor;
+                var isSphereOccluded = 
+                IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
+                || IsOccludedByPlane(center, radius, viewer, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
+
+                color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             }
         })
-        .WithDisposeOnCompletion(occluderRadiuses)
-        .WithDisposeOnCompletion(occluderTranslations)
+        .WithDisposeOnCompletion(planeOccluderExtents)
+        .WithDisposeOnCompletion(planeOccluderTranslations)
+        .WithDisposeOnCompletion(sphereOccluderRadiuses)
+        .WithDisposeOnCompletion(sphereOccluderTranslations)
         .WithDisposeOnCompletion(frustrumPlanes)
         .ScheduleParallel();
     }
@@ -79,7 +99,7 @@ public class CullingSystem : SystemBase
         return true;
     }
 
-    static bool IsOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes, out bool hasNearIntersection)
+    static bool IsSphereOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes, out bool hasNearIntersection)
     {
         // Special handling of the near clipping plane for occluders (planes[4])
         // We want the occluder to be discarded if its center is behind the near plane
@@ -114,7 +134,7 @@ public class CullingSystem : SystemBase
         return true;
     }
 
-    static bool IsOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection, 
+    static bool IsSphereOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection, 
         float occluderDistance, float occluderRadius, bool cullInside)
     {
         // Handling of the objects in occluder sphere handling
@@ -151,7 +171,7 @@ public class CullingSystem : SystemBase
         return math.lengthsq(projectionToObject) < maxDistSq;
     }
 
-    static bool IsOccluded(float3 testedCenter, float testedRadius, float3 viewer,
+    static bool IsOccludedBySphere(float3 testedCenter, float testedRadius, float3 viewer,
         in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in NativeArray<Plane> frustrumPlanes)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
@@ -160,14 +180,77 @@ public class CullingSystem : SystemBase
             var occluderRadius = occluderRadiuses[i].Value;
 
             bool hasNearIntersection;
-            if (!IsOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
+            if (!IsSphereOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
 
             var viewerToTested = testedCenter - viewer;
             var viewerToOccluder = occluderCenter - viewer;
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
 
-            if (IsOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            if (IsSphereOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static OccluderPlanes GetOccluderPlanes(float3 viewer, float3 center, float3 localRight, float localRightLength, float3 localUp, float localUpLength)
+    {
+        var right = center + localRight * localRightLength;
+        var left = center - localRight * localRightLength;
+        var up = center + localUp * localUpLength;
+        var down = center - localUp * localUpLength;
+
+        var viewerToLeft = math.normalize(left - viewer);
+        var viewerToRight = math.normalize(right - viewer);
+        var viewerToUp = math.normalize(up - viewer);
+        var viewerToDown = math.normalize(down - viewer);
+
+        var leftPlaneNormal = math.cross(viewerToLeft, localUp);
+        var rightPlaneNormal = math.cross(localUp, viewerToRight);
+        var downPlaneNormal = math.cross(localRight, viewerToDown);
+        var upPlaneNormal = math.cross(viewerToUp, localRight);
+        var nearPlaneNormal = math.cross(localUp, localRight);
+
+        var planes = new OccluderPlanes();
+        planes.Left = new Plane(leftPlaneNormal, left);
+        planes.Right = new Plane(rightPlaneNormal, right);
+        planes.Up = new Plane(upPlaneNormal, up);
+        planes.Down = new Plane(downPlaneNormal, down);
+        planes.Near = new Plane(nearPlaneNormal, center);
+
+        return planes;
+    }
+
+    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, in OccluderPlanes planes)
+    {
+        return
+            IsClipped(testedCenter, testedRadius, planes.Left)
+            && IsClipped(testedCenter, testedRadius, planes.Right)
+            && IsClipped(testedCenter, testedRadius, planes.Up)
+            && IsClipped(testedCenter, testedRadius, planes.Down)
+            && IsClipped(testedCenter, testedRadius, planes.Near);
+    }
+
+    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer,
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents, in NativeArray<Plane> frustrumPlanes)
+    {
+        for (int i = 0; i < occluderTranslations.Length; ++i)
+        {
+            var center = occluderTranslations[i].Value;
+            var localRight = occluderExtents[i].LocalRight;
+            var localRightLength = occluderExtents[i].LocalRightLength;
+            var localUp = occluderExtents[i].LocalUp;
+            var localUpLength = occluderExtents[i].LocalUpLength;
+            var occluderBoundingRadius = math.max(localRightLength, localUpLength);
+
+            //if (!IsInFrustrum(center, occluderBoundingRadius, frustrumPlanes)) continue;
+
+            var occlusionPlanes = GetOccluderPlanes(viewer, center, localRight, localRightLength, localUp, localUpLength);
+
+            if (IsOccludedByPlane(testedCenter, testedRadius, occlusionPlanes))
             {
                 return true;
             }

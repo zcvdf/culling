@@ -6,6 +6,8 @@ using UnityEngine;
 
 public struct WorldOccluderExtents : IComponentData
 {
-    public float3 Right;
-    public float3 Up;
+    public float3 LocalRight;
+    public float LocalRightLength;
+    public float3 LocalUp;
+    public float LocalUpLength;
 }
