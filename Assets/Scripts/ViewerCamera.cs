@@ -12,6 +12,7 @@ public class ViewerCamera : MonoBehaviour
     private void Awake()
     {
         this.camera = GetComponent<Camera>();
+        Use(false);
     }
 
     void Update()
