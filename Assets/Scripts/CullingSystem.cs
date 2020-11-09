@@ -196,7 +196,17 @@ public class CullingSystem : SystemBase
         return false;
     }
 
-    static OccluderPlanes GetOccluderPlanes(float3 viewer, float3 center, float3 localRight, float localRightLength, float3 localUp, float localUpLength)
+    static float3 GetOccluderlaneNormal(float3 localRight, float3 localUp)
+    {
+        return math.cross(localUp, localRight);
+    }
+
+    static bool OccluderPlaneHasContribution(float3 planeNormal, float3 viewerToCenter)
+    {
+        return math.dot(planeNormal, viewerToCenter) < 0f;
+    }
+
+    static OccluderPlanes GetOccluderPlanes(float3 viewer, float3 center, float3 occluderNormal, float3 localRight, float localRightLength, float3 localUp, float localUpLength)
     {
         var right = center + localRight * localRightLength;
         var left = center - localRight * localRightLength;
@@ -212,7 +222,7 @@ public class CullingSystem : SystemBase
         var rightPlaneNormal = math.cross(localUp, viewerToRight);
         var downPlaneNormal = math.cross(localRight, viewerToDown);
         var upPlaneNormal = math.cross(viewerToUp, localRight);
-        var nearPlaneNormal = math.cross(localUp, localRight);
+        var nearPlaneNormal = occluderNormal;
 
         var planes = new OccluderPlanes();
         planes.Left = new Plane(leftPlaneNormal, left);
@@ -244,11 +254,13 @@ public class CullingSystem : SystemBase
             var localRightLength = occluderExtents[i].LocalRightLength;
             var localUp = occluderExtents[i].LocalUp;
             var localUpLength = occluderExtents[i].LocalUpLength;
-            var occluderBoundingRadius = math.max(localRightLength, localUpLength);
 
-            //if (!IsInFrustrum(center, occluderBoundingRadius, frustrumPlanes)) continue;
+            var viewerToCenter = math.normalize(center - viewer);
+            var occluderNormal = GetOccluderlaneNormal(localRight, localUp);
 
-            var occlusionPlanes = GetOccluderPlanes(viewer, center, localRight, localRightLength, localUp, localUpLength);
+            if (!OccluderPlaneHasContribution(occluderNormal, viewerToCenter)) continue;
+
+            var occlusionPlanes = GetOccluderPlanes(viewer, center, occluderNormal, localRight, localRightLength, localUp, localUpLength);
 
             if (IsOccludedByPlane(testedCenter, testedRadius, occlusionPlanes))
             {
