@@ -17,9 +17,20 @@ public class PlaneIntersectTest : MonoBehaviour
     void Update()
     {
         var p0 = new Plane(this.plane0.up, this.plane0.position);
-        var p1 = new Plane(this.plane1.up, this.plane1.position);
+        var quad = new Quad();
+        quad.Center = this.plane1.position;
+        quad.LocalRight = this.plane1.right * this.plane1.lossyScale.x * 5f;
+        quad.LocalUp = this.plane1.forward * this.plane1.lossyScale.z * 5f;
+        quad.Normal = this.plane1.up;
 
-        var point = CullingSystem.Intersect(p0, p1);
-        this.marker.position = point;
+        var mat = this.plane1.GetComponent<MeshRenderer>().material;
+        if (CullingSystem.Intersect(p0, quad))
+        {
+            mat.color = Color.red;
+        }
+        else
+        {
+            mat.color = Color.white;
+        }
     }
 }

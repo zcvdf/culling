@@ -9,7 +9,7 @@ using UnityEngine;
 
 public struct Quad
 {
-    public float Distance;
+    public float3 Center;
     public float3 Normal;
     public float3 LocalRight;
     public float3 LocalUp;
@@ -279,7 +279,7 @@ public class CullingSystem : SystemBase
         return false;
     }
 
-    public static float3 Intersect(in Plane plane0, in Plane plane1)
+    public static bool Intersect(in Plane plane0, in Plane plane1, out float3 point)
     {
         // Unoptimized version looks like this. 
         // Basically trying to find the intersection point between 3 planes by solving a system with 3 member using an inverse matrix.
@@ -304,8 +304,33 @@ public class CullingSystem : SystemBase
 
         float det = math.lengthsq(cross);
 
-        if (det == 0f) return float3.zero;
+        if (det == 0f)
+        {
+            point = float3.zero;
+            return false;
+        }
 
-        return (math.cross(cross, plane1.normal) * plane0.distance + math.cross(plane0.normal, cross) * plane1.distance) / det;
+        point = (math.cross(cross, plane1.normal) * plane0.distance + math.cross(plane0.normal, cross) * plane1.distance) / det;
+        return true;
+    }
+
+    public static bool Intersect(in Plane plane, in Quad quad)
+    {
+        float3 point;
+        if (!Intersect(plane, new Plane(quad.Normal, quad.Center), out point)) return false;
+
+        var quadToPoint = point - quad.Center;
+
+        var x = math.abs(math.dot(quad.LocalRight, quadToPoint));
+        var maxX = math.lengthsq(quad.LocalRight);
+
+        if (x > maxX) return false;
+
+        var y = math.abs(math.dot(quad.LocalUp, quadToPoint));
+        var maxY = math.lengthsq(quad.LocalUp);
+
+        if (y > maxY) return false;
+
+        return true;
     }
 }
