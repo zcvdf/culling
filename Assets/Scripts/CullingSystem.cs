@@ -7,6 +7,14 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct Quad
+{
+    public float Distance;
+    public float3 Normal;
+    public float3 LocalRight;
+    public float3 LocalUp;
+}
+
 public struct OccluderPlanes
 {
     public Plane Left;
@@ -269,5 +277,35 @@ public class CullingSystem : SystemBase
         }
 
         return false;
+    }
+
+    public static float3 Intersect(in Plane plane0, in Plane plane1)
+    {
+        // Unoptimized version looks like this. 
+        // Basically trying to find the intersection point between 3 planes by solving a system with 3 member using an inverse matrix.
+
+        // var plane2 = new Plane(math.cross(plane0.normal, plane1.normal), 0f);
+        // var mat = math.transpose(new float3x3 { c0 = plane0.normal, c1 = plane1.normal, c2 = plane2.normal });
+        // var invMat = math.inverse(mat);
+        // 
+        // return math.mul(invMat, new float3(-plane0.distance, -plane1.distance, -plane2.distance));
+
+        // The optimized version is doing the same thing but much faster.
+        // The trick comes from the fact that one of the vector involved in the system is the cross product of the two other.
+
+        // Matrix3x3 determinant is equal to dot(a, cross(b, c)) with a, b, c the row vectors of the matrix.
+        // Here, a = cross(b, c), so the determinant becomes dot(a, a) which becomes lengthsq(a)
+
+        // We also assume that the 3rd plane distance is always 0. This is possible since the plane has a normal orthogonal to the 2 other planes.
+        // Which means that, assuming the 2 planes are not parallel : 
+        // The third plane is always going to cut the intersection line of the two planes no matter its position.
+
+        var cross = math.cross(plane0.normal, plane1.normal);
+
+        float det = math.lengthsq(cross);
+
+        if (det == 0f) return float3.zero;
+
+        return (math.cross(cross, plane1.normal) * plane0.distance + math.cross(plane0.normal, cross) * plane1.distance) / det;
     }
 }
