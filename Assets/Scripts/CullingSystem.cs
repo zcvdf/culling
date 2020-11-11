@@ -30,6 +30,8 @@ public class CullingSystem : SystemBase
     protected override void OnUpdate()
     {
         var viewer = Main.Viewer;
+        var nearPlane = Main.NearPlane;
+        var nearPlaneCenter = Main.NearPlaneCenter;
         var worldToNDC = Main.WorldToNDC;
         var entityOutFrumstrumColor = Main.EntityOutFrumstrumColor;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
@@ -66,7 +68,7 @@ public class CullingSystem : SystemBase
             {
                 var isSphereOccluded = 
                 IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
-                || IsOccludedByPlane(center, radius, viewer, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
+                || IsOccludedByPlane(center, radius, viewer, nearPlaneCenter, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             }
@@ -209,9 +211,11 @@ public class CullingSystem : SystemBase
         return math.cross(localUp, localRight);
     }
 
-    static bool OccluderPlaneHasContribution(float3 planeNormal, float3 viewerToCenter)
+    static bool OccluderPlaneHasContribution(in Quad occluder, in Plane nearPlane, float3 nearPlaneCenter)
     {
-        return math.dot(planeNormal, viewerToCenter) < 0f;
+        var occluderToNearPlane = occluder.Center - nearPlaneCenter;
+
+        return math.dot(occluderToNearPlane, nearPlane.normal) > 0f && !Intersect(nearPlane, occluder);
     }
 
     static OccluderPlanes GetOccluderPlanes(float3 viewer, float3 center, float3 occluderNormal, float3 localRight, float localRightLength, float3 localUp, float localUpLength)
@@ -252,7 +256,7 @@ public class CullingSystem : SystemBase
             && IsClipped(testedCenter, testedRadius, planes.Near);
     }
 
-    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer,
+    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer, float3 nearPlaneCenter, in Plane nearPlane,
         in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents, in NativeArray<Plane> frustrumPlanes)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
@@ -262,11 +266,15 @@ public class CullingSystem : SystemBase
             var localRightLength = occluderExtents[i].LocalRightLength;
             var localUp = occluderExtents[i].LocalUp;
             var localUpLength = occluderExtents[i].LocalUpLength;
-
-            var viewerToCenter = math.normalize(center - viewer);
             var occluderNormal = GetOccluderlaneNormal(localRight, localUp);
 
-            if (!OccluderPlaneHasContribution(occluderNormal, viewerToCenter)) continue;
+            var occluderQuad = new Quad();
+            occluderQuad.Center = center;
+            occluderQuad.LocalRight = localRight * localRightLength;
+            occluderQuad.LocalUp = localUp * localUpLength;
+            occluderQuad.Normal = occluderNormal;
+
+            if (!OccluderPlaneHasContribution(occluderQuad, nearPlane, nearPlaneCenter)) continue;
 
             var occlusionPlanes = GetOccluderPlanes(viewer, center, occluderNormal, localRight, localRightLength, localUp, localUpLength);
 

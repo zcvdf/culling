@@ -28,9 +28,10 @@ public static class MainExt
 public class Main : MonoBehaviour
 {
     public static float3 Viewer;
-    public static float NearPlane;
+    public static float3 NearPlaneCenter;
     public static float4x4 WorldToNDC;
     public static Plane[] FrustrumPlanes;
+    public static Plane NearPlane => FrustrumPlanes[4];
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
     public static float4 EntityOccludedColor;
@@ -70,7 +71,7 @@ public class Main : MonoBehaviour
         FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.viewerCamera.Camera);
         WorldToNDC = this.viewerCamera.Camera.projectionMatrix * this.viewerCamera.Camera.worldToCameraMatrix;
         Viewer = this.viewerCamera.transform.position;
-        NearPlane = this.viewerCamera.Camera.nearClipPlane;
+        NearPlaneCenter = this.viewerCamera.transform.position + this.viewerCamera.transform.forward * this.viewerCamera.Camera.nearClipPlane;
     }
 
     private void OnDrawGizmos()
