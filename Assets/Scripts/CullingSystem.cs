@@ -68,7 +68,7 @@ public class CullingSystem : SystemBase
             {
                 var isSphereOccluded = 
                 IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
-                || IsOccludedByPlane(center, radius, viewer, nearPlaneCenter, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
+                || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             }
@@ -211,11 +211,19 @@ public class CullingSystem : SystemBase
         return math.cross(localUp, localRight);
     }
 
-    static bool OccluderPlaneHasContribution(in Quad occluder, in Quad nearPlane, float3 nearPlaneCenter)
+    static bool OccluderPlaneHasContribution(in Quad occluder, in Quad nearPlane)
     {
-        var occluderToNearPlane = occluder.Center - nearPlaneCenter;
+        var occluderToNearPlane = nearPlane.Center - occluder.Center;
+        var signedDist = math.dot(occluderToNearPlane, occluder.Normal);
 
-        return math.dot(occluderToNearPlane, nearPlane.Normal) > 0f && !Intersect(nearPlane, occluder);
+        if (signedDist < 0f) return false;
+
+        var distSq = signedDist * signedDist;
+
+        // Add small epsilon to avoid having to deal with too tiny float values
+        var nearBoundingRadiusSq = math.lengthsq(nearPlane.LocalRight + nearPlane.LocalUp) + 0.1f; 
+
+        return distSq > nearBoundingRadiusSq;
     }
 
     static OccluderPlanes GetOccluderPlanes(float3 viewer, float3 center, float3 occluderNormal, float3 localRight, float localRightLength, float3 localUp, float localUpLength)
@@ -256,7 +264,7 @@ public class CullingSystem : SystemBase
             && IsClipped(testedCenter, testedRadius, planes.Near);
     }
 
-    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer, float3 nearPlaneCenter, in Quad nearPlane,
+    static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer, in Quad nearPlane,
         in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents, in NativeArray<Plane> frustrumPlanes)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
@@ -274,7 +282,7 @@ public class CullingSystem : SystemBase
             occluderQuad.LocalUp = localUp * localUpLength;
             occluderQuad.Normal = occluderNormal;
 
-            if (!OccluderPlaneHasContribution(occluderQuad, nearPlane, nearPlaneCenter)) continue;
+            if (!OccluderPlaneHasContribution(occluderQuad, nearPlane)) continue;
 
             var occlusionPlanes = GetOccluderPlanes(viewer, center, occluderNormal, localRight, localRightLength, localUp, localUpLength);
 
@@ -285,171 +293,5 @@ public class CullingSystem : SystemBase
         }
 
         return false;
-    }
-
-    public static bool Intersect(in Plane plane0, in Plane plane1, out float3 point, out float3 direction)
-    {
-        // Unoptimized version looks like this. 
-        // Basically trying to find the intersection point between 3 planes by solving a system with 3 member using an inverse matrix.
-
-        // var plane2 = new Plane(math.cross(plane0.normal, plane1.normal), 0f);
-        // var mat = math.transpose(new float3x3 { c0 = plane0.normal, c1 = plane1.normal, c2 = plane2.normal });
-        // var invMat = math.inverse(mat);
-        // 
-        // return math.mul(invMat, new float3(-plane0.distance, -plane1.distance, -plane2.distance));
-
-        // The optimized version is doing the same thing but much faster.
-        // The trick comes from the fact that one of the vector involved in the system is the cross product of the two other.
-
-        // Matrix3x3 determinant is equal to dot(a, cross(b, c)) with a, b, c the row vectors of the matrix.
-        // Here, a = cross(b, c), so the determinant becomes dot(a, a) which becomes lengthsq(a)
-
-        // We also assume that the 3rd plane distance is always 0. This is possible since the plane has a normal orthogonal to the 2 other planes.
-        // Which means that, assuming the 2 planes are not parallel : 
-        // The third plane is always going to cut the intersection line of the two planes no matter its position.
-
-        var cross = math.cross(plane0.normal, plane1.normal);
-
-        float det = math.lengthsq(cross);
-
-        if (det == 0f)
-        {
-            point = float3.zero;
-            direction = float3.zero;
-            return false;
-        }
-
-        point = (math.cross(cross, plane1.normal) * plane0.distance + math.cross(plane0.normal, cross) * plane1.distance) / det;
-        direction = math.normalize(cross);
-
-        return true;
-    }
-    
-    public static bool IsPlanePointOnQuad(float3 point, in Quad quad)
-    {
-        var quadToPoint = point - quad.Center;
-
-        var x = math.abs(math.dot(quad.LocalRight, quadToPoint));
-        var maxX = math.lengthsq(quad.LocalRight);
-
-        if (x > maxX) return false;
-
-        var y = math.abs(math.dot(quad.LocalUp, quadToPoint));
-        var maxY = math.lengthsq(quad.LocalUp);
-
-        if (y > maxY) return false;
-
-        return true;
-    }
-
-    public static bool Intersect(in Plane plane, in Quad quad)
-    {
-        var topLeft = quad.Center + quad.LocalUp - quad.LocalRight;
-        var botLeft = quad.Center + quad.LocalUp + quad.LocalRight;
-        var topRight = quad.Center - quad.LocalUp + quad.LocalRight;
-        var botRight = quad.Center - quad.LocalUp - quad.LocalRight;
-
-        float4 distances;
-        distances.x = plane.GetDistanceToPoint(topLeft);
-        distances.y = plane.GetDistanceToPoint(botLeft);
-        distances.z = plane.GetDistanceToPoint(topRight);
-        distances.w = plane.GetDistanceToPoint(botRight);
-
-        return !(math.all(distances > 0f) || math.all(distances < 0f));
-    }
-
-    public static AABB GetAABB(in Quad quad)
-    {
-        var topLeft = quad.LocalUp - quad.LocalRight;
-        var botLeft = quad.LocalUp + quad.LocalRight;
-        var topRight = -quad.LocalUp + quad.LocalRight;
-        var botRight = -quad.LocalUp - quad.LocalRight;
-
-        var aabb = new AABB();
-        aabb.Center = quad.Center;
-        aabb.Extents = math.max(math.max(math.max(topLeft, botLeft), topRight), botRight);
-
-        return aabb;
-    }
-
-    public static bool Overlap(in AABB b0, in AABB b1)
-    {
-        if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
-        {
-            return false;
-        }
-
-        return b0.Max.x >= b1.Min.x && b0.Max.y >= b1.Min.y && b0.Max.z >= b1.Min.z;
-    }
-
-    public static void GetProjMinMax(in Quad quad, float3 direction, out float min, out float max)
-    {
-        var topLeft = quad.Center + quad.LocalUp - quad.LocalRight;
-        var botLeft = quad.Center + quad.LocalUp + quad.LocalRight;
-        var topRight = quad.Center - quad.LocalUp + quad.LocalRight;
-        var botRight = quad.Center - quad.LocalUp - quad.LocalRight;
-
-        var a = math.dot(direction, topLeft);
-        var b = math.dot(direction, botLeft);
-        var c = math.dot(direction, topRight);
-        var d = math.dot(direction, botRight);
-
-        min = math.min(math.min(math.min(a, b), c), d);
-        max = math.max(math.max(math.max(a, b), c), d);
-    }
-
-    public static bool IsSeparationAxis(float3 axis, in Quad quad0, in Quad quad1)
-    {
-        float min0;
-        float max0;
-        GetProjMinMax(quad0, axis, out min0, out max0);
-
-        float min1;
-        float max1;
-        GetProjMinMax(quad1, axis, out min1, out max1);
-
-        return max0 < min1 || min0 > max1;
-    }
-
-    public static bool Intersect(in Quad quad0, in Quad quad1)
-    {
-        if (!Overlap(GetAABB(quad0), GetAABB(quad1))) return false;
-
-        // Burst does not support normal arrays
-        // Need to figure out how to make stack based array to avoid heap allocation.
-
-        var a0 = math.cross(quad0.Normal, quad1.Normal);
-        var a1 = math.cross(quad0.Normal, quad1.LocalRight);
-        var a2 = math.cross(quad0.Normal, quad1.LocalUp);
-        var a3 = math.cross(quad0.LocalRight, quad1.Normal);
-        var a4 = math.cross(quad0.LocalRight, quad1.LocalRight);
-        var a5 = math.cross(quad0.LocalRight, quad1.LocalUp);
-        var a6 = math.cross(quad0.LocalUp, quad1.Normal);
-        var a7 = math.cross(quad0.LocalUp, quad1.LocalRight);
-        var a8 = math.cross(quad0.LocalUp, quad1.LocalUp);
-        var a9 = quad0.Normal;
-        var a10 = quad0.LocalRight;
-        var a11 = quad0.LocalUp;
-        var a12 = quad1.Normal;
-        var a13 = quad1.LocalRight;
-        var a14 = quad1.LocalUp;
-
-        if (IsSeparationAxis(a0, quad0, quad1)) return false;
-        if (IsSeparationAxis(a1, quad0, quad1)) return false;
-        if (IsSeparationAxis(a2, quad0, quad1)) return false;
-        if (IsSeparationAxis(a3, quad0, quad1)) return false;
-        if (IsSeparationAxis(a4, quad0, quad1)) return false;
-        if (IsSeparationAxis(a5, quad0, quad1)) return false;
-        if (IsSeparationAxis(a6, quad0, quad1)) return false;
-        if (IsSeparationAxis(a7, quad0, quad1)) return false;
-        if (IsSeparationAxis(a8, quad0, quad1)) return false;
-        if (IsSeparationAxis(a9, quad0, quad1)) return false;
-        if (IsSeparationAxis(a10, quad0, quad1)) return false;
-        if (IsSeparationAxis(a11, quad0, quad1)) return false;
-        if (IsSeparationAxis(a12, quad0, quad1)) return false;
-        if (IsSeparationAxis(a13, quad0, quad1)) return false;
-        if (IsSeparationAxis(a14, quad0, quad1)) return false;
-
-        return true;
     }
 }
