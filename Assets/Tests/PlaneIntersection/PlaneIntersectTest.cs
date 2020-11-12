@@ -75,5 +75,12 @@ public class PlaneIntersectTest : MonoBehaviour
 
         Gizmos.DrawSphere(this.quad0.Center + this.quad0.Normal, 0.2f);
         Gizmos.DrawSphere(this.quad1.Center + this.quad1.Normal, 0.2f);
+
+        var aabb0 = CullingSystem.GetAABB(this.quad0);
+        var aabb1 = CullingSystem.GetAABB(this.quad1);
+
+        Gizmos.color = new Color(0, 1, 0, 0.2f);
+        Gizmos.DrawCube(aabb0.Center, aabb0.Size);
+        Gizmos.DrawCube(aabb1.Center, aabb1.Size);
     }
 }

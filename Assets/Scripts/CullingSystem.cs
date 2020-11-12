@@ -358,6 +358,30 @@ public class CullingSystem : SystemBase
         return !(math.all(distances > 0f) || math.all(distances < 0f));
     }
 
+    public static AABB GetAABB(in Quad quad)
+    {
+        var topLeft = quad.LocalUp - quad.LocalRight;
+        var botLeft = quad.LocalUp + quad.LocalRight;
+        var topRight = -quad.LocalUp + quad.LocalRight;
+        var botRight = -quad.LocalUp - quad.LocalRight;
+
+        var aabb = new AABB();
+        aabb.Center = quad.Center;
+        aabb.Extents = math.max(math.max(math.max(topLeft, botLeft), topRight), botRight);
+
+        return aabb;
+    }
+
+    public static bool Overlap(in AABB b0, in AABB b1)
+    {
+        if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
+        {
+            return false;
+        }
+
+        return b0.Max.x >= b1.Min.x && b0.Max.y >= b1.Min.y && b0.Max.z >= b1.Min.z;
+    }
+
     public static void GetProjMinMax(in Quad quad, float3 direction, out float min, out float max)
     {
         var topLeft = quad.Center + quad.LocalUp - quad.LocalRight;
@@ -389,6 +413,8 @@ public class CullingSystem : SystemBase
 
     public static bool Intersect(in Quad quad0, in Quad quad1)
     {
+        if (!Overlap(GetAABB(quad0), GetAABB(quad1))) return false;
+
         // Burst does not support normal arrays
         // Need to figure out how to make stack based array to avoid heap allocation.
 
