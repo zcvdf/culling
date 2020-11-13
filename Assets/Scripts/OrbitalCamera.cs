@@ -26,18 +26,17 @@ public class OrbitalCamera : MonoBehaviour
     private void Start()
     {
         UpdateTarget();
-        if (this.TargetTransform != null)
-        {
-            this.target = -this.TargetTransform.forward * 5f;
-        }
 
         this.translation = this.transform.position - this.target;
+        if (this.translation == Vector3.zero)
+        {
+            this.translation -= this.transform.forward * 5f;
+        }
     }
 
     private void LateUpdate()
     {
         UpdateTarget();
-        this.transform.position = this.target + this.translation;
 
         if (!this.isUsed) return;
 
@@ -56,6 +55,8 @@ public class OrbitalCamera : MonoBehaviour
         {
             Zoom(-Input.mouseScrollDelta.y * this.ZoomSensitivity);
         }
+
+        this.transform.position = this.target + this.translation;
     }
 
     private void UpdateTarget()
@@ -63,6 +64,10 @@ public class OrbitalCamera : MonoBehaviour
         if (this.TargetTransform != null)
         {
             this.target = this.TargetTransform.position;
+        }
+        else
+        {
+            this.target = Vector3.zero;
         }
     }
 
