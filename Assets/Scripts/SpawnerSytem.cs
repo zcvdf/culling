@@ -28,6 +28,7 @@ public class SpawnerSystem : SystemBase
         
         this.Entities
         .WithAll<SpawnerUnusedTag>()
+        .WithoutBurst()
         .ForEach((ref Entity spawnerEntity, in Spawner spawner) =>
         {
             for (int i = 0; i < spawner.Count; ++i)
@@ -46,6 +47,7 @@ public class SpawnerSystem : SystemBase
                 cmd.AddComponent<EntityTag>(entity);
                 cmd.AddComponent<URPMaterialPropertyBaseColor>(entity);
                 cmd.AddComponent<WorldBoundingRadius>(entity);
+                cmd.AddSharedComponent(entity, Octree.RootID);
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);

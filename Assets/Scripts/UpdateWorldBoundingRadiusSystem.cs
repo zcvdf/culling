@@ -9,8 +9,6 @@ using UnityEngine;
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class UpdateWorldBoundingRadiusSystem : SystemBase
 {
-    public const float SQRT3 = 1.73205080f;
-
     protected override void OnUpdate()
     {
         this.Entities
@@ -19,7 +17,7 @@ public class UpdateWorldBoundingRadiusSystem : SystemBase
         {
             var extents = bounds.Value.Extents;
 
-            radius.Value = math.max(math.max(extents.x, extents.y), extents.z) * SQRT3;
+            radius.Value = math.max(math.max(extents.x, extents.y), extents.z) * Const.SQRT3;
         })
         .ScheduleParallel();
     }

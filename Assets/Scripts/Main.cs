@@ -8,6 +8,11 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+public static class Const
+{
+    public const float SQRT3 = 1.73205080f;
+}
+
 public static class MainExt
 {
     public static float4 ToFloat4(this Color color)
@@ -56,8 +61,10 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
+    [SerializeField] Color octreeColorLayer0;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
+    bool displayOctree = false;
 
     private void Awake()
     {
@@ -112,6 +119,11 @@ public class Main : MonoBehaviour
                     Gizmos.DrawSphere(center, radius);
                 }
             }
+
+            if (this.displayOctree)
+            {
+                DrawOctreeLayer0();
+            }
         }
     }
 
@@ -126,6 +138,33 @@ public class Main : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             this.displayBoundingSpheres = !this.displayBoundingSpheres;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            this.displayOctree = !this.displayOctree;
+        }
+    }
+
+    void DrawOctreeLayer0()
+    {
+        Gizmos.matrix = Matrix4x4.identity;
+        Gizmos.color = this.octreeColorLayer0;
+
+        for (int x = 0; x < Octree.Grid0Size; ++x)
+        {
+            for (int y = 0; y < Octree.Grid0Size; ++y)
+            {
+                for (int z = 0; z < Octree.Grid0Size; ++z)
+                {
+                    var id0 = new int3(x, y, z) - new int3(Octree.Grid0Extent);
+
+                    var center = Octree.IDLayer0ToPoint(id0);
+                    var size = new float3(Octree.Node0Size);
+
+                    Gizmos.DrawWireCube(center, size);
+                }
+            }
         }
     }
 }

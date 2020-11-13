@@ -33,7 +33,6 @@ public class CullingSystem : SystemBase
         var nearPlane = Main.NearPlane;
         var nearPlaneCenter = Main.NearPlaneCenter;
         var worldToNDC = Main.WorldToNDC;
-        var entityOutFrumstrumColor = Main.EntityOutFrumstrumColor;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
         var entityOccludedColor = Main.EntityOccludedColor;
 
@@ -47,38 +46,37 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        this.Entities
-        .WithAll<EntityTag>()
-        .WithReadOnly(frustrumPlanes)
-        .WithReadOnly(sphereOccluderTranslations)
-        .WithReadOnly(sphereOccluderRadiuses)
-        .WithReadOnly(planeOccluderTranslations)
-        .WithReadOnly(planeOccluderExtents)
-        .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent) =>
-        {
-            var center = translation.Value;
-            var radius = radiusComponent.Value;
+        var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes);
 
-            var isInFrustrum = IsInFrustrum(center, radius, frustrumPlanes);
-            if (!isInFrustrum)
+        foreach (OctreeID octreeID in visibleOctreeNodes)
+        {
+            this.Entities
+            .WithAll<EntityTag>()
+            .WithSharedComponentFilter(octreeID)
+            .WithReadOnly(frustrumPlanes)
+            .WithReadOnly(sphereOccluderTranslations)
+            .WithReadOnly(sphereOccluderRadiuses)
+            .WithReadOnly(planeOccluderTranslations)
+            .WithReadOnly(planeOccluderExtents)
+            .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent) =>
             {
-                color.Value = entityOutFrumstrumColor;
-            }
-            else
-            {
-                var isSphereOccluded = 
-                IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
-                || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
+                var center = translation.Value;
+                var radius = radiusComponent.Value;
+
+                var isSphereOccluded =
+                    IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
+                    || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
-            }
-        })
-        .WithDisposeOnCompletion(planeOccluderExtents)
-        .WithDisposeOnCompletion(planeOccluderTranslations)
-        .WithDisposeOnCompletion(sphereOccluderRadiuses)
-        .WithDisposeOnCompletion(sphereOccluderTranslations)
-        .WithDisposeOnCompletion(frustrumPlanes)
-        .ScheduleParallel();
+            })
+            .ScheduleParallel();
+        }
+
+        planeOccluderExtents.Dispose(this.Dependency);
+        planeOccluderTranslations.Dispose(this.Dependency);
+        sphereOccluderRadiuses.Dispose(this.Dependency);
+        sphereOccluderTranslations.Dispose(this.Dependency);
+        frustrumPlanes.Dispose(this.Dependency);
     }
 
     static float SignedDistanceToPlane(float3 point, Plane plane)
@@ -293,5 +291,36 @@ public class CullingSystem : SystemBase
         }
 
         return false;
+    }
+
+    static List<OctreeID> GetVisibleOctreeNodes(in NativeArray<Plane> planes)
+    {
+        var visible = new List<OctreeID>();
+
+        for (int x = 0; x < Octree.Grid0Size; ++x)
+        {
+            for (int y = 0; y < Octree.Grid0Size; ++y)
+            {
+                for (int z = 0; z < Octree.Grid0Size; ++z)
+                {
+                    var id0 = new int3(x, y, z) - new int3(Octree.Grid0Extent);
+
+                    var center = Octree.IDLayer0ToPoint(id0);
+                    var radius = Octree.Node0BoundingRadius;
+
+                    if (IsInFrustrum(center, radius, planes))
+                    {
+                        var id = new OctreeID
+                        {
+                            Grid0 = id0
+                        };
+
+                        visible.Add(id);
+                    }
+                }
+            }
+        }
+
+        return visible;
     }
 }

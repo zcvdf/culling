@@ -200,7 +200,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 309434693}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -30}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 911220650}
@@ -226,6 +226,7 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
+  octreeColorLayer0: {r: 0.3422947, g: 0, b: 1, a: 0.39215687}
   frustrumPlanesMesh: {fileID: 753912383}
 --- !u!1 &705507993
 GameObject:
@@ -489,7 +490,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.5
-  far clip plane: 100
+  far clip plane: 200
   field of view: 45
   orthographic: 0
   orthographic size: 5
@@ -655,7 +656,7 @@ MonoBehaviour:
   RotationSensitivity: 3
   ZoomSensitivity: 2
   MinZoom: 2
-  MaxZoom: 100
+  MaxZoom: 1000
   TargetTransform: {fileID: 911220650}
 --- !u!850595691 &1376171569
 LightingSettings:
