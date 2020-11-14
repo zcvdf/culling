@@ -172,27 +172,16 @@ public class Main : MonoBehaviour
 
     void DrawOctreeLayer0()
     {
-        var minID = Octree.PointToIDLayer0(FrustrumAABB.Min);
-        var maxID = Octree.PointToIDLayer0(FrustrumAABB.Max);
-
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        for (int x = minID.x; x <= maxID.x; ++x)
+        Octree.ForEachBoundingNode0(FrustrumAABB, (int3 id) =>
         {
-            for (int y = minID.y; y <= maxID.y; ++y)
-            {
-                for (int z = minID.z; z <= maxID.z; ++z)
-                {
-                    var id0 = new int3(x, y, z);
+            var center = Octree.IDLayer0ToPoint(id);
+            var size = new float3(Octree.Node0Size);
 
-                    var center = Octree.IDLayer0ToPoint(id0);
-                    var size = new float3(Octree.Node0Size);
-
-                    Gizmos.DrawWireCube(center, size);
-                }
-            }
-        }
+            Gizmos.DrawWireCube(center, size);
+        });
     }
 
     void DrawFrustrumAABB()

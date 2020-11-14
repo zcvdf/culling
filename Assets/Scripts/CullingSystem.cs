@@ -294,36 +294,25 @@ public class CullingSystem : SystemBase
         return false;
     }
 
-    static List<OctreeID> GetVisibleOctreeNodes(in NativeArray<Plane> planes, in AABB frustrumAABB)
+    static List<OctreeID> GetVisibleOctreeNodes(NativeArray<Plane> planes, in AABB frustrumAABB)
     {
-        var minID = Octree.PointToIDLayer0(frustrumAABB.Min);
-        var maxID = Octree.PointToIDLayer0(frustrumAABB.Max);
-
         var visible = new List<OctreeID>();
 
-        for (int x = minID.x; x <= maxID.x; ++x)
+        Octree.ForEachBoundingNode0(frustrumAABB, (int3 id0) =>
         {
-            for (int y = minID.y; y <= maxID.y; ++y)
+            var center = Octree.IDLayer0ToPoint(id0);
+            var radius = Octree.Node0BoundingRadius;
+
+            if (IsInFrustrum(center, radius, planes))
             {
-                for (int z = minID.z; z <= maxID.z; ++z)
+                var id = new OctreeID
                 {
-                    var id0 = new int3(x, y, z);
+                    Grid0 = id0
+                };
 
-                    var center = Octree.IDLayer0ToPoint(id0);
-                    var radius = Octree.Node0BoundingRadius;
-
-                    if (IsInFrustrum(center, radius, planes))
-                    {
-                        var id = new OctreeID
-                        {
-                            Grid0 = id0
-                        };
-
-                        visible.Add(id);
-                    }
-                }
+                visible.Add(id);
             }
-        }
+        });
 
         return visible;
     }

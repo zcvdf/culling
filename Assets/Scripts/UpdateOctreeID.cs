@@ -28,6 +28,34 @@ public class Octree
     {
         return new float3(id) * new float3(Node0Size) + new float3(Node0Extent);
     }
+
+    public static void ForEachNode0(int3 minID, int3 maxID, Action<int3> func)
+    {
+        for (int x = minID.x; x <= maxID.x; ++x)
+        {
+            for (int y = minID.y; y <= maxID.y; ++y)
+            {
+                for (int z = minID.z; z <= maxID.z; ++z)
+                {
+                    var id = new int3(x, y, z);
+                    func(id);
+                }
+            }
+        }
+    }
+
+    public static void ForEachNode0(float3 min, float3 max, Action<int3> func)
+    {
+        var minID = PointToIDLayer0(min);
+        var maxID = PointToIDLayer0(max);
+
+        ForEachNode0(minID, maxID, func);
+    }
+
+    public static void ForEachBoundingNode0(in AABB aabb, Action<int3> func)
+    {
+        ForEachNode0(aabb.Min, aabb.Max, func);
+    }
 }
 
 [UpdateBefore(typeof(CullingSystem))]
