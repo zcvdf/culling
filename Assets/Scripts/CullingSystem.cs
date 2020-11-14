@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -316,6 +316,27 @@ public class CullingSystem : SystemBase
             }
         });
 
+#if ENABLE_ASSERTS
+        AssertNoDupplicate(visible);
+#endif
+
         return visible;
+    }
+
+    static void AssertNoDupplicate(List<OctreeID> ids)
+    {
+        for (int i = 0; i < ids.Count; ++i)
+        {
+            var a = ids[i].ID0;
+
+            for (int j = 0; j < ids.Count; ++j)
+            {
+                if (i == j) continue;
+
+                var b = ids[j].ID0;
+
+                Debug.Assert(math.any(a != b));
+            }
+        }
     }
 }
