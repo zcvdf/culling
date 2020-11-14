@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -39,9 +39,9 @@ public class SpawnerSystem : SystemBase
                 offset.x = (UnityRand.value - 0.5f);
                 offset.y = (UnityRand.value - 0.5f);
                 offset.z = (UnityRand.value - 0.5f);
-                offset *= 100f;
+                offset *= 1000f;
 
-                float3 position = new float3(spawner.Origin) + offset;
+                var position = new float3(spawner.Origin) + offset;
 
                 cmd.SetComponent(entity, new Translation { Value = position });
                 cmd.AddComponent<EntityTag>(entity);

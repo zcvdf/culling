@@ -71,7 +71,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
-    bool displayOctree = false;
+    int displayOctreeLayer = -1;
     bool displayFrustrumAABB = false;
 
     private void Awake()
@@ -118,9 +118,9 @@ public class Main : MonoBehaviour
                 DrawEntityBoundingSpheres();
             }
 
-            if (this.displayOctree)
+            if (this.displayOctreeLayer != -1)
             {
-                DrawOctreeLayer0();
+                DrawOctree();
             }
 
             if (this.displayFrustrumAABB)
@@ -140,17 +140,18 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            this.displayBoundingSpheres = !this.displayBoundingSpheres;
+            ++this.displayOctreeLayer;
+            if (this.displayOctreeLayer >= 2) this.displayOctreeLayer = -1;
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            this.displayOctree = !this.displayOctree;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
+        if (Input.GetKeyDown(KeyCode.Alpha8))
         {
             this.displayFrustrumAABB = !this.displayFrustrumAABB;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha9))
+        {
+            this.displayBoundingSpheres = !this.displayBoundingSpheres;
         }
     }
 
@@ -170,18 +171,31 @@ public class Main : MonoBehaviour
         }
     }
 
-    void DrawOctreeLayer0()
+    void DrawOctree()
     {
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        Octree.ForEachBoundingNode0(FrustrumAABB, (int3 id) =>
+        if (this.displayOctreeLayer == 0)
         {
-            var center = Octree.IDLayer0ToPoint(id);
-            var size = new float3(Octree.Node0Size);
+            Octree.ForEachBoundingNode0(FrustrumAABB, (int3 id) =>
+            {
+                var center = Octree.IDLayer0ToPoint(id);
+                var size = new float3(Octree.Node0Size);
 
-            Gizmos.DrawWireCube(center, size);
-        });
+                Gizmos.DrawWireCube(center, size);
+            });
+        }
+        else if (this.displayOctreeLayer == 1)
+        {
+            Octree.ForEachBoundingNode1(FrustrumAABB, (int3 id) =>
+            {
+                var center = Octree.IDLayer1ToPoint(id);
+                var size = new float3(Octree.Node1Size);
+
+                Gizmos.DrawWireCube(center, size);
+            });
+        }
     }
 
     void DrawFrustrumAABB()
