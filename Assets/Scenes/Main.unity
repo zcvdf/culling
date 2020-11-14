@@ -227,6 +227,7 @@ MonoBehaviour:
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
   octreeColorLayer0: {r: 0.3422947, g: 0, b: 1, a: 0.39215687}
+  frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   frustrumPlanesMesh: {fileID: 753912383}
 --- !u!1 &705507993
 GameObject:

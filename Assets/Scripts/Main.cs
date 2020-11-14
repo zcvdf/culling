@@ -30,6 +30,11 @@ public static class MainExt
         return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane;
     }
 
+    public static Plane[] ComputeFrustrumPlanes(this Camera camera)
+    {
+        return GeometryUtility.CalculateFrustumPlanes(camera);
+    }
+
     public static void DrawFrustrum(this Camera camera, Color color)
     {
         if (camera == null) return;
@@ -47,6 +52,7 @@ public class Main : MonoBehaviour
     public static Quad NearPlane;
     public static float4x4 WorldToNDC;
     public static Plane[] FrustrumPlanes;
+    public static AABB FrustrumAABB;
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
     public static float4 EntityOccludedColor;
@@ -62,9 +68,11 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
     [SerializeField] Color octreeColorLayer0;
+    [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
     bool displayOctree = false;
+    bool displayFrustrumAABB = false;
 
     private void Awake()
     {
@@ -84,8 +92,9 @@ public class Main : MonoBehaviour
     {
         Inputs();
 
-        this.frustrumPlanesMesh.mesh = this.viewerCamera.Camera.GenerateFrustumMesh();
-        FrustrumPlanes = GeometryUtility.CalculateFrustumPlanes(this.viewerCamera.Camera);
+        this.frustrumPlanesMesh.mesh = this.viewerCamera.Camera.ComputeFrustumMesh();
+        FrustrumPlanes = this.viewerCamera.Camera.ComputeFrustrumPlanes();
+        FrustrumAABB = this.viewerCamera.Camera.ComputeFrustrumAABB();
         WorldToNDC = this.viewerCamera.Camera.projectionMatrix * this.viewerCamera.Camera.worldToCameraMatrix;
         Viewer = this.viewerCamera.transform.position;
         NearPlaneCenter = this.viewerCamera.transform.position + this.viewerCamera.transform.forward * this.viewerCamera.Camera.nearClipPlane;
@@ -106,23 +115,17 @@ public class Main : MonoBehaviour
         {
             if (this.displayBoundingSpheres)
             {
-                var translations = EntityQuery.ToComponentDataArray<Translation>(Allocator.Temp);
-                var radiuses = EntityQuery.ToComponentDataArray<WorldBoundingRadius>(Allocator.Temp);
-
-                for (int i = 0; i < translations.Length; ++i)
-                {
-                    var center = translations[i].Value;
-                    var radius = radiuses[i].Value;
-
-                    Gizmos.matrix = Matrix4x4.identity;
-                    Gizmos.color = this.boudingSphereColor;
-                    Gizmos.DrawSphere(center, radius);
-                }
+                DrawEntityBoundingSpheres();
             }
 
             if (this.displayOctree)
             {
                 DrawOctreeLayer0();
+            }
+
+            if (this.displayFrustrumAABB)
+            {
+                DrawFrustrumAABB();
             }
         }
     }
@@ -144,20 +147,44 @@ public class Main : MonoBehaviour
         {
             this.displayOctree = !this.displayOctree;
         }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            this.displayFrustrumAABB = !this.displayFrustrumAABB;
+        }
+    }
+
+    void DrawEntityBoundingSpheres()
+    {
+        var translations = EntityQuery.ToComponentDataArray<Translation>(Allocator.Temp);
+        var radiuses = EntityQuery.ToComponentDataArray<WorldBoundingRadius>(Allocator.Temp);
+
+        for (int i = 0; i < translations.Length; ++i)
+        {
+            var center = translations[i].Value;
+            var radius = radiuses[i].Value;
+
+            Gizmos.matrix = Matrix4x4.identity;
+            Gizmos.color = this.boudingSphereColor;
+            Gizmos.DrawSphere(center, radius);
+        }
     }
 
     void DrawOctreeLayer0()
     {
+        const int Grid0Extent = 2;
+        const int Grid0Size = Grid0Extent * 2;
+
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        for (int x = 0; x < Octree.Grid0Size; ++x)
+        for (int x = 0; x < Grid0Size; ++x)
         {
-            for (int y = 0; y < Octree.Grid0Size; ++y)
+            for (int y = 0; y < Grid0Size; ++y)
             {
-                for (int z = 0; z < Octree.Grid0Size; ++z)
+                for (int z = 0; z < Grid0Size; ++z)
                 {
-                    var id0 = new int3(x, y, z) - new int3(Octree.Grid0Extent);
+                    var id0 = new int3(x, y, z) - new int3(Grid0Extent);
 
                     var center = Octree.IDLayer0ToPoint(id0);
                     var size = new float3(Octree.Node0Size);
@@ -166,5 +193,12 @@ public class Main : MonoBehaviour
                 }
             }
         }
+    }
+
+    void DrawFrustrumAABB()
+    {
+        Gizmos.matrix = Matrix4x4.identity;
+        Gizmos.color = this.frustrumAABBColor;
+        Gizmos.DrawCube(FrustrumAABB.Center, FrustrumAABB.Size);
     }
 }

@@ -295,15 +295,18 @@ public class CullingSystem : SystemBase
 
     static List<OctreeID> GetVisibleOctreeNodes(in NativeArray<Plane> planes)
     {
+        const int Grid0Extent = 2;
+        const int Grid0Size = Grid0Extent * 2;
+
         var visible = new List<OctreeID>();
 
-        for (int x = 0; x < Octree.Grid0Size; ++x)
+        for (int x = 0; x < Grid0Size; ++x)
         {
-            for (int y = 0; y < Octree.Grid0Size; ++y)
+            for (int y = 0; y < Grid0Size; ++y)
             {
-                for (int z = 0; z < Octree.Grid0Size; ++z)
+                for (int z = 0; z < Grid0Size; ++z)
                 {
-                    var id0 = new int3(x, y, z) - new int3(Octree.Grid0Extent);
+                    var id0 = new int3(x, y, z) - new int3(Grid0Extent);
 
                     var center = Octree.IDLayer0ToPoint(id0);
                     var radius = Octree.Node0BoundingRadius;
