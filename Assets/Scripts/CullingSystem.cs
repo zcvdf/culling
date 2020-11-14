@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -49,9 +50,11 @@ public class CullingSystem : SystemBase
 
         var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes, frustrumAABB);
 
+        var dependencyInput = this.Dependency;
+
         foreach (OctreeID octreeID in visibleOctreeNodes)
         {
-            this.Entities
+            var jobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(octreeID)
             .WithReadOnly(frustrumPlanes)
@@ -72,7 +75,9 @@ public class CullingSystem : SystemBase
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             })
-            .ScheduleParallel();
+            .ScheduleParallel(dependencyInput);
+
+            this.Dependency = Unity.Jobs.JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
         planeOccluderExtents.Dispose(this.Dependency);
