@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
+using Unity.Jobs;
 using UnityEngine;
 
 public struct Quad
@@ -50,11 +51,11 @@ public class CullingSystem : SystemBase
 
         var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes, frustrumAABB);
 
-        var dependencyInput = this.Dependency;
-
+        // For the moment, each jobs wait for the previous one. 
+        // Wait for an answer from the DOTS team to know how to fix this without triggering safety checks.
         foreach (OctreeID octreeID in visibleOctreeNodes)
         {
-            var jobHandle = this.Entities
+            this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(octreeID)
             .WithReadOnly(frustrumPlanes)
@@ -75,9 +76,7 @@ public class CullingSystem : SystemBase
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             })
-            .ScheduleParallel(dependencyInput);
-
-            this.Dependency = Unity.Jobs.JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            .ScheduleParallel();
         }
 
         planeOccluderExtents.Dispose(this.Dependency);
@@ -312,12 +311,22 @@ public class CullingSystem : SystemBase
 
             if (IsInFrustrum(center0, radius0, planes))
             {
-                var id = new OctreeID
+                Octree.ForEachNode0Childs(id0, (int3 id1) =>
                 {
-                    ID0 = id0,
-                };
+                    var center1 = Octree.IDLayer1ToPoint(id1);
+                    var radius1 = Octree.Node1BoundingRadius;
 
-                visible.Add(id);
+                    if (IsInFrustrum(center1, radius1, planes))
+                    {
+                        var id = new OctreeID
+                        {
+                            ID0 = id0,
+                            ID1 = id1,
+                        };
+
+                        visible.Add(id);
+                    }
+                });
             }
         });
 
@@ -332,15 +341,17 @@ public class CullingSystem : SystemBase
     {
         for (int i = 0; i < ids.Count; ++i)
         {
-            var a = ids[i].ID0;
+            var a0 = ids[i].ID0;
+            var a1 = ids[i].ID1;
 
             for (int j = 0; j < ids.Count; ++j)
             {
                 if (i == j) continue;
 
-                var b = ids[j].ID0;
+                var b0 = ids[j].ID0;
+                var b1 = ids[j].ID1;
 
-                Debug.Assert(math.any(a != b));
+                Debug.Assert(math.any(a0 != b0) || math.any(a1 != b1));
             }
         }
     }
