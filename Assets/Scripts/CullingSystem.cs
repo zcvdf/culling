@@ -64,6 +64,8 @@ public class CullingSystem : SystemBase
                 var center = translation.Value;
                 var radius = radiusComponent.Value;
 
+                if (!IsInFrustrum(center, radius, frustrumPlanes)) return;
+
                 var isSphereOccluded =
                     IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
                     || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
@@ -294,20 +296,20 @@ public class CullingSystem : SystemBase
         return false;
     }
 
-    static List<OctreeID> GetVisibleOctreeNodes(NativeArray<Plane> planes, in AABB frustrumAABB)
+    static List<OctreeID> GetVisibleOctreeNodes(NativeArray<Plane> planes, AABB frustrumAABB)
     {
         var visible = new List<OctreeID>();
 
         Octree.ForEachBoundingNode0(frustrumAABB, (int3 id0) =>
         {
-            var center = Octree.IDLayer0ToPoint(id0);
-            var radius = Octree.Node0BoundingRadius;
+            var center0 = Octree.IDLayer0ToPoint(id0);
+            var radius0 = Octree.Node0BoundingRadius;
 
-            if (IsInFrustrum(center, radius, planes))
+            if (IsInFrustrum(center0, radius0, planes))
             {
                 var id = new OctreeID
                 {
-                    Grid0 = id0
+                    ID0 = id0,
                 };
 
                 visible.Add(id);
