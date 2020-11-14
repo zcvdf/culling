@@ -172,19 +172,19 @@ public class Main : MonoBehaviour
 
     void DrawOctreeLayer0()
     {
-        const int Grid0Extent = 2;
-        const int Grid0Size = Grid0Extent * 2;
+        var minID = Octree.PointToIDLayer0(FrustrumAABB.Min);
+        var maxID = Octree.PointToIDLayer0(FrustrumAABB.Max);
 
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        for (int x = 0; x < Grid0Size; ++x)
+        for (int x = minID.x; x <= maxID.x; ++x)
         {
-            for (int y = 0; y < Grid0Size; ++y)
+            for (int y = minID.y; y <= maxID.y; ++y)
             {
-                for (int z = 0; z < Grid0Size; ++z)
+                for (int z = minID.z; z <= maxID.z; ++z)
                 {
-                    var id0 = new int3(x, y, z) - new int3(Grid0Extent);
+                    var id0 = new int3(x, y, z);
 
                     var center = Octree.IDLayer0ToPoint(id0);
                     var size = new float3(Octree.Node0Size);

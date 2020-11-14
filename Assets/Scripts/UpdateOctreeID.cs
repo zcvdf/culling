@@ -15,7 +15,7 @@ public struct OctreeID : ISharedComponentData
 public class Octree
 {
     public static readonly OctreeID RootID = new OctreeID { Grid0 = new int3(int.MaxValue) };
-    public const float Node0Extent = 20f;
+    public const float Node0Extent = 40f;
     public const float Node0Size = Node0Extent * 2f;
     public const float Node0BoundingRadius = Node0Extent * Const.SQRT3;
 

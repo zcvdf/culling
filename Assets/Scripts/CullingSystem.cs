@@ -35,6 +35,7 @@ public class CullingSystem : SystemBase
         var worldToNDC = Main.WorldToNDC;
         var entityInFrumstrumColor = Main.EntityInFrustrumColor;
         var entityOccludedColor = Main.EntityOccludedColor;
+        var frustrumAABB = Main.FrustrumAABB;
 
         var sphereOccluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
         var planeOccluderQuery = GetEntityQuery(typeof(WorldOccluderExtents), typeof(Translation));
@@ -46,7 +47,7 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes);
+        var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes, frustrumAABB);
 
         foreach (OctreeID octreeID in visibleOctreeNodes)
         {
@@ -293,20 +294,20 @@ public class CullingSystem : SystemBase
         return false;
     }
 
-    static List<OctreeID> GetVisibleOctreeNodes(in NativeArray<Plane> planes)
+    static List<OctreeID> GetVisibleOctreeNodes(in NativeArray<Plane> planes, in AABB frustrumAABB)
     {
-        const int Grid0Extent = 2;
-        const int Grid0Size = Grid0Extent * 2;
+        var minID = Octree.PointToIDLayer0(frustrumAABB.Min);
+        var maxID = Octree.PointToIDLayer0(frustrumAABB.Max);
 
         var visible = new List<OctreeID>();
 
-        for (int x = 0; x < Grid0Size; ++x)
+        for (int x = minID.x; x <= maxID.x; ++x)
         {
-            for (int y = 0; y < Grid0Size; ++y)
+            for (int y = minID.y; y <= maxID.y; ++y)
             {
-                for (int z = 0; z < Grid0Size; ++z)
+                for (int z = minID.z; z <= maxID.z; ++z)
                 {
-                    var id0 = new int3(x, y, z) - new int3(Grid0Extent);
+                    var id0 = new int3(x, y, z);
 
                     var center = Octree.IDLayer0ToPoint(id0);
                     var radius = Octree.Node0BoundingRadius;
