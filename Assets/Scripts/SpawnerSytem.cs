@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -19,7 +19,7 @@ public class SpawnerSystem : SystemBase
         this.cmdBufferSystem = this.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         Main.World = this.World;
         Main.EntityManager = this.EntityManager;
-        Main.EntityQuery = GetEntityQuery(typeof(EntityTag), typeof(Translation), typeof(WorldBoundingRadius));
+        Main.EntityQuery = this.EntityManager.CreateEntityQuery(typeof(EntityTag), typeof(Translation), typeof(WorldBoundingRadius));
     }
 
     protected override void OnUpdate()
