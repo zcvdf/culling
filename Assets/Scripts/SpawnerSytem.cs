@@ -34,7 +34,7 @@ public class SpawnerSystem : SystemBase
         {
             var entity = entities[i];
 
-            var offset = 500 * (rand.NextFloat3(new float3(1f)) - new float3(0.5f));
+            var offset = 1000f * (rand.NextFloat3(new float3(2f)) - new float3(1f));
             var position = new float3(spawner.Origin) + offset;
 
             this.EntityManager.SetComponentData(entity, new Translation { Value = position });

@@ -23,6 +23,7 @@ public class Main : MonoBehaviour
     public static World World;
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
+    public static VisibleOctreeID[] VisibleOctreeIDs;
 
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
@@ -34,7 +35,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
-    int displayOctreeLayer = -1;
+    bool displayOctree = false;
     bool displayFrustrumAABB = false;
 
     private void Awake()
@@ -83,7 +84,7 @@ public class Main : MonoBehaviour
                 DrawEntityBoundingSpheres();
             }
 
-            if (this.displayOctreeLayer != -1)
+            if (this.displayOctree)
             {
                 DrawOctree();
             }
@@ -110,8 +111,7 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            ++this.displayOctreeLayer;
-            if (this.displayOctreeLayer >= 2) this.displayOctreeLayer = -1;
+            this.displayOctree = !this.displayOctree;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
@@ -146,25 +146,14 @@ public class Main : MonoBehaviour
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        if (this.displayOctreeLayer == 0)
+        foreach (var visibleID in VisibleOctreeIDs)
         {
-            Octree.ForEachBoundingNode0(FrustrumAABB, (int3 id) =>
-            {
-                var center = Octree.IDLayer0ToPoint(id);
-                var size = new float3(Octree.Node0Size);
+            var id = visibleID.Value.Value;
 
-                Gizmos.DrawWireCube(center, size);
-            });
-        }
-        else if (this.displayOctreeLayer == 1)
-        {
-            Octree.ForEachBoundingNode1(FrustrumAABB, (int3 id) =>
-            {
-                var center = Octree.IDLayer1ToPoint(id);
-                var size = new float3(Octree.Node1Size);
+            var center = Octree.IDLayer1ToPoint(id);
+            var size = new float3(Octree.Node1Size);
 
-                Gizmos.DrawWireCube(center, size);
-            });
+            Gizmos.DrawWireCube(center, size);
         }
     }
 

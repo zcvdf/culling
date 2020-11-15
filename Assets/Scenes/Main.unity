@@ -524,6 +524,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSensitivity: 500
   moveSpeed: 20
+  IsLocked: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -657,7 +658,7 @@ MonoBehaviour:
   RotationSensitivity: 3
   ZoomSensitivity: 2
   MinZoom: 2
-  MaxZoom: 1000
+  MaxZoom: 10000
   TargetTransform: {fileID: 911220650}
 --- !u!850595691 &1376171569
 LightingSettings:
