@@ -148,7 +148,7 @@ public class Main : MonoBehaviour
 
         foreach (var visibleID in VisibleOctreeIDs)
         {
-            var id = visibleID.Value.Value;
+            var id = Octree.UnpackID(visibleID.Value.Value);
 
             var center = Octree.IDLayer1ToPoint(id);
             var size = new float3(Octree.Node1Size);

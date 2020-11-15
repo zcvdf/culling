@@ -20,7 +20,7 @@ public class UpdateOctreeID : SystemBase
 
             var newID = new OctreeID
             {
-                Value = id1
+                Value = Octree.PackID(id1)
             };
 
             id = newID;

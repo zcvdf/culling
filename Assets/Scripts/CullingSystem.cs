@@ -36,6 +36,7 @@ public class CullingSystem : SystemBase
 
         var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeID>();
         var visibleOctreeIDs = GetBuffer<VisibleOctreeID>(visibleOctreeEntity).AsNativeArray();
+        Main.VisibleOctreeIDs = visibleOctreeIDs.ToArray();
 
         this.Entities
         .WithAll<EntityTag>()
@@ -74,7 +75,7 @@ public class CullingSystem : SystemBase
             var a = visibleIDs[i].Value;
             var b = id;
 
-            if (math.all(a.Value == b.Value)) return true;
+            if (a.Value == b.Value) return true;
         }
 
         return false;

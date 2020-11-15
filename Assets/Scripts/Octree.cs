@@ -16,6 +16,39 @@ public class Octree
     public const float Node1Size = Node1Extent * 2f;
     public const float Node1BoundingRadius = Node1Extent * Math.Sqrt3;
 
+    const Int64 BitPackOffset = 1 << 20;
+    const UInt64 BitPackMask = (1 << 21) - 1;
+
+    public static UInt64 PackID(int3 id)
+    {
+        var x64 = id.x + BitPackOffset;
+        var y64 = id.y + BitPackOffset;
+        var z64 = id.z + BitPackOffset;
+
+        var ux = (UInt64)x64;
+        var uy = (UInt64)y64;
+        var uz = (UInt64)z64;
+
+        var packed = ux | (uy << 21) | (uz << 42);
+
+        return packed;
+    }
+
+    public static int3 UnpackID(UInt64 id)
+    {
+        var ux = (UInt64)(id & BitPackMask);
+        var uy = (UInt64)((id >> 21) & BitPackMask);
+        var uz = (UInt64)((id >> 42) & BitPackMask);
+
+        var x64 = (Int64)ux - BitPackOffset; 
+        var y64 = (Int64)uy - BitPackOffset; 
+        var z64 = (Int64)uz - BitPackOffset; 
+
+        var unpacked = new int3((int)x64, (int)y64, (int)z64);
+
+        return unpacked;
+    }
+
     public static int3 PointToIDLayer0(float3 point)
     {
         return new int3(math.floor(point / Node0Size));

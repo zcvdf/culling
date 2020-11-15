@@ -55,7 +55,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
                                     {
                                         var id = new OctreeID
                                         {
-                                            Value = id1,
+                                            Value = Octree.PackID(id1),
                                         };
 
                                         visible.Add(new VisibleOctreeID { Value = id });
@@ -85,7 +85,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                 var b = ids[j].Value.Value;
 
-                Debug.Assert(math.any(a != b));
+                Debug.Assert(a != b);
             }
         }
     }
