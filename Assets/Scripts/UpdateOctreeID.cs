@@ -12,12 +12,9 @@ public class UpdateOctreeID : SystemBase
 {
     protected override void OnUpdate()
     {
-        var cmd = new EntityCommandBuffer(Allocator.Temp);
-
         this.Entities
         .WithChangeFilter<Translation>()
-        .WithoutBurst()
-        .ForEach((in OctreeID id, in Translation translation, in Entity entity) =>
+        .ForEach((ref OctreeID id, in Translation translation, in Entity entity) =>
         {
             var id0 = Octree.PointToIDLayer0(translation.Value);
             var id1 = Octree.PointToIDLayer1(translation.Value);
@@ -28,10 +25,8 @@ public class UpdateOctreeID : SystemBase
                 //ID1 = id1 
             };
 
-            cmd.SetSharedComponent(entity, newID);
+            id = newID;
         })
-        .Run();
-
-        cmd.Playback(this.EntityManager);
+        .ScheduleParallel();
     }
 }

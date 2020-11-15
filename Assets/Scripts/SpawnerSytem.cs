@@ -37,23 +37,13 @@ public class SpawnerSystem : SystemBase
                 var position = new float3(spawner.Origin) + offset;
 
                 cmd.AddComponent(entity, new Translation { Value = position });
-                cmd.AddComponent<UninitializedEntityTag>(entity);
+                cmd.AddComponent<EntityTag>(entity);
                 cmd.AddComponent<URPMaterialPropertyBaseColor>(entity);
                 cmd.AddComponent<WorldBoundingRadius>(entity);
+                cmd.AddComponent(entity, Octree.RootID);
             }
 
             cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
-        })
-        .Run();
-
-        this.Entities
-        .WithAll<UninitializedEntityTag>()
-        .WithoutBurst()
-        .ForEach((in Entity entity) =>
-        {
-            cmd.AddComponent<EntityTag>(entity);
-            cmd.AddSharedComponent(entity, Octree.RootID);
-            cmd.RemoveComponent<UninitializedEntityTag>(entity);
         })
         .Run();
 
