@@ -19,34 +19,27 @@ public class SpawnerSystem : SystemBase
         Main.EntityQuery = this.EntityManager.CreateEntityQuery(typeof(EntityTag), typeof(Translation), typeof(WorldBoundingRadius));
     }
 
+    [BurstCompatible]
     protected override void OnUpdate()
     {
-        var cmd = new EntityCommandBuffer(Allocator.Temp);
+        var spawnerEntity = GetSingletonEntity<Spawner>();
+        if (!HasComponent<SpawnerUnusedTag>(spawnerEntity)) return;
+
+        var spawner = GetSingleton<Spawner>();
+        var entities = this.EntityManager.Instantiate(spawner.Prefab, spawner.Count, Allocator.Temp);
 
         var rand = new Rand(10);
 
-        this.Entities
-        .WithAll<SpawnerUnusedTag>()
-        .ForEach((in Entity spawnerEntity, in Spawner spawner) =>
+        for (int i = 0; i < entities.Length; ++i)
         {
-            for (int i = 0; i < spawner.Count; ++i)
-            {
-                var entity = cmd.Instantiate(spawner.Prefab);
+            var entity = entities[i];
 
-                var offset = 500 * (rand.NextFloat3(new float3(1f)) - new float3(0.5f));
-                var position = new float3(spawner.Origin) + offset;
+            var offset = 500 * (rand.NextFloat3(new float3(1f)) - new float3(0.5f));
+            var position = new float3(spawner.Origin) + offset;
 
-                cmd.AddComponent(entity, new Translation { Value = position });
-                cmd.AddComponent<EntityTag>(entity);
-                cmd.AddComponent<URPMaterialPropertyBaseColor>(entity);
-                cmd.AddComponent<WorldBoundingRadius>(entity);
-                cmd.AddComponent(entity, Octree.RootID);
-            }
+            this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+        }
 
-            cmd.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
-        })
-        .Run();
-
-        cmd.Playback(this.EntityManager);
+        this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
     }
 }

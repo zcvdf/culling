@@ -3,4 +3,5 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public struct SpawnerUnusedTag : IComponentData { }
+[GenerateAuthoringComponent]
+public struct EntityTag : IComponentData { }

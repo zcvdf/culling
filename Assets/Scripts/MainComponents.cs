@@ -4,12 +4,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct OctreeID : IComponentData
-{
-    public int3 ID0;
-    public int3 ID1;
-}
-
 struct Spawner : IComponentData
 {
     public Vector3 Origin;
@@ -20,11 +14,6 @@ struct Spawner : IComponentData
 public struct VisibleOctreeIDs : IBufferElementData
 {
     public OctreeID Value;
-}
-
-public struct WorldBoundingRadius : IComponentData
-{
-    public float Value;
 }
 
 public struct WorldOccluderExtents : IComponentData
