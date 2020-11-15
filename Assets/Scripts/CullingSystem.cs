@@ -33,8 +33,8 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeIDs>();
-        var visibleOctreeIDs = GetBuffer<VisibleOctreeIDs>(visibleOctreeEntity).AsNativeArray();
+        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeID>();
+        var visibleOctreeIDs = GetBuffer<VisibleOctreeID>(visibleOctreeEntity).AsNativeArray();
 
         this.Entities
         .WithAll<EntityTag>()
@@ -66,7 +66,7 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool Contains(NativeArray<VisibleOctreeIDs> visibleIDs, OctreeID id)
+    public static bool Contains(NativeArray<VisibleOctreeID> visibleIDs, OctreeID id)
     {
         for (int i = 0; i < visibleIDs.Length; ++i)
         {

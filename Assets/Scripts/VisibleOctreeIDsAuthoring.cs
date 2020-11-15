@@ -7,6 +7,6 @@ public class VisibleOctreeIDsAuthoring : MonoBehaviour, IConvertGameObjectToEnti
 {
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        dstManager.AddBuffer<VisibleOctreeIDs>(entity);
+        dstManager.AddBuffer<VisibleOctreeID>(entity);
     }
 }

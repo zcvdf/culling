@@ -11,7 +11,7 @@ struct Spawner : IComponentData
     public int Count;
 }
 
-public struct VisibleOctreeIDs : IBufferElementData
+public struct VisibleOctreeID : IBufferElementData
 {
     public OctreeID Value;
 }

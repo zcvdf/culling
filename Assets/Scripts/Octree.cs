@@ -74,10 +74,17 @@ public class Octree
         ForEachNode1(aabb.Min, aabb.Max, func);
     }
 
+    public static void GetMixMaxIDChild0(int3 id0, out int3 minID1, out int3 maxID1)
+    {
+        minID1 = id0 * Node0Subdivision;
+        maxID1 = minID1 + new int3(Node0Subdivision);
+    }
+
     public static void ForEachNode0Childs(int3 id0, Action<int3> func)
     {
-        int3 minID1 = id0 * Node0Subdivision;
-        int3 maxID1 = minID1 + new int3(Node0Subdivision);
+        int3 minID1;
+        int3 maxID1;
+        GetMixMaxIDChild0(id0, out minID1, out maxID1);
 
         ForEach3DMaxExcluded(minID1, maxID1, func);
     }

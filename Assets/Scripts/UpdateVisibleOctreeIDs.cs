@@ -14,14 +14,14 @@ public class UpdateVisibleOctreeIDs : SystemBase
         var frustrumAABB = Main.FrustrumAABB;
         var frustrumPlanes = Main.FrustrumPlanes;
 
-        this.Entities.ForEach((DynamicBuffer<VisibleOctreeIDs> visibleIDs) =>
+        this.Entities.ForEach((DynamicBuffer<VisibleOctreeID> visibleIDs) =>
         {
             UpdateVisibleOctreeNodes(frustrumPlanes, frustrumAABB, visibleIDs);
         })
         .ScheduleParallel();
     }
 
-    static void UpdateVisibleOctreeNodes(WorldFrustrumPlanes planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeIDs> visible)
+    static void UpdateVisibleOctreeNodes(WorldFrustrumPlanes planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeID> visible)
     {
         visible.Clear();
 
@@ -29,45 +29,45 @@ public class UpdateVisibleOctreeIDs : SystemBase
         int3 maxID0;
         Octree.GetMixMaxIDLayer0(frustrumAABB, out minID0, out maxID0);
 
-        for (int x = minID0.x; x <= maxID0.x; ++x)
+        for (int x0 = minID0.x; x0 <= maxID0.x; ++x0)
         {
-            for (int y = minID0.y; y <= maxID0.y; ++y)
+            for (int y0 = minID0.y; y0 <= maxID0.y; ++y0)
             {
-                for (int z = minID0.z; z <= maxID0.z; ++z)
+                for (int z0 = minID0.z; z0 <= maxID0.z; ++z0)
                 {
-                    var id0 = new int3(x, y, z);
+                    var id0 = new int3(x0, y0, z0);
                     var center0 = Octree.IDLayer0ToPoint(id0);
                     var radius0 = Octree.Node0BoundingRadius;
 
                     if (Math.IsInFrustrum(center0, radius0, planes))
                     {
-                        var id = new OctreeID
-                        {
-                            ID0 = id0,
-                        };
-                        var visibleID = new VisibleOctreeIDs
-                        {
-                            Value = id
-                        };
+                        int3 minID1;
+                        int3 maxID1;
+                        Octree.GetMixMaxIDChild0(id0, out minID1, out maxID1);
 
-                        visible.Add(visibleID);
-
-                        /*Octree.ForEachNode0Childs(id0, (int3 id1) =>
+                        for (int x1 = minID1.x; x1 < maxID1.x; ++x1)
                         {
-                            var center1 = Octree.IDLayer1ToPoint(id1);
-                            var radius1 = Octree.Node1BoundingRadius;
-
-                            if (IsInFrustrum(center1, radius1, planes))
+                            for (int y1 = minID1.y; y1 < maxID1.y; ++y1)
                             {
-                                var id = new OctreeID
+                                for (int z1 = minID1.z; z1 < maxID1.z; ++z1)
                                 {
-                                    ID0 = id0,
-                                    ID1 = id1,
-                                };
+                                    var id1 = new int3(x1, y1, z1);
+                                    var center1 = Octree.IDLayer1ToPoint(id1);
+                                    var radius1 = Octree.Node1BoundingRadius;
 
-                                visible.Add(id);
+                                    if (Math.IsInFrustrum(center1, radius1, planes))
+                                    {
+                                        var id = new OctreeID
+                                        {
+                                            ID0 = id0,
+                                            ID1 = id1,
+                                        };
+
+                                        visible.Add(new VisibleOctreeID { Value = id });
+                                    }
+                                }
                             }
-                        });*/
+                        }
                     }
                 }
             }
@@ -78,7 +78,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 #endif
     }
 
-    static void AssertNoDupplicate(DynamicBuffer<VisibleOctreeIDs> ids)
+    static void AssertNoDupplicate(DynamicBuffer<VisibleOctreeID> ids)
     {
         for (int i = 0; i < ids.Length; ++i)
         {

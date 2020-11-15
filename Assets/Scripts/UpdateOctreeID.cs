@@ -22,7 +22,7 @@ public class UpdateOctreeID : SystemBase
             var newID = new OctreeID
             {
                 ID0 = id0,
-                //ID1 = id1 
+                ID1 = id1 
             };
 
             id = newID;
