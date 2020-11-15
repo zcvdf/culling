@@ -6,7 +6,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(TransformSystemGroup))]
+[UpdateBefore(typeof(TransformSystemGroup))]
 public class UpdateWorldBoundingRadiusSystem : SystemBase
 {
     protected override void OnUpdate()

@@ -11,6 +11,7 @@ using UnityEngine;
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateOctreeID))]
 [UpdateAfter(typeof(UpdateVisibleOctreeIDs))]
+[UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
 {
     protected override void OnUpdate()

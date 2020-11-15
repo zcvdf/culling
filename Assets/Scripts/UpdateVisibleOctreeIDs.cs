@@ -6,7 +6,7 @@ using Unity.Collections;
 using UnityEngine;
 using Unity.Mathematics;
 
-[UpdateAfter(typeof(TransformSystemGroup))]
+[UpdateBefore(typeof(TransformSystemGroup))]
 public class UpdateVisibleOctreeIDs : SystemBase
 {
     protected override void OnUpdate()

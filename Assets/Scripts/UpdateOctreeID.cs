@@ -7,7 +7,7 @@ using Unity.Collections;
 using UnityEngine;
 using System;
 
-[UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
+[UpdateBefore(typeof(TransformSystemGroup))]
 public class UpdateOctreeID : SystemBase
 {
     protected override void OnUpdate()
