@@ -115,7 +115,7 @@ public class Octree
     }
 }
 
-[UpdateBefore(typeof(CullingSystem))]
+[UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 public class UpdateOctreeID : SystemBase
 {
     protected override void OnUpdate()
@@ -133,7 +133,7 @@ public class UpdateOctreeID : SystemBase
             var newID = new OctreeID
             {
                 ID0 = id0,
-                ID1 = id1 
+                //ID1 = id1 
             };
 
             cmd.SetSharedComponent(entity, newID);

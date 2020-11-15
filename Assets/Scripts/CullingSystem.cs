@@ -27,6 +27,7 @@ public struct OccluderPlanes
 }
 
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
+[UpdateAfter(typeof(UpdateOctreeID))]
 public class CullingSystem : SystemBase
 {
     protected override void OnUpdate()
@@ -311,7 +312,14 @@ public class CullingSystem : SystemBase
 
             if (IsInFrustrum(center0, radius0, planes))
             {
-                Octree.ForEachNode0Childs(id0, (int3 id1) =>
+                var id = new OctreeID
+                {
+                    ID0 = id0,
+                };
+
+                visible.Add(id);
+
+                /*Octree.ForEachNode0Childs(id0, (int3 id1) =>
                 {
                     var center1 = Octree.IDLayer1ToPoint(id1);
                     var radius1 = Octree.Node1BoundingRadius;
@@ -326,7 +334,7 @@ public class CullingSystem : SystemBase
 
                         visible.Add(id);
                     }
-                });
+                });*/
             }
         });
 
