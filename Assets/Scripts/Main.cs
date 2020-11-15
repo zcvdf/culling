@@ -8,58 +8,6 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-public static class MainExt
-{
-    public static float4 ToFloat4(this Color color)
-    {
-        return new float4(color.r, color.g, color.b, color.a);
-    }
-
-    public static float NearPlaneHalfWidth(this Camera camera)
-    {
-        return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane * camera.aspect;
-    }
-
-    public static float NearPlaneHalfHeight(this Camera camera)
-    {
-        return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane;
-    }
-
-    public static WorldFrustrumPlanes ComputeFrustrumPlanes(this Camera camera)
-    {
-        var planeArray = GeometryUtility.CalculateFrustumPlanes(camera);
-
-        var planes = new WorldFrustrumPlanes();
-        planes.Left = planeArray[0];
-        planes.Right= planeArray[1];
-        planes.Down = planeArray[2];
-        planes.Up = planeArray[3];
-        planes.Near = planeArray[4];
-        planes.Far = planeArray[5];
-
-        return planes;
-    }
-
-    public static void DrawFrustrum(this Camera camera, Color color)
-    {
-        if (camera == null) return;
-
-        Gizmos.matrix = camera.transform.localToWorldMatrix;
-        Gizmos.color = color;
-        Gizmos.DrawFrustum(Vector3.zero, camera.fieldOfView, camera.farClipPlane, camera.nearClipPlane, camera.aspect);
-    }
-}
-
-public struct WorldFrustrumPlanes
-{
-    public Plane Left;
-    public Plane Right;
-    public Plane Down;
-    public Plane Up;
-    public Plane Near;
-    public Plane Far;
-}
-
 public class Main : MonoBehaviour
 {
     public static float3 Viewer;

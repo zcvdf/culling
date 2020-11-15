@@ -5,6 +5,33 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct Quad
+{
+    public float3 Center;
+    public float3 Normal;
+    public float3 LocalRight;
+    public float3 LocalUp;
+}
+
+public struct OccluderPlanes
+{
+    public Plane Left;
+    public Plane Right;
+    public Plane Up;
+    public Plane Down;
+    public Plane Near;
+}
+public struct WorldFrustrumPlanes
+{
+    public Plane Left;
+    public Plane Right;
+    public Plane Down;
+    public Plane Up;
+    public Plane Near;
+    public Plane Far;
+}
+
+
 public static class Math
 {
     public const float Sqrt3 = 1.73205080f;
@@ -216,5 +243,10 @@ public static class Math
         }
 
         return false;
+    }
+
+    public static float4 ToFloat4(this Color color)
+    {
+        return new float4(color.r, color.g, color.b, color.a);
     }
 }

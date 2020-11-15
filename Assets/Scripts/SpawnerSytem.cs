@@ -10,8 +10,6 @@ using Unity.Transforms;
 using UnityEngine;
 using Rand = Unity.Mathematics.Random;
 
-public struct UninitializedEntityTag : IComponentData { }
-
 public class SpawnerSystem : SystemBase
 {
     protected override void OnCreate()

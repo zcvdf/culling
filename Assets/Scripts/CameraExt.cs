@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
-public static class CameraExtention
+public static class CameraExt
 {
     private static int[] m_VertOrder = new int[24]
     {
@@ -103,5 +103,39 @@ public static class CameraExtention
         aabb.Max = max;
 
         return aabb;
+    }
+
+    public static float NearPlaneHalfWidth(this Camera camera)
+    {
+        return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane * camera.aspect;
+    }
+
+    public static float NearPlaneHalfHeight(this Camera camera)
+    {
+        return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane;
+    }
+
+    public static WorldFrustrumPlanes ComputeFrustrumPlanes(this Camera camera)
+    {
+        var planeArray = GeometryUtility.CalculateFrustumPlanes(camera);
+
+        var planes = new WorldFrustrumPlanes();
+        planes.Left = planeArray[0];
+        planes.Right = planeArray[1];
+        planes.Down = planeArray[2];
+        planes.Up = planeArray[3];
+        planes.Near = planeArray[4];
+        planes.Far = planeArray[5];
+
+        return planes;
+    }
+
+    public static void DrawFrustrum(this Camera camera, Color color)
+    {
+        if (camera == null) return;
+
+        Gizmos.matrix = camera.transform.localToWorldMatrix;
+        Gizmos.color = color;
+        Gizmos.DrawFrustum(Vector3.zero, camera.fieldOfView, camera.farClipPlane, camera.nearClipPlane, camera.aspect);
     }
 }

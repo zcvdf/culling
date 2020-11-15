@@ -9,23 +9,6 @@ using Unity.Transforms;
 using Unity.Jobs;
 using UnityEngine;
 
-public struct Quad
-{
-    public float3 Center;
-    public float3 Normal;
-    public float3 LocalRight;
-    public float3 LocalUp;
-}
-
-public struct OccluderPlanes
-{
-    public Plane Left;
-    public Plane Right;
-    public Plane Up;
-    public Plane Down;
-    public Plane Near;
-}
-
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateOctreeID))]
 [UpdateAfter(typeof(UpdateVisibleOctreeIDs))]

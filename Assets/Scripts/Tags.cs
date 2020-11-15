@@ -6,3 +6,5 @@ using UnityEngine;
 public struct SpawnerUnusedTag : IComponentData { }
 
 public struct EntityTag : IComponentData { }
+
+public struct UninitializedEntityTag : IComponentData { }
