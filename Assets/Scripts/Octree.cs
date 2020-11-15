@@ -5,12 +5,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct OctreeID : ISharedComponentData
-{
-    public int3 ID0;
-    public int3 ID1;
-}
-
 public class Octree
 {
     public static readonly OctreeID RootID = new OctreeID
