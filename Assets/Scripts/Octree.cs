@@ -18,6 +18,7 @@ public class Octree
 
     const Int64 BitPackOffset = 1 << 20;
     const UInt64 BitPackMask = (1 << 21) - 1;
+    const UInt64 MaxPackedField = 1 << 21;
 
     public static UInt64 PackID(int3 id)
     {
@@ -29,6 +30,9 @@ public class Octree
         var uy = (UInt64)y64;
         var uz = (UInt64)z64;
 
+#if ENABLE_ASSERTS
+        AssertValidPackedField(ux, uy, uz);
+#endif
         var packed = ux | (uy << 21) | (uz << 42);
 
         return packed;
@@ -39,6 +43,10 @@ public class Octree
         var ux = (UInt64)(id & BitPackMask);
         var uy = (UInt64)((id >> 21) & BitPackMask);
         var uz = (UInt64)((id >> 42) & BitPackMask);
+
+#if ENABLE_ASSERTS
+        AssertValidPackedField(ux, uy, uz);
+#endif
 
         var x64 = (Int64)ux - BitPackOffset; 
         var y64 = (Int64)uy - BitPackOffset; 
@@ -144,5 +152,12 @@ public class Octree
                 }
             }
         }
+    }
+
+    private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z)
+    {
+        Debug.Assert(x < MaxPackedField);
+        Debug.Assert(y < MaxPackedField);
+        Debug.Assert(z < MaxPackedField);
     }
 }
