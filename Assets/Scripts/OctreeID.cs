@@ -7,6 +7,5 @@ using UnityEngine;
 [GenerateAuthoringComponent]
 public struct OctreeID : IComponentData
 {
-    public int3 ID0;
-    public int3 ID1;
+    public int3 Value;
 }

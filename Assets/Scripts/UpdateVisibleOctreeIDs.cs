@@ -59,8 +59,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
                                     {
                                         var id = new OctreeID
                                         {
-                                            ID0 = id0,
-                                            ID1 = id1,
+                                            Value = id1,
                                         };
 
                                         visible.Add(new VisibleOctreeID { Value = id });
@@ -82,17 +81,15 @@ public class UpdateVisibleOctreeIDs : SystemBase
     {
         for (int i = 0; i < ids.Length; ++i)
         {
-            var a0 = ids[i].Value.ID0;
-            var a1 = ids[i].Value.ID1;
+            var a = ids[i].Value.Value;
 
             for (int j = 0; j < ids.Length; ++j)
             {
                 if (i == j) continue;
 
-                var b0 = ids[j].Value.ID0;
-                var b1 = ids[j].Value.ID1;
+                var b = ids[j].Value.Value;
 
-                Debug.Assert(math.any(a0 != b0) || math.any(a1 != b1));
+                Debug.Assert(math.any(a != b));
             }
         }
     }

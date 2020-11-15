@@ -74,7 +74,7 @@ public class CullingSystem : SystemBase
             var a = visibleIDs[i].Value;
             var b = id;
 
-            if (math.all(a.ID0 == b.ID0) && math.all(a.ID1 == b.ID1)) return true;
+            if (math.all(a.Value == b.Value)) return true;
         }
 
         return false;

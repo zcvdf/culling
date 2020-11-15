@@ -7,12 +7,6 @@ using UnityEngine;
 
 public class Octree
 {
-    public static readonly OctreeID RootID = new OctreeID
-    {
-        ID0 = new int3(int.MaxValue),
-        ID1 = new int3(int.MaxValue)
-    };
-
     public const float Node0Extent = 200f;
     public const float Node0Size = Node0Extent * 2f;
     public const float Node0BoundingRadius = Node0Extent * Math.Sqrt3;
