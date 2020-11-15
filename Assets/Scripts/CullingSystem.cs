@@ -28,6 +28,7 @@ public struct OccluderPlanes
 
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateOctreeID))]
+[UpdateAfter(typeof(UpdateVisibleOctreeIDs))]
 public class CullingSystem : SystemBase
 {
     protected override void OnUpdate()
@@ -50,15 +51,16 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        var visibleOctreeNodes = GetVisibleOctreeNodes(frustrumPlanes, frustrumAABB);
+        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeIDs>();
+        var visibleOctreeIDs = GetBuffer<VisibleOctreeIDs>(visibleOctreeEntity);
 
         // For the moment, each jobs wait for the previous one. 
         // Wait for an answer from the DOTS team to know how to fix this without triggering safety checks.
-        foreach (OctreeID octreeID in visibleOctreeNodes)
+        foreach (VisibleOctreeIDs visibleID in visibleOctreeIDs)
         {
             this.Entities
             .WithAll<EntityTag>()
-            .WithSharedComponentFilter(octreeID)
+            .WithSharedComponentFilter(visibleID.Value)
             .WithReadOnly(frustrumPlanes)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
@@ -102,7 +104,7 @@ public class CullingSystem : SystemBase
         return SignedDistanceToPlane(center, plane) < -radius;
     }
 
-    static bool IsInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
+    public static bool IsInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
     {
         for (int i = 0; i < 6; ++i)
         {
@@ -299,68 +301,5 @@ public class CullingSystem : SystemBase
         }
 
         return false;
-    }
-
-    static List<OctreeID> GetVisibleOctreeNodes(NativeArray<Plane> planes, AABB frustrumAABB)
-    {
-        var visible = new List<OctreeID>();
-
-        Octree.ForEachBoundingNode0(frustrumAABB, (int3 id0) =>
-        {
-            var center0 = Octree.IDLayer0ToPoint(id0);
-            var radius0 = Octree.Node0BoundingRadius;
-
-            if (IsInFrustrum(center0, radius0, planes))
-            {
-                var id = new OctreeID
-                {
-                    ID0 = id0,
-                };
-
-                visible.Add(id);
-
-                /*Octree.ForEachNode0Childs(id0, (int3 id1) =>
-                {
-                    var center1 = Octree.IDLayer1ToPoint(id1);
-                    var radius1 = Octree.Node1BoundingRadius;
-
-                    if (IsInFrustrum(center1, radius1, planes))
-                    {
-                        var id = new OctreeID
-                        {
-                            ID0 = id0,
-                            ID1 = id1,
-                        };
-
-                        visible.Add(id);
-                    }
-                });*/
-            }
-        });
-
-#if ENABLE_ASSERTS
-        AssertNoDupplicate(visible);
-#endif
-
-        return visible;
-    }
-
-    static void AssertNoDupplicate(List<OctreeID> ids)
-    {
-        for (int i = 0; i < ids.Count; ++i)
-        {
-            var a0 = ids[i].ID0;
-            var a1 = ids[i].ID1;
-
-            for (int j = 0; j < ids.Count; ++j)
-            {
-                if (i == j) continue;
-
-                var b0 = ids[j].ID0;
-                var b1 = ids[j].ID1;
-
-                Debug.Assert(math.any(a0 != b0) || math.any(a1 != b1));
-            }
-        }
     }
 }
