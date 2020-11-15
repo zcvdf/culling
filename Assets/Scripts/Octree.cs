@@ -40,6 +40,12 @@ public class Octree
         ForEach3DMaxIncluded(minID, maxID, func);
     }
 
+    public static void GetMixMaxIDLayer0(in AABB aabb, out int3 minID, out int3 maxID)
+    {
+        minID = PointToIDLayer0(aabb.Min);
+        maxID = PointToIDLayer0(aabb.Max);
+    }
+
     public static void ForEachBoundingNode0(in AABB aabb, Action<int3> func)
     {
         ForEachNode0(aabb.Min, aabb.Max, func);

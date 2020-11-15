@@ -11,55 +11,67 @@ public class UpdateVisibleOctreeIDs : SystemBase
 {
     protected override void OnUpdate()
     {
-        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeIDs>();
-        var visibleOctreeIDs = GetBuffer<VisibleOctreeIDs>(visibleOctreeEntity);
-
         var frustrumAABB = Main.FrustrumAABB;
         var frustrumPlanes = Main.FrustrumPlanes;
 
-        UpdateVisibleOctreeNodes(frustrumPlanes, frustrumAABB, visibleOctreeIDs);
+        this.Entities.ForEach((DynamicBuffer<VisibleOctreeIDs> visibleIDs) =>
+        {
+            UpdateVisibleOctreeNodes(frustrumPlanes, frustrumAABB, visibleIDs);
+        })
+        .ScheduleParallel();
     }
 
     static void UpdateVisibleOctreeNodes(WorldFrustrumPlanes planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeIDs> visible)
     {
         visible.Clear();
 
-        Octree.ForEachBoundingNode0(frustrumAABB, (int3 id0) =>
+        int3 minID0;
+        int3 maxID0;
+        Octree.GetMixMaxIDLayer0(frustrumAABB, out minID0, out maxID0);
+
+        for (int x = minID0.x; x <= maxID0.x; ++x)
         {
-            var center0 = Octree.IDLayer0ToPoint(id0);
-            var radius0 = Octree.Node0BoundingRadius;
-
-            if (Math.IsInFrustrum(center0, radius0, planes))
+            for (int y = minID0.y; y <= maxID0.y; ++y)
             {
-                var id = new OctreeID
+                for (int z = minID0.z; z <= maxID0.z; ++z)
                 {
-                    ID0 = id0,
-                };
-                var visibleID = new VisibleOctreeIDs
-                {
-                    Value = id
-                };
+                    var id0 = new int3(x, y, z);
+                    var center0 = Octree.IDLayer0ToPoint(id0);
+                    var radius0 = Octree.Node0BoundingRadius;
 
-                visible.Add(visibleID);
-
-                /*Octree.ForEachNode0Childs(id0, (int3 id1) =>
-                {
-                    var center1 = Octree.IDLayer1ToPoint(id1);
-                    var radius1 = Octree.Node1BoundingRadius;
-
-                    if (IsInFrustrum(center1, radius1, planes))
+                    if (Math.IsInFrustrum(center0, radius0, planes))
                     {
                         var id = new OctreeID
                         {
                             ID0 = id0,
-                            ID1 = id1,
+                        };
+                        var visibleID = new VisibleOctreeIDs
+                        {
+                            Value = id
                         };
 
-                        visible.Add(id);
+                        visible.Add(visibleID);
+
+                        /*Octree.ForEachNode0Childs(id0, (int3 id1) =>
+                        {
+                            var center1 = Octree.IDLayer1ToPoint(id1);
+                            var radius1 = Octree.Node1BoundingRadius;
+
+                            if (IsInFrustrum(center1, radius1, planes))
+                            {
+                                var id = new OctreeID
+                                {
+                                    ID0 = id0,
+                                    ID1 = id1,
+                                };
+
+                                visible.Add(id);
+                            }
+                        });*/
                     }
-                });*/
+                }
             }
-        });
+        }
 
 #if ENABLE_ASSERTS
         AssertNoDupplicate(visible);
