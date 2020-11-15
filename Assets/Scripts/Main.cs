@@ -8,11 +8,6 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-public static class Const
-{
-    public const float SQRT3 = 1.73205080f;
-}
-
 public static class MainExt
 {
     public static float4 ToFloat4(this Color color)

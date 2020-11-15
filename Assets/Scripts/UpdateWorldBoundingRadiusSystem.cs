@@ -17,7 +17,7 @@ public class UpdateWorldBoundingRadiusSystem : SystemBase
         {
             var extents = bounds.Value.Extents;
 
-            radius.Value = math.max(math.max(extents.x, extents.y), extents.z) * Const.SQRT3;
+            radius.Value = math.max(math.max(extents.x, extents.y), extents.z) * Math.Sqrt3;
         })
         .ScheduleParallel();
     }

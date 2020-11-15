@@ -23,12 +23,12 @@ public class Octree
 
     public const float Node0Extent = 200f;
     public const float Node0Size = Node0Extent * 2f;
-    public const float Node0BoundingRadius = Node0Extent * Const.SQRT3;
+    public const float Node0BoundingRadius = Node0Extent * Math.Sqrt3;
     public const int Node0Subdivision = 2;
 
     public const float Node1Extent = Node0Extent / Node0Subdivision;
     public const float Node1Size = Node1Extent * 2f;
-    public const float Node1BoundingRadius = Node1Extent * Const.SQRT3;
+    public const float Node1BoundingRadius = Node1Extent * Math.Sqrt3;
 
     public static int3 PointToIDLayer0(float3 point)
     {

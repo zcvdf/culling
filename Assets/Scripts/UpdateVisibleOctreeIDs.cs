@@ -29,7 +29,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
             var center0 = Octree.IDLayer0ToPoint(id0);
             var radius0 = Octree.Node0BoundingRadius;
 
-            if (CullingSystem.IsInFrustrum(center0, radius0, planes))
+            if (Math.IsInFrustrum(center0, radius0, planes))
             {
                 var id = new OctreeID
                 {
