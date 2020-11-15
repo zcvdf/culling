@@ -86,6 +86,7 @@ public class Main : MonoBehaviour
         this.frustrumPlanesMesh.GetComponent<MeshRenderer>().enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         this.viewerCamera.Use(true);
+        this.viewerCamera.IsLocked = true;
     }
 
     private void Update()
@@ -136,6 +137,11 @@ public class Main : MonoBehaviour
         {
             this.viewerCamera.ToggleUse();
             this.orbitalCamera.ToggleUse();
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            this.viewerCamera.ToggleLock();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))

@@ -8,6 +8,7 @@ public class ViewerCamera : MonoBehaviour
     [SerializeField] float moveSpeed = 20f;
     private bool isUsed = false;
     private new Camera camera;
+    public bool IsLocked = false;
 
     private void Awake()
     {
@@ -18,6 +19,7 @@ public class ViewerCamera : MonoBehaviour
     void Update()
     {
         if (!this.isUsed) return;
+        if (this.IsLocked) return;
 
         var horizontal = Input.GetAxisRaw("Horizontal");
         var vertical = Input.GetAxisRaw("Vertical");
@@ -41,6 +43,11 @@ public class ViewerCamera : MonoBehaviour
     public void ToggleUse()
     {
         Use(!this.isUsed);
+    }
+
+    public void ToggleLock()
+    {
+        this.IsLocked = !this.IsLocked;
     }
 
     public Camera Camera => this.camera;
