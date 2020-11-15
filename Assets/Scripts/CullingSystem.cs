@@ -44,7 +44,7 @@ public class CullingSystem : SystemBase
         var sphereOccluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
         var planeOccluderQuery = GetEntityQuery(typeof(WorldOccluderExtents), typeof(Translation));
 
-        var frustrumPlanes = new NativeArray<Plane>(Main.FrustrumPlanes, Allocator.TempJob);
+        var frustrumPlanes = Main.FrustrumPlanes;
         var sphereOccluderTranslations = sphereOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var sphereOccluderRadiuses = sphereOccluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
 
@@ -61,7 +61,6 @@ public class CullingSystem : SystemBase
             this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(visibleID.Value)
-            .WithReadOnly(frustrumPlanes)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
@@ -75,7 +74,7 @@ public class CullingSystem : SystemBase
 
                 var isSphereOccluded =
                     IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
-                    || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents, frustrumPlanes);
+                    || IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents);
 
                 color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
             })
@@ -86,7 +85,6 @@ public class CullingSystem : SystemBase
         planeOccluderTranslations.Dispose(this.Dependency);
         sphereOccluderRadiuses.Dispose(this.Dependency);
         sphereOccluderTranslations.Dispose(this.Dependency);
-        frustrumPlanes.Dispose(this.Dependency);
     }
 
     static float SignedDistanceToPlane(float3 point, Plane plane)
@@ -104,41 +102,37 @@ public class CullingSystem : SystemBase
         return SignedDistanceToPlane(center, plane) < -radius;
     }
 
-    public static bool IsInFrustrum(float3 center, float radius, in NativeArray<Plane> planes)
+    public static bool IsInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes)
     {
-        for (int i = 0; i < 6; ++i)
-        {
-            if (IsClipped(center, radius, planes[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return !IsClipped(center, radius, planes.Left)
+            && !IsClipped(center, radius, planes.Right)
+            && !IsClipped(center, radius, planes.Down)
+            && !IsClipped(center, radius, planes.Up)
+            && !IsClipped(center, radius, planes.Near)
+            && !IsClipped(center, radius, planes.Far);
     }
 
-    static bool IsSphereOccluderInFrustrum(float3 center, float radius, in NativeArray<Plane> planes, out bool hasNearIntersection)
+    static bool IsSphereOccluderInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes, out bool hasNearIntersection)
     {
         // Special handling of the near clipping plane for occluders (planes[4])
         // We want the occluder to be discarded if its center is behind the near plane
         // Otherwise the objects made visible by the clipping of the near plane get culled out
 
-        var nearPlane = planes[4];
         hasNearIntersection = false;
 
         if 
         (
-            IsClipped(center, radius, planes[0])
-            || IsClipped(center, radius, planes[1])
-            || IsClipped(center, radius, planes[2])
-            || IsClipped(center, radius, planes[3])
-            || IsClipped(center, radius, planes[5])
+            IsClipped(center, radius, planes.Left)
+            || IsClipped(center, radius, planes.Right)
+            || IsClipped(center, radius, planes.Down)
+            || IsClipped(center, radius, planes.Up)
+            || IsClipped(center, radius, planes.Far)
         )
         {
             return false;
         }
 
-        var nearDist = SignedDistanceToPlane(center, nearPlane);
+        var nearDist = SignedDistanceToPlane(center, planes.Near);
         if (nearDist < 0f)
         {
             return false;
@@ -190,7 +184,7 @@ public class CullingSystem : SystemBase
     }
 
     static bool IsOccludedBySphere(float3 testedCenter, float testedRadius, float3 viewer,
-        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in NativeArray<Plane> frustrumPlanes)
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in WorldFrustrumPlanes frustrumPlanes)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
         {
@@ -264,8 +258,7 @@ public class CullingSystem : SystemBase
 
     static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, in OccluderPlanes planes)
     {
-        return
-            IsClipped(testedCenter, testedRadius, planes.Left)
+        return IsClipped(testedCenter, testedRadius, planes.Left)
             && IsClipped(testedCenter, testedRadius, planes.Right)
             && IsClipped(testedCenter, testedRadius, planes.Up)
             && IsClipped(testedCenter, testedRadius, planes.Down)
@@ -273,7 +266,7 @@ public class CullingSystem : SystemBase
     }
 
     static bool IsOccludedByPlane(float3 testedCenter, float testedRadius, float3 viewer, in Quad nearPlane,
-        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents, in NativeArray<Plane> frustrumPlanes)
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents)
     {
         for (int i = 0; i < occluderTranslations.Length; ++i)
         {

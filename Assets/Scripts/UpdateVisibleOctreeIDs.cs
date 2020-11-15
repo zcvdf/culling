@@ -15,12 +15,12 @@ public class UpdateVisibleOctreeIDs : SystemBase
         var visibleOctreeIDs = GetBuffer<VisibleOctreeIDs>(visibleOctreeEntity);
 
         var frustrumAABB = Main.FrustrumAABB;
-        var frustrumPlanes = new NativeArray<Plane>(Main.FrustrumPlanes, Allocator.Temp);
+        var frustrumPlanes = Main.FrustrumPlanes;
 
         UpdateVisibleOctreeNodes(frustrumPlanes, frustrumAABB, visibleOctreeIDs);
     }
 
-    static void UpdateVisibleOctreeNodes(NativeArray<Plane> planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeIDs> visible)
+    static void UpdateVisibleOctreeNodes(WorldFrustrumPlanes planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeIDs> visible)
     {
         visible.Clear();
 

@@ -30,9 +30,19 @@ public static class MainExt
         return math.tan(math.radians(camera.fieldOfView * 0.5f)) * camera.nearClipPlane;
     }
 
-    public static Plane[] ComputeFrustrumPlanes(this Camera camera)
+    public static WorldFrustrumPlanes ComputeFrustrumPlanes(this Camera camera)
     {
-        return GeometryUtility.CalculateFrustumPlanes(camera);
+        var planeArray = GeometryUtility.CalculateFrustumPlanes(camera);
+
+        var planes = new WorldFrustrumPlanes();
+        planes.Left = planeArray[0];
+        planes.Right= planeArray[1];
+        planes.Down = planeArray[2];
+        planes.Up = planeArray[3];
+        planes.Near = planeArray[4];
+        planes.Far = planeArray[5];
+
+        return planes;
     }
 
     public static void DrawFrustrum(this Camera camera, Color color)
@@ -45,13 +55,23 @@ public static class MainExt
     }
 }
 
+public struct WorldFrustrumPlanes
+{
+    public Plane Left;
+    public Plane Right;
+    public Plane Down;
+    public Plane Up;
+    public Plane Near;
+    public Plane Far;
+}
+
 public class Main : MonoBehaviour
 {
     public static float3 Viewer;
     public static float3 NearPlaneCenter;
     public static Quad NearPlane;
     public static float4x4 WorldToNDC;
-    public static Plane[] FrustrumPlanes;
+    public static WorldFrustrumPlanes FrustrumPlanes;
     public static AABB FrustrumAABB;
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
@@ -94,6 +114,7 @@ public class Main : MonoBehaviour
         Inputs();
 
         this.frustrumPlanesMesh.mesh = this.viewerCamera.Camera.ComputeFrustumMesh();
+
         FrustrumPlanes = this.viewerCamera.Camera.ComputeFrustrumPlanes();
         FrustrumAABB = this.viewerCamera.Camera.ComputeFrustrumAABB();
         WorldToNDC = this.viewerCamera.Camera.projectionMatrix * this.viewerCamera.Camera.worldToCameraMatrix;
@@ -104,7 +125,7 @@ public class Main : MonoBehaviour
         nearPlane.Center = NearPlaneCenter;
         nearPlane.LocalRight = this.viewerCamera.transform.right * this.viewerCamera.Camera.NearPlaneHalfWidth();
         nearPlane.LocalUp = this.viewerCamera.transform.up * this.viewerCamera.Camera.NearPlaneHalfHeight();
-        nearPlane.Normal = FrustrumPlanes[4].normal;
+        nearPlane.Normal = FrustrumPlanes.Near.normal;
         NearPlane = nearPlane;
     }
 
