@@ -36,10 +36,8 @@ public class UpdateVisibleOctreeIDs : SystemBase
                 for (int z0 = minID0.z; z0 <= maxID0.z; ++z0)
                 {
                     var id0 = new int3(x0, y0, z0);
-                    var center0 = Octree.IDLayer0ToPoint(id0);
-                    var radius0 = Octree.Node0BoundingRadius;
 
-                    if (Math.IsInFrustrum(center0, radius0, planes))
+                    if (Math.IsCubeInFrustrum(Octree.IDLayer0ToPoint(id0), Octree.Node0Extent, planes))
                     {
                         int3 minID1;
                         int3 maxID1;
@@ -52,10 +50,8 @@ public class UpdateVisibleOctreeIDs : SystemBase
                                 for (int z1 = minID1.z; z1 < maxID1.z; ++z1)
                                 {
                                     var id1 = new int3(x1, y1, z1);
-                                    var center1 = Octree.IDLayer1ToPoint(id1);
-                                    var radius1 = Octree.Node1BoundingRadius;
 
-                                    if (Math.IsInFrustrum(center1, radius1, planes))
+                                    if (Math.IsCubeInFrustrum(Octree.IDLayer1ToPoint(id1), Octree.Node1Extent, planes))
                                     {
                                         var id = new OctreeID
                                         {

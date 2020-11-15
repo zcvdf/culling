@@ -51,6 +51,11 @@ public static class Math
         return SignedDistanceToPlane(center, plane) < -radius;
     }
 
+    public static bool IsClipped(float3 center, Plane plane)
+    {
+        return SignedDistanceToPlane(center, plane) < 0f;
+    }
+
     public static bool IsInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes)
     {
         return !IsClipped(center, radius, planes.Left)
@@ -59,6 +64,56 @@ public static class Math
             && !IsClipped(center, radius, planes.Up)
             && !IsClipped(center, radius, planes.Near)
             && !IsClipped(center, radius, planes.Far);
+    }
+
+    public static bool IsInFrustrum(float3 point, in WorldFrustrumPlanes planes)
+    {
+        return !IsClipped(point, planes.Left)
+            && !IsClipped(point, planes.Right)
+            && !IsClipped(point, planes.Down)
+            && !IsClipped(point, planes.Up)
+            && !IsClipped(point, planes.Near)
+            && !IsClipped(point, planes.Far);
+    }
+
+    // Really need to figure out of to make fixed size stack array in C# ...
+    public static bool IsClipped(float3 a, float3 b, float3 c, float3 d, float3 e, float3 f, float3 g, float3 h, Plane plane)
+    {
+        return IsClipped(a, plane)
+            && IsClipped(b, plane)
+            && IsClipped(c, plane)
+            && IsClipped(d, plane)
+            && IsClipped(e, plane)
+            && IsClipped(f, plane)
+            && IsClipped(g, plane)
+            && IsClipped(h, plane);
+    }
+
+    public static bool IsCubeInFrustrum(float3 center, float extent, in WorldFrustrumPlanes planes)
+    {
+        if (!IsInFrustrum(center, extent * Sqrt3, planes)) return false;
+
+        if (IsInFrustrum(center, extent, planes)) return true;
+
+        var x = new float3(extent, 0, 0);
+        var y = new float3(0, extent, 0);
+        var z = new float3(0, 0, extent);
+
+        var a = center + x + y + z;
+        var b = center + x + y - z;
+        var c = center + x - y + z;
+        var d = center + x - y - z;
+        var e = center - x + y + z;
+        var f = center - x + y - z;
+        var g = center - x - y + z;
+        var h = center - x - y - z;
+
+        return !IsClipped(a, b, c, d, e, f, g, h, planes.Left)
+            && !IsClipped(a, b, c, d, e, f, g, h, planes.Right)
+            && !IsClipped(a, b, c, d, e, f, g, h, planes.Down)
+            && !IsClipped(a, b, c, d, e, f, g, h, planes.Up)
+            && !IsClipped(a, b, c, d, e, f, g, h, planes.Near)
+            && !IsClipped(a, b, c, d, e, f, g, h, planes.Far);
     }
 
     public static bool IsSphereOccluderInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes, out bool hasNearIntersection)
