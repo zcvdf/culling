@@ -11,9 +11,19 @@ struct Spawner : IComponentData
     public int Count;
 }
 
+public struct VisibleClusterID : IBufferElementData
+{
+    public ClusterID Value;
+}
+
 public struct VisibleOctreeID : IBufferElementData
 {
     public OctreeID Value;
+}
+
+public struct VisibleLeafInClusterCount : IBufferElementData
+{
+    public int Value;
 }
 
 public struct WorldOccluderExtents : IComponentData

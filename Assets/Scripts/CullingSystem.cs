@@ -36,7 +36,13 @@ public class CullingSystem : SystemBase
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
         var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeID>();
+        var visibleClusterEntity = GetSingletonEntity<VisibleClusterID>();
+        var visibleLeafEntity = GetSingletonEntity<VisibleLeafInClusterCount>();
+
         var visibleOctreeIDs = GetBuffer<VisibleOctreeID>(visibleOctreeEntity).AsNativeArray();
+        var visibleClusterIDs = GetBuffer<VisibleClusterID>(visibleClusterEntity).AsNativeArray();
+        var visibleLeafIDs = GetBuffer<VisibleLeafInClusterCount>(visibleLeafEntity).AsNativeArray();
+
         Main.VisibleOctreeIDs = visibleOctreeIDs.ToArray();
 
         this.Entities

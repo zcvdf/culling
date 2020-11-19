@@ -14,16 +14,23 @@ public class UpdateVisibleOctreeIDs : SystemBase
         var frustrumAABB = Main.FrustrumAABB;
         var frustrumPlanes = Main.FrustrumPlanes;
 
-        this.Entities.ForEach((DynamicBuffer<VisibleOctreeID> visibleIDs) =>
+        this.Entities.ForEach((DynamicBuffer<VisibleClusterID> visibleClusterIDs, 
+            DynamicBuffer<VisibleOctreeID> visibleOctreeIDs,
+            DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts) =>
         {
-            UpdateVisibleOctreeNodes(frustrumPlanes, frustrumAABB, visibleIDs);
+            UpdateVisibilityBuffers(frustrumPlanes, frustrumAABB, visibleClusterIDs, visibleOctreeIDs, visibleLeafInClusterCounts);
         })
         .ScheduleParallel();
     }
 
-    static void UpdateVisibleOctreeNodes(WorldFrustrumPlanes planes, AABB frustrumAABB, DynamicBuffer<VisibleOctreeID> visible)
+    static void UpdateVisibilityBuffers(WorldFrustrumPlanes planes, AABB frustrumAABB, 
+        DynamicBuffer<VisibleClusterID> visibleClusters, 
+        DynamicBuffer<VisibleOctreeID> visibleOctreeLeafs, 
+        DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts)
     {
-        visible.Clear();
+        visibleClusters.Clear();
+        visibleOctreeLeafs.Clear();
+        visibleLeafInClusterCounts.Clear();
 
         int3 minID0;
         int3 maxID0;
@@ -39,10 +46,17 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                     if (Math.IsCubeInFrustrum(Octree.IDLayer0ToPoint(id0), Octree.Node0Extent, planes))
                     {
+                        var clusterID = new ClusterID 
+                        { 
+                            Value = Octree.PackID(id0) 
+                        };
+                        visibleClusters.Add(new VisibleClusterID { Value = clusterID });
+
                         int3 minID1;
                         int3 maxID1;
                         Octree.GetMixMaxIDChild0(id0, out minID1, out maxID1);
 
+                        int visibleLeafCount = 0;
                         for (int x1 = minID1.x; x1 < maxID1.x; ++x1)
                         {
                             for (int y1 = minID1.y; y1 < maxID1.y; ++y1)
@@ -58,22 +72,25 @@ public class UpdateVisibleOctreeIDs : SystemBase
                                             Value = Octree.PackID(id1),
                                         };
 
-                                        visible.Add(new VisibleOctreeID { Value = id });
+                                        visibleOctreeLeafs.Add(new VisibleOctreeID { Value = id });
+                                        ++visibleLeafCount;
                                     }
                                 }
                             }
                         }
+
+                        visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
                     }
                 }
             }
         }
 
 #if ENABLE_ASSERTS
-        AssertNoDupplicate(visible);
+        AssertNoDupplicate(visibleClusters);
 #endif
     }
 
-    static void AssertNoDupplicate(DynamicBuffer<VisibleOctreeID> ids)
+    static void AssertNoDupplicate(DynamicBuffer<VisibleClusterID> ids)
     {
         for (int i = 0; i < ids.Length; ++i)
         {
