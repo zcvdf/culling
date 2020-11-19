@@ -38,6 +38,7 @@ public class SpawnerSystem : SystemBase
             var position = new float3(spawner.Origin) + offset;
 
             this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+            this.EntityManager.AddSharedComponentData(entity, new ClusterID());
         }
 
         this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
