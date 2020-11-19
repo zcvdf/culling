@@ -7,10 +7,10 @@ using UnityEngine;
 
 public class Octree
 {
-    public const float Node0Extent = 400f;
+    public const float Node0Extent = 200f;
     public const float Node0Size = Node0Extent * 2f;
     public const float Node0BoundingRadius = Node0Extent * Math.Sqrt3;
-    public const int Node0Subdivision = 2;
+    public const int Node0Subdivision = 4;
 
     public const float Node1Extent = Node0Extent / Node0Subdivision;
     public const float Node1Size = Node1Extent * 2f;
