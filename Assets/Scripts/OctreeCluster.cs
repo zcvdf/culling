@@ -7,4 +7,6 @@ using UnityEngine;
 public struct OctreeCluster : ISharedComponentData
 {
     public UInt64 Value;
+
+    public static implicit operator VisibleOctreeCluster(OctreeCluster x) => new OctreeCluster { Value = x.Value };
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -11,9 +12,11 @@ struct Spawner : IComponentData
     public int Count;
 }
 
-public struct VisibleClusterID : IBufferElementData
+public struct VisibleOctreeCluster : IBufferElementData
 {
-    public OctreeCluster Value;
+    public UInt64 Value;
+
+    public static implicit operator OctreeCluster(VisibleOctreeCluster x) => new OctreeCluster { Value = x.Value };
 }
 
 public struct VisibleOctreeID : IBufferElementData

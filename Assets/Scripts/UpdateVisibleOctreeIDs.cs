@@ -14,17 +14,17 @@ public class UpdateVisibleOctreeIDs : SystemBase
         var frustrumAABB = Main.FrustrumAABB;
         var frustrumPlanes = Main.FrustrumPlanes;
 
-        this.Entities.ForEach((DynamicBuffer<VisibleClusterID> visibleClusterIDs, 
+        this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
             DynamicBuffer<VisibleOctreeID> visibleOctreeIDs,
             DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts) =>
         {
-            UpdateVisibilityBuffers(frustrumPlanes, frustrumAABB, visibleClusterIDs, visibleOctreeIDs, visibleLeafInClusterCounts);
+            UpdateVisibilityBuffers(frustrumPlanes, frustrumAABB, visibleClusters, visibleOctreeIDs, visibleLeafInClusterCounts);
         })
         .ScheduleParallel();
     }
 
     static void UpdateVisibilityBuffers(WorldFrustrumPlanes planes, AABB frustrumAABB, 
-        DynamicBuffer<VisibleClusterID> visibleClusters, 
+        DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
         DynamicBuffer<VisibleOctreeID> visibleOctreeLeafs, 
         DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts)
     {
@@ -46,11 +46,8 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                     if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(id0), Octree.ClusterExtent, planes))
                     {
-                        var clusterID = new OctreeCluster
-                        { 
-                            Value = Octree.PackID(id0) 
-                        };
-                        visibleClusters.Add(new VisibleClusterID { Value = clusterID });
+                        var packedID0 = Octree.PackID(id0);
+                        visibleClusters.Add(new VisibleOctreeCluster { Value = packedID0 });
 
                         int3 minID1;
                         int3 maxID1;
@@ -90,17 +87,17 @@ public class UpdateVisibleOctreeIDs : SystemBase
 #endif
     }
 
-    static void AssertNoDupplicate(DynamicBuffer<VisibleClusterID> ids)
+    static void AssertNoDupplicate(DynamicBuffer<VisibleOctreeCluster> ids)
     {
         for (int i = 0; i < ids.Length; ++i)
         {
-            var a = ids[i].Value.Value;
+            var a = ids[i].Value;
 
             for (int j = 0; j < ids.Length; ++j)
             {
                 if (i == j) continue;
 
-                var b = ids[j].Value.Value;
+                var b = ids[j].Value;
 
                 Debug.Assert(a != b);
             }

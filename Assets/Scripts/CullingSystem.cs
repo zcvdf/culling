@@ -36,24 +36,24 @@ public class CullingSystem : SystemBase
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
         var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeID>();
-        var visibleClusterEntity = GetSingletonEntity<VisibleClusterID>();
+        var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
         var visibleLeafEntity = GetSingletonEntity<VisibleLeafInClusterCount>();
 
         var visibleOctreeIDs = GetBuffer<VisibleOctreeID>(visibleOctreeEntity).AsNativeArray();
-        var visibleClusterIDs = GetBuffer<VisibleClusterID>(visibleClusterEntity).AsNativeArray();
+        var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
         var visibleLeafCounts = GetBuffer<VisibleLeafInClusterCount>(visibleLeafEntity).AsNativeArray();
 
         Main.VisibleOctreeIDs = visibleOctreeIDs.ToArray();
 
-        for (int i = 0, srcLeafCountIndex = 0; i < visibleClusterIDs.Length; ++i)
+        for (int i = 0, srcLeafCountIndex = 0; i < visibleClusters.Length; ++i)
         {
-            var visibleClusterID = visibleClusterIDs[i].Value;
+            var visibleCluster = visibleClusters[i];
             var visibleLeafCount = visibleLeafCounts[i].Value;
             var srcIndex = srcLeafCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
 
             this.Entities
             .WithAll<EntityTag>()
-            .WithSharedComponentFilter(visibleClusterID)
+            .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
             .WithReadOnly(visibleOctreeIDs)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
