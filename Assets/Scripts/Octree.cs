@@ -12,7 +12,8 @@ public class Octree
     public const float ClusterExtent = 200f;
     public const float ClusterSize = ClusterExtent * 2f;
 
-    public const float LeafExtent = ClusterExtent / (Depth + 1);
+    public const int ClusterSubdivisions = (1 << Depth);
+    public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
 
     const Int64 BitPackOffset = 1 << 20;
