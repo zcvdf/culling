@@ -16,14 +16,12 @@ public class UpdateOctreeID : SystemBase
         .WithChangeFilter<Translation>()
         .ForEach((ref OctreeID id, in Translation translation, in Entity entity) =>
         {
-            var id1 = Octree.PackID(Octree.PointToIDLayer1(translation.Value));
+            var newID = Octree.PackID(Octree.PointToILeafID(translation.Value));
 
-            var newID = new OctreeID
+            id = new OctreeID
             {
-                Value = id1
+                Value = newID
             };
-
-            id = newID;
         })
         .ScheduleParallel();
     }

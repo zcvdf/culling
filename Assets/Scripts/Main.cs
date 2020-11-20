@@ -150,8 +150,8 @@ public class Main : MonoBehaviour
         {
             var id = Octree.UnpackID(visibleID.Value.Value);
 
-            var center = Octree.IDLayer1ToPoint(id);
-            var size = new float3(Octree.Node1Size);
+            var center = Octree.LeafIDToPoint(id);
+            var size = new float3(Octree.LeafSize);
 
             Gizmos.DrawWireCube(center, size);
         }
