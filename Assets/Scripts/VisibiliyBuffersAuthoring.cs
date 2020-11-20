@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public class VisibleOctreeIDsAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class VisibiliyBuffersAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
