@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [GenerateAuthoringComponent]
-public struct OctreeID : IComponentData
+public struct OctreeLeaf : IComponentData
 {
     public UInt64 Value;
 }

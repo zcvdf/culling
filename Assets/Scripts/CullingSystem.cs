@@ -59,9 +59,9 @@ public class CullingSystem : SystemBase
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
-            .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeID octreeID) =>
+            .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
             {
-                if (!Contains(visibleOctreeIDs, octreeID, srcIndex, visibleLeafCount)) return;
+                if (!Contains(visibleOctreeIDs, octreeLeaf, srcIndex, visibleLeafCount)) return;
 
                 var center = translation.Value;
                 var radius = radiusComponent.Value;
@@ -85,12 +85,12 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool Contains(NativeArray<VisibleOctreeID> visibleIDs, OctreeID id, int src, int range)
+    public static bool Contains(NativeArray<VisibleOctreeID> visibleIDs, OctreeLeaf leaf, int src, int range)
     {
         for (int i = 0; i < range; ++i)
         {
             var a = visibleIDs[src + i].Value;
-            var b = id;
+            var b = leaf;
 
             if (a.Value == b.Value) return true;
         }

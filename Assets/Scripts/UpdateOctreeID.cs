@@ -14,11 +14,11 @@ public class UpdateOctreeID : SystemBase
     {
         this.Entities
         .WithChangeFilter<Translation>()
-        .ForEach((ref OctreeID id, in Translation translation, in Entity entity) =>
+        .ForEach((ref OctreeLeaf octreeLeaf, in Translation translation, in Entity entity) =>
         {
             var newID = Octree.PackID(Octree.PointToILeafID(translation.Value));
 
-            id = new OctreeID
+            octreeLeaf = new OctreeLeaf
             {
                 Value = newID
             };

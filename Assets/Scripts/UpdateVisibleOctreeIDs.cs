@@ -67,7 +67,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                                     if (Math.IsCubeInFrustrum(Octree.LeafIDToPoint(id1), Octree.LeafExtent, planes))
                                     {
-                                        var id = new OctreeID
+                                        var id = new OctreeLeaf
                                         {
                                             Value = Octree.PackID(id1),
                                         };

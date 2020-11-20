@@ -18,7 +18,7 @@ public struct VisibleClusterID : IBufferElementData
 
 public struct VisibleOctreeID : IBufferElementData
 {
-    public OctreeID Value;
+    public OctreeLeaf Value;
 }
 
 public struct VisibleLeafInClusterCount : IBufferElementData
