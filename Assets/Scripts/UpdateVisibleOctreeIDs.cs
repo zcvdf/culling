@@ -34,7 +34,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
         int3 minID0;
         int3 maxID0;
-        Octree.GetMixMaxIDLayer0(frustrumAABB, out minID0, out maxID0);
+        Octree.GetMinMaxClusterIDs(frustrumAABB, out minID0, out maxID0);
 
         for (int x0 = minID0.x; x0 <= maxID0.x; ++x0)
         {
@@ -44,7 +44,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
                 {
                     var id0 = new int3(x0, y0, z0);
 
-                    if (Math.IsCubeInFrustrum(Octree.IDLayer0ToPoint(id0), Octree.Node0Extent, planes))
+                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(id0), Octree.ClusterExtent, planes))
                     {
                         var clusterID = new ClusterID 
                         { 
@@ -54,7 +54,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                         int3 minID1;
                         int3 maxID1;
-                        Octree.GetMixMaxIDChild0(id0, out minID1, out maxID1);
+                        Octree.GetMinMaxClusterChildrenID(id0, out minID1, out maxID1);
 
                         int visibleLeafCount = 0;
                         for (int x1 = minID1.x; x1 < maxID1.x; ++x1)

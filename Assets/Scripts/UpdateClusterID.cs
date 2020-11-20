@@ -18,7 +18,7 @@ public class UpdateClusterID : SystemBase
         .WithoutBurst()
         .ForEach((in Translation translation, in Entity entity, in ClusterID currentID) =>
         {
-            var newID = Octree.PackID(Octree.PointToIDLayer0(translation.Value));
+            var newID = Octree.PackID(Octree.PointToClusterID(translation.Value));
 
             if (newID != currentID.Value)
             {
