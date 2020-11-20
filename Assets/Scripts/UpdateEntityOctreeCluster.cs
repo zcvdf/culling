@@ -6,7 +6,7 @@ using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(TransformSystemGroup))]
-public class UpdateClusterID : SystemBase
+public class UpdateEntityOctreeCluster : SystemBase
 {
     protected override void OnUpdate()
     {
