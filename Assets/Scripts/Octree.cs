@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class Octree
+public static class Octree
 {
     public const int Depth = 1;
 
@@ -30,9 +30,7 @@ public class Octree
         var uy = (UInt64)y64;
         var uz = (UInt64)z64;
 
-#if ENABLE_ASSERTS
         AssertValidPackedField(ux, uy, uz);
-#endif
         var packed = ux | (uy << 21) | (uz << 42);
 
         return packed;
@@ -44,9 +42,7 @@ public class Octree
         var uy = (UInt64)((id >> 21) & BitPackMask);
         var uz = (UInt64)((id >> 42) & BitPackMask);
 
-#if ENABLE_ASSERTS
         AssertValidPackedField(ux, uy, uz);
-#endif
 
         var x64 = (Int64)ux - BitPackOffset; 
         var y64 = (Int64)uy - BitPackOffset; 
@@ -55,6 +51,20 @@ public class Octree
         var unpacked = new int3((int)x64, (int)y64, (int)z64);
 
         return unpacked;
+    }
+
+    public static float NodeExtent(int depth)
+    {
+        AssertValidDepth(depth);
+
+        return ClusterExtent / (1 << depth);
+    }
+
+    public static float NodeSize(int depth)
+    {
+        AssertValidDepth(depth);
+
+        return NodeExtent(depth) * 2f;
     }
 
     public static int3 PointToClusterID(float3 point)
@@ -83,6 +93,23 @@ public class Octree
         return new float3(leafID) * new float3(LeafSize) + new float3(LeafExtent);
     }
 
+    public static int3 PointToNode(float3 point, int depth)
+    {
+        AssertValidDepth(depth);
+
+        return new int3(math.floor(point / NodeSize(depth)));
+    }
+
+    public static float3 NodeIDToPoint(int3 nodeID, int depth)
+    {
+        AssertValidDepth(depth);
+
+        var nodeExtent = NodeExtent(depth);
+        var nodeSize = nodeExtent * 2f;
+
+        return new float3(nodeID) * nodeSize + nodeExtent;
+    }
+
     // Subdivide node in 8 children
     public static void GetMinMaxNodeChildrenID(int3 nodeID, out int3 minChildrenID, out int3 maxChildrenID)
     {
@@ -92,8 +119,17 @@ public class Octree
 
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z)
     {
+#if ENABLE_ASSERTS
         Debug.Assert(x < MaxPackedField);
         Debug.Assert(y < MaxPackedField);
         Debug.Assert(z < MaxPackedField);
+#endif
+    }
+
+    private static void AssertValidDepth(int depth)
+    {
+#if ENABLE_ASSERTS
+        Debug.Assert(depth >= 0, $"Invalid depth ({depth})");
+#endif
     }
 }
