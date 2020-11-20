@@ -23,7 +23,7 @@ public class Main : MonoBehaviour
     public static World World;
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
-    public static VisibleOctreeID[] VisibleOctreeIDs;
+    public static VisibleOctreeLeaf[] VisibleOctreeLeafs;
 
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
@@ -146,9 +146,9 @@ public class Main : MonoBehaviour
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColorLayer0;
 
-        foreach (var visibleID in VisibleOctreeIDs)
+        foreach (var visibleLeaf in VisibleOctreeLeafs)
         {
-            var id = Octree.UnpackID(visibleID.Value.Value);
+            var id = Octree.UnpackID(visibleLeaf.Value);
 
             var center = Octree.LeafIDToPoint(id);
             var size = new float3(Octree.LeafSize);

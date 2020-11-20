@@ -15,17 +15,17 @@ public class UpdateVisibleOctreeIDs : SystemBase
         var frustrumPlanes = Main.FrustrumPlanes;
 
         this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
-            DynamicBuffer<VisibleOctreeID> visibleOctreeIDs,
+            DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
             DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts) =>
         {
-            UpdateVisibilityBuffers(frustrumPlanes, frustrumAABB, visibleClusters, visibleOctreeIDs, visibleLeafInClusterCounts);
+            UpdateVisibilityBuffers(frustrumPlanes, frustrumAABB, visibleClusters, visibleOctreeLeafs, visibleLeafInClusterCounts);
         })
         .ScheduleParallel();
     }
 
     static void UpdateVisibilityBuffers(WorldFrustrumPlanes planes, AABB frustrumAABB, 
         DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
-        DynamicBuffer<VisibleOctreeID> visibleOctreeLeafs, 
+        DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs, 
         DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts)
     {
         visibleClusters.Clear();
@@ -64,12 +64,8 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                                     if (Math.IsCubeInFrustrum(Octree.LeafIDToPoint(id1), Octree.LeafExtent, planes))
                                     {
-                                        var id = new OctreeLeaf
-                                        {
-                                            Value = Octree.PackID(id1),
-                                        };
-
-                                        visibleOctreeLeafs.Add(new VisibleOctreeID { Value = id });
+                                        var packedID1 = Octree.PackID(id1);
+                                        visibleOctreeLeafs.Add(new VisibleOctreeLeaf { Value = packedID1 });
                                         ++visibleLeafCount;
                                     }
                                 }
