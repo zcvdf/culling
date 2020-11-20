@@ -7,7 +7,7 @@ using UnityEngine;
 
 public static class Octree
 {
-    public const int Depth = 1;
+    public const int Depth = 2;
 
     public const float ClusterExtent = 200f;
     public const float ClusterSize = ClusterExtent * 2f;
@@ -55,15 +55,11 @@ public static class Octree
 
     public static float NodeExtent(int depth)
     {
-        AssertValidDepth(depth);
-
         return ClusterExtent / (1 << depth);
     }
 
     public static float NodeSize(int depth)
     {
-        AssertValidDepth(depth);
-
         return NodeExtent(depth) * 2f;
     }
 
@@ -95,15 +91,11 @@ public static class Octree
 
     public static int3 PointToNode(float3 point, int depth)
     {
-        AssertValidDepth(depth);
-
         return new int3(math.floor(point / NodeSize(depth)));
     }
 
     public static float3 NodeIDToPoint(int3 nodeID, int depth)
     {
-        AssertValidDepth(depth);
-
         var nodeExtent = NodeExtent(depth);
         var nodeSize = nodeExtent * 2f;
 
@@ -123,13 +115,6 @@ public static class Octree
         Debug.Assert(x < MaxPackedField);
         Debug.Assert(y < MaxPackedField);
         Debug.Assert(z < MaxPackedField);
-#endif
-    }
-
-    private static void AssertValidDepth(int depth)
-    {
-#if ENABLE_ASSERTS
-        Debug.Assert(depth >= 0, $"Invalid depth ({depth})");
 #endif
     }
 }
