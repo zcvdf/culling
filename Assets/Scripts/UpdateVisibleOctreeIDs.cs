@@ -46,7 +46,7 @@ public class UpdateVisibleOctreeIDs : SystemBase
 
                     if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(id0), Octree.ClusterExtent, planes))
                     {
-                        var clusterID = new ClusterID 
+                        var clusterID = new OctreeCluster
                         { 
                             Value = Octree.PackID(id0) 
                         };

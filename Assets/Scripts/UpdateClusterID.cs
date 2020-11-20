@@ -16,13 +16,13 @@ public class UpdateClusterID : SystemBase
         .WithChangeFilter<Translation>()
         .WithAll<EntityTag>()
         .WithoutBurst()
-        .ForEach((in Translation translation, in Entity entity, in ClusterID currentID) =>
+        .ForEach((in Translation translation, in Entity entity, in OctreeCluster cluster) =>
         {
-            var newID = Octree.PackID(Octree.PointToClusterID(translation.Value));
+            var newCluster = Octree.PackID(Octree.PointToClusterID(translation.Value));
 
-            if (newID != currentID.Value)
+            if (newCluster != cluster.Value)
             {
-                cmd.SetSharedComponent(entity, new ClusterID { Value = newID });
+                cmd.SetSharedComponent(entity, new OctreeCluster { Value = newCluster });
             }
         })
         .Run();

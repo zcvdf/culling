@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public struct ClusterID : ISharedComponentData
+public struct OctreeCluster : ISharedComponentData
 {
     public UInt64 Value;
 }

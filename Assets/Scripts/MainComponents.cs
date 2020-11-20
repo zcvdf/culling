@@ -13,7 +13,7 @@ struct Spawner : IComponentData
 
 public struct VisibleClusterID : IBufferElementData
 {
-    public ClusterID Value;
+    public OctreeCluster Value;
 }
 
 public struct VisibleOctreeID : IBufferElementData
