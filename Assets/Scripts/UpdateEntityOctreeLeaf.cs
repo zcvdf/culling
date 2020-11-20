@@ -8,7 +8,7 @@ using UnityEngine;
 using System;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
-public class UpdateOctreeID : SystemBase
+public class UpdateEntityOctreeLeaf : SystemBase
 {
     protected override void OnUpdate()
     {

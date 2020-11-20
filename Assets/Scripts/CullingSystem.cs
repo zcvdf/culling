@@ -10,7 +10,7 @@ using UnityEngine;
 
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateEntityOctreeCluster))]
-[UpdateAfter(typeof(UpdateOctreeID))]
+[UpdateAfter(typeof(UpdateEntityOctreeLeaf))]
 [UpdateAfter(typeof(UpdateVisibleOctreeIDs))]
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
