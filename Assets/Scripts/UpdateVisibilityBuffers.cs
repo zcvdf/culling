@@ -37,24 +37,25 @@ public class UpdateVisibilityBuffers : SystemBase
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
     {
-        int3 minID0;
-        int3 maxID0;
-        Octree.GetMinMaxClusterIDs(frustrumAABB, out minID0, out maxID0);
+        int3 min;
+        int3 max;
+        Octree.GetMinMaxClusterIDs(frustrumAABB, out min, out max);
 
-        for (int x = minID0.x; x <= maxID0.x; ++x)
+        for (int x = min.x; x < max.x; ++x)
         {
-            for (int y = minID0.y; y <= maxID0.y; ++y)
+            for (int y = min.y; y < max.y; ++y)
             {
-                for (int z = minID0.z; z <= maxID0.z; ++z)
+                for (int z = min.z; z < max.z; ++z)
                 {
                     var clusterID = new int3(x, y, z);
 
                     if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID), Octree.ClusterExtent, frustrumPlanes))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
+
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID, 0);
+                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID);
 
                         visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
                     }
@@ -66,14 +67,16 @@ public class UpdateVisibilityBuffers : SystemBase
     static int ProcessNodeRecursive(DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
             WorldFrustrumPlanes frustrumPlanes,
             int3 nodeID,
-            int depth)
+            int depth = 0)
     {
         int3 min;
         int3 max;
         Octree.GetMinMaxNodeChildrenID(nodeID, out min, out max);
         var subDepth = depth + 1;
+        var subNodeExtent = Octree.NodeExtent(subDepth);
 
         int visibleLeafCount = 0;
+
         for (int x = min.x; x < max.x; ++x)
         {
             for (int y = min.y; y < max.y; ++y)
@@ -82,7 +85,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var subNodeID = new int3(x, y, z);
                     
-                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID, subDepth), Octree.NodeExtent(subDepth), frustrumPlanes))
+                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID, subDepth), subNodeExtent, frustrumPlanes))
                     {
                         if (subDepth < Octree.Depth)
                         {

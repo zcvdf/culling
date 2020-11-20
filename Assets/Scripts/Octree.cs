@@ -76,7 +76,7 @@ public static class Octree
     public static void GetMinMaxClusterIDs(in AABB aabb, out int3 minClusterID, out int3 maxClusterID)
     {
         minClusterID = PointToClusterID(aabb.Min);
-        maxClusterID = PointToClusterID(aabb.Max);
+        maxClusterID = PointToClusterID(aabb.Max) + new int3(1);
     }
 
     public static int3 PointToILeafID(float3 point)
