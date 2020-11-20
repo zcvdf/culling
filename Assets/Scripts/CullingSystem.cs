@@ -39,11 +39,12 @@ public class CullingSystem : SystemBase
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
         var visibleLeafEntity = GetSingletonEntity<VisibleLeafInClusterCount>();
 
-        var visibleOctreeLeafs = GetBuffer<VisibleOctreeLeaf>(visibleOctreeEntity).AsNativeArray();
+        var visibleLeafs = GetBuffer<VisibleOctreeLeaf>(visibleOctreeEntity).AsNativeArray();
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
         var visibleLeafCounts = GetBuffer<VisibleLeafInClusterCount>(visibleLeafEntity).AsNativeArray();
 
-        Main.VisibleOctreeLeafs = visibleOctreeLeafs.ToArray();
+        Main.VisibleOctreeLeafs = visibleLeafs.ToArray();
+        Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
         for (int i = 0, srcLeafCountIndex = 0; i < visibleClusters.Length; ++i)
         {
@@ -54,14 +55,14 @@ public class CullingSystem : SystemBase
             this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
-            .WithReadOnly(visibleOctreeLeafs)
+            .WithReadOnly(visibleLeafs)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
             .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
             {
-                if (!Contains(visibleOctreeLeafs, octreeLeaf, srcIndex, visibleLeafCount)) return;
+                if (!Contains(visibleLeafs, octreeLeaf, srcIndex, visibleLeafCount)) return;
 
                 var center = translation.Value;
                 var radius = radiusComponent.Value;

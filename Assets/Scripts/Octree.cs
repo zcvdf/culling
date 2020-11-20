@@ -109,6 +109,19 @@ public static class Octree
         maxChildrenID = minChildrenID + new int3(2);
     }
 
+    // Subdivide cluster in leafs
+    public static void GetMinMaxClusterNodeIDs(int3 clusterID, int depth, out int3 minNodeID, out int3 maxNodeID)
+    {
+        minNodeID = clusterID << depth;
+        maxNodeID = minNodeID + new int3(1 << depth);
+    }
+
+    public static int3 GetLeafParentNodeID(int3 leafID, int parentDepth)
+    {
+        var rshift = Depth - parentDepth;
+        return leafID >> rshift;
+    }
+
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z)
     {
 #if ENABLE_ASSERTS

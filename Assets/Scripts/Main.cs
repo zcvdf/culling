@@ -24,6 +24,7 @@ public class Main : MonoBehaviour
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
     public static VisibleOctreeLeaf[] VisibleOctreeLeafs;
+    public static VisibleOctreeCluster[] VisibleOctreeClusters;
 
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
@@ -31,11 +32,11 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
-    [SerializeField] Color octreeColorLayer0;
+    [SerializeField] Color octreeColor;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     bool displayBoundingSpheres = false;
-    bool displayOctree = false;
+    int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
 
     private void Awake()
@@ -84,9 +85,9 @@ public class Main : MonoBehaviour
                 DrawEntityBoundingSpheres();
             }
 
-            if (this.displayOctree)
+            if (this.displayOctreeDepth != -1)
             {
-                DrawOctree();
+                DrawVisibleOctreeNodes();
             }
 
             if (this.displayFrustrumAABB)
@@ -111,7 +112,8 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            this.displayOctree = !this.displayOctree;
+            ++this.displayOctreeDepth;
+            if (this.displayOctreeDepth > Octree.Depth) this.displayOctreeDepth = -1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
@@ -141,17 +143,32 @@ public class Main : MonoBehaviour
         }
     }
 
-    void DrawOctree()
+    void DrawVisibleOctreeNodes()
     {
+        var parentDepth = this.displayOctreeDepth;
+        if (parentDepth < 0) return;
+
         Gizmos.matrix = Matrix4x4.identity;
-        Gizmos.color = this.octreeColorLayer0;
+        Gizmos.color = this.octreeColor;
+
+        var parentNodesFromLeafs = new List<int3>();
 
         foreach (var visibleLeaf in VisibleOctreeLeafs)
         {
-            var id = Octree.UnpackID(visibleLeaf.Value);
+            var leafID = Octree.UnpackID(visibleLeaf.Value);
+            var parentID = Octree.GetLeafParentNodeID(leafID, parentDepth);
 
-            var center = Octree.LeafIDToPoint(id);
-            var size = new float3(Octree.LeafSize);
+            parentNodesFromLeafs.Add(parentID);
+        }
+
+        var parentNodes = parentNodesFromLeafs.Distinct();
+
+        var parentNodeSize = Octree.NodeSize(parentDepth);
+
+        foreach (var node in parentNodes)
+        {
+            var center = Octree.NodeIDToPoint(node, parentDepth);
+            var size = new float3(parentNodeSize);
 
             Gizmos.DrawWireCube(center, size);
         }

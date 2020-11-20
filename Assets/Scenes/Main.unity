@@ -226,7 +226,7 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
-  octreeColorLayer0: {r: 0.3422947, g: 0, b: 1, a: 0.39215687}
+  octreeColor: {r: 0.46446085, g: 0, b: 1, a: 1}
   frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   frustrumPlanesMesh: {fileID: 753912383}
 --- !u!1 &705507993
@@ -604,7 +604,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 309434694}
