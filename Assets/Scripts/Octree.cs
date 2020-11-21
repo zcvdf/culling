@@ -103,10 +103,10 @@ public static class Octree
     }
 
     // Subdivide node in 8 children
-    public static void GetMinMaxNodeChildrenID(int3 nodeID, out int3 minChildrenID, out int3 maxChildrenID)
+    public static void GetMinMaxNodeChildrenID(int4 nodeID, out int4 minChildrenID, out int4 maxChildrenID)
     {
-        minChildrenID = nodeID << 1;
-        maxChildrenID = minChildrenID + new int3(2);
+        minChildrenID = new int4(nodeID.xyz << 1, 0);
+        maxChildrenID = minChildrenID + new int4(2,2,2,0);
     }
 
     public static int4 GetLeafParentNodeID(int4 leafID, int parentLayer)

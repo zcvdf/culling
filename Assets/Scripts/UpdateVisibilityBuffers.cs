@@ -55,7 +55,7 @@ public class UpdateVisibilityBuffers : SystemBase
 
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID.xyz);
+                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID);
 
                         visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
                     }
@@ -66,11 +66,11 @@ public class UpdateVisibilityBuffers : SystemBase
 
     static int ProcessNodeRecursive(DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
             WorldFrustrumPlanes frustrumPlanes,
-            int3 nodeID,
+            int4 nodeID,
             int depth = 0)
     {
-        int3 min;
-        int3 max;
+        int4 min;
+        int4 max;
         Octree.GetMinMaxNodeChildrenID(nodeID, out min, out max);
         var subDepth = depth + 1;
         var subNodeExtent = Octree.NodeExtent(subDepth);
@@ -89,7 +89,7 @@ public class UpdateVisibilityBuffers : SystemBase
                     {
                         if (subDepth < Octree.LeafLayer)
                         {
-                            visibleLeafCount += ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, subNodeID.xyz, subDepth);
+                            visibleLeafCount += ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, subNodeID, subDepth);
                         }
                         else
                         {
