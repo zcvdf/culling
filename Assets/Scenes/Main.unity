@@ -232,6 +232,7 @@ MonoBehaviour:
   frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
+  lockOnStart: 0
 --- !u!1 &447344024
 GameObject:
   m_ObjectHideFlags: 0

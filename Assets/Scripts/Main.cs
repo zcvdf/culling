@@ -26,6 +26,8 @@ public class Main : MonoBehaviour
     public static VisibleOctreeLeaf[] VisibleOctreeLeafs;
     public static VisibleOctreeCluster[] VisibleOctreeClusters;
 
+    public static bool IsLocked;
+
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
     [SerializeField] Color entityOutFrumstrumColor;
@@ -36,6 +38,8 @@ public class Main : MonoBehaviour
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
+    [SerializeField] bool lockOnStart = false;
+
     bool displayBoundingSpheres = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
@@ -52,8 +56,8 @@ public class Main : MonoBehaviour
         this.frustrumPlanesMesh.GetComponent<MeshRenderer>().enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         this.viewerCamera.Use(true);
-        this.viewerCamera.IsLocked = true;
         this.statsPanel.enabled = false;
+        SetLock(this.lockOnStart);
     }
 
     private void Update()
@@ -109,7 +113,7 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.L))
         {
-            this.viewerCamera.ToggleLock();
+            ToggleLock();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -191,5 +195,16 @@ public class Main : MonoBehaviour
     void ToggleStatsPanelVisible()
     {
         this.statsPanel.enabled = !this.statsPanel.enabled;
+    }
+
+    void SetLock(bool locked)
+    {
+        IsLocked = locked;
+        this.viewerCamera.IsLocked = locked;
+    }
+
+    void ToggleLock()
+    {
+        SetLock(!IsLocked);
     }
 }
