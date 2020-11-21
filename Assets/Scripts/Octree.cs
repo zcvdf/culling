@@ -7,6 +7,7 @@ using UnityEngine;
 
 public static class Octree
 {
+    public const int ClusterLayer = 0;
     public const int LeafLayer = 2;
 
     public const float ClusterExtent = 200f;
@@ -60,14 +61,14 @@ public static class Octree
         return unpacked;
     }
 
-    public static float NodeExtent(int depth)
+    public static float NodeExtent(int layer)
     {
-        return ClusterExtent / (1 << depth);
+        return ClusterExtent / (1 << layer);
     }
 
-    public static float NodeSize(int depth)
+    public static float NodeSize(int layer)
     {
-        return NodeExtent(depth) * 2f;
+        return NodeExtent(layer) * 2f;
     }
 
     public static int4 PointToClusterID(float3 point)
@@ -76,9 +77,9 @@ public static class Octree
         return new int4(posID, 0);
     }
 
-    public static float3 ClusterIDToPoint(int3 clusterID)
+    public static float3 ClusterIDToPoint(int4 clusterID)
     {
-        return new float3(clusterID) * new float3(ClusterSize) + new float3(ClusterExtent);
+        return new float3(clusterID.xyz) * new float3(ClusterSize) + new float3(ClusterExtent);
     }
 
     public static void GetMinMaxClusterIDs(in AABB aabb, out int4 minClusterID, out int4 maxClusterID)
@@ -93,9 +94,9 @@ public static class Octree
         return new int4(posID, 0);
     }
 
-    public static float3 NodeIDToPoint(int3 nodeID, int depth)
+    public static float3 NodeIDToPoint(int3 nodeID, int layer)
     {
-        var nodeExtent = NodeExtent(depth);
+        var nodeExtent = NodeExtent(layer);
         var nodeSize = nodeExtent * 2f;
 
         return new float3(nodeID) * nodeSize + nodeExtent;
@@ -108,9 +109,9 @@ public static class Octree
         maxChildrenID = minChildrenID + new int3(2);
     }
 
-    public static int3 GetLeafParentNodeID(int3 leafID, int parentDepth)
+    public static int3 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
-        var rshift = LeafLayer - parentDepth;
+        var rshift = LeafLayer - parentLayer;
         return leafID >> rshift;
     }
 

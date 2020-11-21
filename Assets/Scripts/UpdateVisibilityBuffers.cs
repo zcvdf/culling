@@ -49,7 +49,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var clusterID = new int4(x, y, z, 0);
 
-                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes))
+                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID), Octree.ClusterExtent, frustrumPlanes))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
 
