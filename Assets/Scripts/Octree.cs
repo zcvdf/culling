@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -15,38 +15,42 @@ public static class Octree
     public const int ClusterSubdivisions = (1 << Depth);
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
+    public const int MaxLayer = 1 << 4;
+    public const int MaxPosition = 1 << 20;
 
-    const Int64 BitPackOffset = 1 << 20;
-    const UInt64 BitPackMask = (1 << 21) - 1;
-    const UInt64 MaxPackedField = 1 << 21;
+    const Int64 PositionPackOffset = MaxPosition >> 1;
+    const UInt64 LayerPackMask = MaxLayer - 1;
+    const UInt64 PositionPackMask = MaxPosition - 1;
 
-    public static UInt64 PackID(int3 id)
+    public static UInt64 PackID(int3 id, int layer = 0)
     {
-        var x64 = id.x + BitPackOffset;
-        var y64 = id.y + BitPackOffset;
-        var z64 = id.z + BitPackOffset;
+        var x64 = id.x + PositionPackOffset;
+        var y64 = id.y + PositionPackOffset;
+        var z64 = id.z + PositionPackOffset;
 
         var ux = (UInt64)x64;
         var uy = (UInt64)y64;
         var uz = (UInt64)z64;
+        var ul = (UInt64)layer;
 
-        AssertValidPackedField(ux, uy, uz);
-        var packed = ux | (uy << 21) | (uz << 42);
+        AssertValidPackedField(ux, uy, uz, ul);
+        var packed = ux | (uy << 20) | (uz << 40) | (ul << 60);
 
         return packed;
     }
 
     public static int3 UnpackID(UInt64 id)
     {
-        var ux = (UInt64)(id & BitPackMask);
-        var uy = (UInt64)((id >> 21) & BitPackMask);
-        var uz = (UInt64)((id >> 42) & BitPackMask);
+        var ux = (UInt64)(id & PositionPackMask);
+        var uy = (UInt64)((id >> 20) & PositionPackMask);
+        var uz = (UInt64)((id >> 40) & PositionPackMask);
+        var ul = (UInt64)((id >> 60) & LayerPackMask);
 
-        AssertValidPackedField(ux, uy, uz);
+        AssertValidPackedField(ux, uy, uz, ul);
 
-        var x64 = (Int64)ux - BitPackOffset; 
-        var y64 = (Int64)uy - BitPackOffset; 
-        var z64 = (Int64)uz - BitPackOffset; 
+        var x64 = (Int64)ux - PositionPackOffset; 
+        var y64 = (Int64)uy - PositionPackOffset; 
+        var z64 = (Int64)uz - PositionPackOffset; 
 
         var unpacked = new int3((int)x64, (int)y64, (int)z64);
 
@@ -122,12 +126,13 @@ public static class Octree
         return leafID >> rshift;
     }
 
-    private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z)
+    private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)
     {
 #if ENABLE_ASSERTS
-        Debug.Assert(x < MaxPackedField);
-        Debug.Assert(y < MaxPackedField);
-        Debug.Assert(z < MaxPackedField);
+        Debug.Assert(x < MaxPosition);
+        Debug.Assert(y < MaxPosition);
+        Debug.Assert(z < MaxPosition);
+        Debug.Assert(l < MaxLayer);
 #endif
     }
 }
