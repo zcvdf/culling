@@ -16,13 +16,13 @@ public class UpdateVisibilityBuffers : SystemBase
 
         this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
             DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
-            DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts) =>
+            DynamicBuffer<VisibleNodeInClusterCount> visibleNodeInClusterCounts) =>
         {
             visibleClusters.Clear();
             visibleOctreeNodes.Clear();
-            visibleLeafInClusterCounts.Clear();
+            visibleNodeInClusterCounts.Clear();
 
-            ProcessClusters(visibleClusters, visibleOctreeNodes, visibleLeafInClusterCounts, frustrumAABB, frustrumPlanes);
+            ProcessClusters(visibleClusters, visibleOctreeNodes, visibleNodeInClusterCounts, frustrumAABB, frustrumPlanes);
 
             #if ENABLE_ASSERTS
                 AssertNoDupplicate(visibleClusters);
@@ -33,7 +33,7 @@ public class UpdateVisibilityBuffers : SystemBase
 
     static void ProcessClusters(DynamicBuffer<VisibleOctreeCluster> visibleClusters,
             DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
-            DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts,
+            DynamicBuffer<VisibleNodeInClusterCount> visibleNodeInClusterCounts,
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
     {
@@ -55,9 +55,9 @@ public class UpdateVisibilityBuffers : SystemBase
 
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, clusterID);
+                        var visibleNodeCount = ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, clusterID);
 
-                        visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
+                        visibleNodeInClusterCounts.Add(new VisibleNodeInClusterCount { Value = visibleNodeCount });
                     }
                 }
             }

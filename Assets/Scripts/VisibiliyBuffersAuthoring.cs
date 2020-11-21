@@ -9,6 +9,6 @@ public class VisibiliyBuffersAuthoring : MonoBehaviour, IConvertGameObjectToEnti
     {
         dstManager.AddBuffer<VisibleOctreeNode>(entity);
         dstManager.AddBuffer<VisibleOctreeCluster>(entity);
-        dstManager.AddBuffer<VisibleLeafInClusterCount>(entity);
+        dstManager.AddBuffer<VisibleNodeInClusterCount>(entity);
     }
 }

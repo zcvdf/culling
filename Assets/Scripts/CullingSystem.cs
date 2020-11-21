@@ -33,22 +33,22 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeNode>();
+        var visibleNodeEntity = GetSingletonEntity<VisibleOctreeNode>();
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
-        var visibleLeafEntity = GetSingletonEntity<VisibleLeafInClusterCount>();
+        var visibleNodeCountEntity = GetSingletonEntity<VisibleNodeInClusterCount>();
 
-        var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleOctreeEntity).AsNativeArray();
+        var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleNodeEntity).AsNativeArray();
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
-        var visibleLeafCounts = GetBuffer<VisibleLeafInClusterCount>(visibleLeafEntity).AsNativeArray();
+        var visibleNodeCounts = GetBuffer<VisibleNodeInClusterCount>(visibleNodeCountEntity).AsNativeArray();
 
         Main.VisibleOctreeNodes = visibleNodes.ToArray();
         Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
-        for (int i = 0, srcLeafCountIndex = 0; i < visibleClusters.Length; ++i)
+        for (int i = 0, srcNodeCountIndex = 0; i < visibleClusters.Length; ++i)
         {
             var visibleCluster = visibleClusters[i];
-            var visibleLeafCount = visibleLeafCounts[i].Value;
-            var srcIndex = srcLeafCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
+            var visibleNodeCount = visibleNodeCounts[i].Value;
+            var srcIndex = srcNodeCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
 
             this.Entities
             .WithAll<EntityTag>()
@@ -60,7 +60,7 @@ public class CullingSystem : SystemBase
             .WithReadOnly(planeOccluderExtents)
             .ForEach((ref EntityCullingResult cullingResult, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
             {
-                if (!Contains(visibleNodes, octreeLeaf, srcIndex, visibleLeafCount))
+                if (!Contains(visibleNodes, octreeLeaf, srcIndex, visibleNodeCount))
                 {
                     cullingResult.Value = CullingResult.CulledByOctreeNodes;
                     return;
@@ -91,7 +91,7 @@ public class CullingSystem : SystemBase
             })
             .ScheduleParallel();
 
-            srcLeafCountIndex += visibleLeafCount;
+            srcNodeCountIndex += visibleNodeCount;
         }
 
         planeOccluderExtents.Dispose(this.Dependency);
