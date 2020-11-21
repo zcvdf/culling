@@ -95,7 +95,7 @@ public class UpdateVisibilityBuffers : SystemBase
 
                     if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
                     {
-                        if (subDepth < Octree.LeafLayer)
+                        if (subDepth < Octree.LeafLayer && intersects)
                         {
                             visibleNodeCount += ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, subNodeID, subDepth);
                         }
