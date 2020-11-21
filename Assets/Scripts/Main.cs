@@ -23,7 +23,7 @@ public class Main : MonoBehaviour
     public static World World;
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
-    public static VisibleOctreeLeaf[] VisibleOctreeLeafs;
+    public static VisibleOctreeNode[] VisibleOctreeNodes;
     public static VisibleOctreeCluster[] VisibleOctreeClusters;
 
     public static bool IsLocked;
@@ -166,10 +166,10 @@ public class Main : MonoBehaviour
 
         var parentNodesFromLeafs = new List<int4>();
 
-        foreach (var visibleLeaf in VisibleOctreeLeafs)
+        foreach (var visibleNode in VisibleOctreeNodes)
         {
-            var leafID = Octree.UnpackID(visibleLeaf.Value);
-            var parentID = Octree.GetLeafParentNodeID(leafID, parentDepth);
+            var nodeID = Octree.UnpackID(visibleNode.Value);
+            var parentID = Octree.GetLeafParentNodeID(nodeID, parentDepth);
 
             parentNodesFromLeafs.Add(parentID);
         }

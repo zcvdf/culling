@@ -19,11 +19,11 @@ public struct VisibleOctreeCluster : IBufferElementData
     public static implicit operator OctreeCluster(VisibleOctreeCluster x) => new OctreeCluster { Value = x.Value };
 }
 
-public struct VisibleOctreeLeaf : IBufferElementData
+public struct VisibleOctreeNode : IBufferElementData
 {
     public UInt64 Value;
 
-    public static implicit operator OctreeLeaf(VisibleOctreeLeaf x) => new OctreeLeaf { Value = x.Value };
+    public static implicit operator OctreeLeaf(VisibleOctreeNode x) => new OctreeLeaf { Value = x.Value };
 }
 
 public struct VisibleLeafInClusterCount : IBufferElementData

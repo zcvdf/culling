@@ -8,7 +8,7 @@ public static class Stats
 
     public static int TotalEntityNumber;
     public static int VisibleOctreeClusters;
-    public static int VisibleOctreeLeafs;
+    public static int VisibleOctreeNodes;
 
     public static int CulledByOctreeClusters;
     public static int CulledByOctreeNodes;

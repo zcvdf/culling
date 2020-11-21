@@ -15,14 +15,14 @@ public class UpdateVisibilityBuffers : SystemBase
         var frustrumPlanes = Main.FrustrumPlanes;
 
         this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
-            DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
+            DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
             DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts) =>
         {
             visibleClusters.Clear();
-            visibleOctreeLeafs.Clear();
+            visibleOctreeNodes.Clear();
             visibleLeafInClusterCounts.Clear();
 
-            ProcessClusters(visibleClusters, visibleOctreeLeafs, visibleLeafInClusterCounts, frustrumAABB, frustrumPlanes);
+            ProcessClusters(visibleClusters, visibleOctreeNodes, visibleLeafInClusterCounts, frustrumAABB, frustrumPlanes);
 
             #if ENABLE_ASSERTS
                 AssertNoDupplicate(visibleClusters);
@@ -32,7 +32,7 @@ public class UpdateVisibilityBuffers : SystemBase
     }
 
     static void ProcessClusters(DynamicBuffer<VisibleOctreeCluster> visibleClusters,
-            DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
+            DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
             DynamicBuffer<VisibleLeafInClusterCount> visibleLeafInClusterCounts,
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
@@ -55,7 +55,7 @@ public class UpdateVisibilityBuffers : SystemBase
 
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID);
+                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, clusterID);
 
                         visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
                     }
@@ -64,7 +64,7 @@ public class UpdateVisibilityBuffers : SystemBase
         }
     }
 
-    static int ProcessNodeRecursive(DynamicBuffer<VisibleOctreeLeaf> visibleOctreeLeafs,
+    static int ProcessNodeRecursive(DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
             WorldFrustrumPlanes frustrumPlanes,
             int4 nodeID,
             int depth = 0)
@@ -75,7 +75,7 @@ public class UpdateVisibilityBuffers : SystemBase
         var subDepth = depth + 1;
         var subNodeExtent = Octree.NodeExtent(subDepth);
 
-        int visibleLeafCount = 0;
+        int visibleNodeCount = 0;
 
         for (int x = min.x; x < max.x; ++x)
         {
@@ -89,21 +89,21 @@ public class UpdateVisibilityBuffers : SystemBase
                     {
                         if (subDepth < Octree.LeafLayer)
                         {
-                            visibleLeafCount += ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, subNodeID, subDepth);
+                            visibleNodeCount += ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, subNodeID, subDepth);
                         }
                         else
                         {
                             var packedID = Octree.PackID(subNodeID);
-                            visibleOctreeLeafs.Add(new VisibleOctreeLeaf { Value = packedID });
+                            visibleOctreeNodes.Add(new VisibleOctreeNode { Value = packedID });
 
-                            ++visibleLeafCount;
+                            ++visibleNodeCount;
                         }
                     }
                 }
             }
         }
 
-        return visibleLeafCount;
+        return visibleNodeCount;
     }
 
     static void AssertNoDupplicate(DynamicBuffer<VisibleOctreeCluster> ids)

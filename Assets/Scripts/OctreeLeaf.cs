@@ -10,5 +10,5 @@ public struct OctreeLeaf : IComponentData
 {
     public UInt64 Value;
 
-    public static implicit operator VisibleOctreeLeaf(OctreeLeaf x) => new VisibleOctreeLeaf { Value = x.Value };
+    public static implicit operator VisibleOctreeNode(OctreeLeaf x) => new VisibleOctreeNode { Value = x.Value };
 }

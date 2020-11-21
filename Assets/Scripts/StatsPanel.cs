@@ -16,6 +16,7 @@ public class StatsPanel : MonoBehaviour
             + "\n"
             + $"Total Entity Number : {Stats.TotalEntityNumber}\n"
             + $"Visible Octree Clusters : {Stats.VisibleOctreeClusters}\n"
+            + $"Visible Octree Nodes : {Stats.VisibleOctreeNodes}\n"
             + "\n"
             + $"Total Culled : {Stats.TotalCulledPercentage:0.0}%\n"
             + $"\tCulled By Octree Clusters : {Stats.CulledByOctreeClustersPercentage:0.0}%\n"

@@ -31,10 +31,10 @@ public class UpdateStats : SystemBase
 
         this.wasLockedLastUpdate = false;
 
-        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeLeaf>();
+        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeNode>();
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
 
-        var visibleLeafs = GetBuffer<VisibleOctreeLeaf>(visibleOctreeEntity).AsNativeArray();
+        var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleOctreeEntity).AsNativeArray();
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
 
         var stats = new NativeArray<int>(6, Allocator.TempJob);
@@ -72,7 +72,7 @@ public class UpdateStats : SystemBase
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
-        Stats.VisibleOctreeLeafs = visibleLeafs.Length;
+        Stats.VisibleOctreeNodes = visibleNodes.Length;
         Stats.VisibleOctreeClusters = visibleClusters.Length;
 
         stats.Dispose();
