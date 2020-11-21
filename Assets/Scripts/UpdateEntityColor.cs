@@ -19,7 +19,8 @@ public class UpdateEntityColor : SystemBase
         {
             switch (cullingResult.Value)
             {
-                case CullingResult.CulledByOctree:          color.Value = outFrumstrumColor;    break;
+                case CullingResult.CulledByOctreeClusters:  color.Value = outFrumstrumColor;    break;
+                case CullingResult.CulledByOctreeNodes:     color.Value = outFrumstrumColor;    break;
                 case CullingResult.CulledByFrustrumPlanes:  color.Value = outFrumstrumColor;    break;
                 case CullingResult.CulledByQuadOccluder:    color.Value = occludedColor;        break;
                 case CullingResult.CulledBySphereOccluder:  color.Value = occludedColor;        break;

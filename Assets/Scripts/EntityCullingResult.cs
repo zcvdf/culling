@@ -6,7 +6,8 @@ using UnityEngine;
 public enum CullingResult
 {
     NotCulled,
-    CulledByOctree,
+    CulledByOctreeClusters,
+    CulledByOctreeNodes,
     CulledByFrustrumPlanes,
     CulledBySphereOccluder,
     CulledByQuadOccluder,

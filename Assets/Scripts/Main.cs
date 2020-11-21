@@ -53,6 +53,7 @@ public class Main : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         this.viewerCamera.Use(true);
         this.viewerCamera.IsLocked = true;
+        this.statsPanel.enabled = false;
     }
 
     private void Update()
@@ -113,7 +114,7 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            this.statsPanel.enabled = !this.statsPanel.enabled;
+            ToggleStatsPanelVisible();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -185,5 +186,10 @@ public class Main : MonoBehaviour
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.frustrumAABBColor;
         Gizmos.DrawCube(FrustrumAABB.Center, FrustrumAABB.Size);
+    }
+
+    void ToggleStatsPanelVisible()
+    {
+        this.statsPanel.enabled = !this.statsPanel.enabled;
     }
 }

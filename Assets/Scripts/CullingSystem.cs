@@ -21,8 +21,6 @@ public class CullingSystem : SystemBase
         var nearPlane = Main.NearPlane;
         var nearPlaneCenter = Main.NearPlaneCenter;
         var worldToNDC = Main.WorldToNDC;
-        var entityInFrumstrumColor = Main.EntityInFrustrumColor;
-        var entityOccludedColor = Main.EntityOccludedColor;
         var frustrumAABB = Main.FrustrumAABB;
 
         var sphereOccluderQuery = GetEntityQuery(typeof(WorldOccluderRadius), typeof(Translation));
@@ -63,20 +61,36 @@ public class CullingSystem : SystemBase
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
-            .ForEach((ref URPMaterialPropertyBaseColor color, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
+            .ForEach((ref EntityCullingResult cullingResult, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
             {
-                if (!Contains(visibleLeafs, octreeLeaf, srcIndex, visibleLeafCount)) return;
+                if (!Contains(visibleLeafs, octreeLeaf, srcIndex, visibleLeafCount))
+                {
+                    cullingResult.Value = CullingResult.CulledByOctreeNodes;
+                    return;
+                }
 
-                var center = translation.Value;
-                var radius = radiusComponent.Value;
+                var boudingCenter = translation.Value;
+                var boundingRadius = radiusComponent.Value;
 
-                if (!Math.IsInFrustrum(center, radius, frustrumPlanes)) return;
+                if (!Math.IsInFrustrum(boudingCenter, boundingRadius, frustrumPlanes))
+                {
+                    cullingResult.Value = CullingResult.CulledByFrustrumPlanes;
+                    return;
+                }
 
-                var isSphereOccluded =
-                    Math.IsOccludedBySphere(center, radius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes)
-                    || Math.IsOccludedByPlane(center, radius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents);
+                if (Math.IsOccludedBySphere(boudingCenter, boundingRadius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes))
+                {
+                    cullingResult.Value = CullingResult.CulledBySphereOccluder;
+                    return;
+                }
 
-                color.Value = isSphereOccluded ? entityOccludedColor : entityInFrumstrumColor;
+                if (Math.IsOccludedByPlane(boudingCenter, boundingRadius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents))
+                {
+                    cullingResult.Value = CullingResult.CulledByQuadOccluder;
+                    return;
+                }
+
+                cullingResult.Value = CullingResult.NotCulled;
             })
             .ScheduleParallel();
 
