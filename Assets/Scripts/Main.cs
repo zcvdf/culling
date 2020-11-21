@@ -164,12 +164,12 @@ public class Main : MonoBehaviour
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColor;
 
-        var parentNodesFromLeafs = new List<int3>();
+        var parentNodesFromLeafs = new List<int4>();
 
         foreach (var visibleLeaf in VisibleOctreeLeafs)
         {
             var leafID = Octree.UnpackID(visibleLeaf.Value);
-            var parentID = Octree.GetLeafParentNodeID(leafID.xyz, parentDepth);
+            var parentID = Octree.GetLeafParentNodeID(leafID, parentDepth);
 
             parentNodesFromLeafs.Add(parentID);
         }

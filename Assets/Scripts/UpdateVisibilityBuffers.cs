@@ -85,7 +85,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var subNodeID = new int4(x, y, z, 0);
                     
-                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID.xyz, subDepth), subNodeExtent, frustrumPlanes))
+                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID, subDepth), subNodeExtent, frustrumPlanes))
                     {
                         if (subDepth < Octree.LeafLayer)
                         {

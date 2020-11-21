@@ -94,12 +94,12 @@ public static class Octree
         return new int4(posID, 0);
     }
 
-    public static float3 NodeIDToPoint(int3 nodeID, int layer)
+    public static float3 NodeIDToPoint(int4 nodeID, int layer)
     {
         var nodeExtent = NodeExtent(layer);
         var nodeSize = nodeExtent * 2f;
 
-        return new float3(nodeID) * nodeSize + nodeExtent;
+        return new float3(nodeID.xyz) * nodeSize + nodeExtent;
     }
 
     // Subdivide node in 8 children
@@ -109,10 +109,10 @@ public static class Octree
         maxChildrenID = minChildrenID + new int3(2);
     }
 
-    public static int3 GetLeafParentNodeID(int3 leafID, int parentLayer)
+    public static int4 GetLeafParentNodeID(int4 leafID, int parentLayer)
     {
         var rshift = LeafLayer - parentLayer;
-        return leafID >> rshift;
+        return new int4(leafID.xyz >> rshift, 0);
     }
 
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)
