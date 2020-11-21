@@ -35,6 +35,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color octreeColor;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
+    [SerializeField] Canvas statsPanel;
     bool displayBoundingSpheres = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
@@ -111,6 +112,11 @@ public class Main : MonoBehaviour
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            this.statsPanel.enabled = !this.statsPanel.enabled;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             ++this.displayOctreeDepth;
             if (this.displayOctreeDepth > Octree.Depth) this.displayOctreeDepth = -1;
