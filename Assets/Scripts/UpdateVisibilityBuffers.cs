@@ -37,8 +37,8 @@ public class UpdateVisibilityBuffers : SystemBase
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
     {
-        int3 min;
-        int3 max;
+        int4 min;
+        int4 max;
         Octree.GetMinMaxClusterIDs(frustrumAABB, out min, out max);
 
         for (int x = min.x; x < max.x; ++x)
@@ -47,15 +47,15 @@ public class UpdateVisibilityBuffers : SystemBase
             {
                 for (int z = min.z; z < max.z; ++z)
                 {
-                    var clusterID = new int3(x, y, z);
+                    var clusterID = new int4(x, y, z, 0);
 
-                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID), Octree.ClusterExtent, frustrumPlanes))
+                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
 
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID);
+                        var visibleLeafCount = ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, clusterID.xyz);
 
                         visibleLeafInClusterCounts.Add(new VisibleLeafInClusterCount { Value = visibleLeafCount });
                     }
@@ -83,13 +83,13 @@ public class UpdateVisibilityBuffers : SystemBase
             {
                 for (int z = min.z; z < max.z; ++z)
                 {
-                    var subNodeID = new int3(x, y, z);
+                    var subNodeID = new int4(x, y, z, 0);
                     
-                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID, subDepth), subNodeExtent, frustrumPlanes))
+                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID.xyz, subDepth), subNodeExtent, frustrumPlanes))
                     {
                         if (subDepth < Octree.Depth)
                         {
-                            visibleLeafCount += ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, subNodeID, subDepth);
+                            visibleLeafCount += ProcessNodeRecursive(visibleOctreeLeafs, frustrumPlanes, subNodeID.xyz, subDepth);
                         }
                         else
                         {

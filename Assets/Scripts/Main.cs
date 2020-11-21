@@ -169,7 +169,7 @@ public class Main : MonoBehaviour
         foreach (var visibleLeaf in VisibleOctreeLeafs)
         {
             var leafID = Octree.UnpackID(visibleLeaf.Value);
-            var parentID = Octree.GetLeafParentNodeID(leafID, parentDepth);
+            var parentID = Octree.GetLeafParentNodeID(leafID.xyz, parentDepth);
 
             parentNodesFromLeafs.Add(parentID);
         }

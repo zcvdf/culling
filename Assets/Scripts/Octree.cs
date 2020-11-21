@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -22,16 +22,17 @@ public static class Octree
     const UInt64 LayerPackMask = MaxLayer - 1;
     const UInt64 PositionPackMask = MaxPosition - 1;
 
-    public static UInt64 PackID(int3 id, int layer = 0)
+    public static UInt64 PackID(int4 id)
     {
         var x64 = id.x + PositionPackOffset;
         var y64 = id.y + PositionPackOffset;
         var z64 = id.z + PositionPackOffset;
+        var l64 = id.w;
 
         var ux = (UInt64)x64;
         var uy = (UInt64)y64;
         var uz = (UInt64)z64;
-        var ul = (UInt64)layer;
+        var ul = (UInt64)l64;
 
         AssertValidPackedField(ux, uy, uz, ul);
         var packed = ux | (uy << 20) | (uz << 40) | (ul << 60);
@@ -39,7 +40,7 @@ public static class Octree
         return packed;
     }
 
-    public static int3 UnpackID(UInt64 id)
+    public static int4 UnpackID(UInt64 id)
     {
         var ux = (UInt64)(id & PositionPackMask);
         var uy = (UInt64)((id >> 20) & PositionPackMask);
@@ -50,9 +51,10 @@ public static class Octree
 
         var x64 = (Int64)ux - PositionPackOffset; 
         var y64 = (Int64)uy - PositionPackOffset; 
-        var z64 = (Int64)uz - PositionPackOffset; 
+        var z64 = (Int64)uz - PositionPackOffset;
+        var l64 = (Int64)ul;
 
-        var unpacked = new int3((int)x64, (int)y64, (int)z64);
+        var unpacked = new int4((int)x64, (int)y64, (int)z64, (int)l64);
 
         return unpacked;
     }
@@ -67,9 +69,10 @@ public static class Octree
         return NodeExtent(depth) * 2f;
     }
 
-    public static int3 PointToClusterID(float3 point)
+    public static int4 PointToClusterID(float3 point)
     {
-        return new int3(math.floor(point / ClusterSize));
+        var posID = new int3(math.floor(point / ClusterSize));
+        return new int4(posID, 0);
     }
 
     public static float3 ClusterIDToPoint(int3 clusterID)
@@ -77,20 +80,21 @@ public static class Octree
         return new float3(clusterID) * new float3(ClusterSize) + new float3(ClusterExtent);
     }
 
-    public static void GetMinMaxClusterIDs(in AABB aabb, out int3 minClusterID, out int3 maxClusterID)
+    public static void GetMinMaxClusterIDs(in AABB aabb, out int4 minClusterID, out int4 maxClusterID)
     {
         minClusterID = PointToClusterID(aabb.Min);
-        maxClusterID = PointToClusterID(aabb.Max) + new int3(1);
+        maxClusterID = PointToClusterID(aabb.Max) + new int4(1,1,1,0);
     }
 
-    public static int3 PointToILeafID(float3 point)
+    public static int4 PointToILeafID(float3 point)
     {
-        return new int3(math.floor(point / LeafSize));
+        var posID = new int3(math.floor(point / LeafSize));
+        return new int4(posID, 0);
     }
 
-    public static float3 LeafIDToPoint(int3 leafID)
+    public static float3 LeafIDToPoint(int4 leafID)
     {
-        return new float3(leafID) * new float3(LeafSize) + new float3(LeafExtent);
+        return new float3(leafID.xyz) * new float3(LeafSize) + new float3(LeafExtent);
     }
 
     public static int3 PointToNode(float3 point, int depth)
