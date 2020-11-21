@@ -10,8 +10,15 @@ using UnityEngine;
 [UpdateAfter(typeof(HybridRendererSystem))]
 public class UpdateStats : SystemBase
 {
+    bool wasLockedLastUpdate = false;
+
     protected override void OnUpdate()
     {
+        if (!Main.DisplayStats) return;
+        if (Main.IsLocked && this.wasLockedLastUpdate) return;
+
+        this.wasLockedLastUpdate = false;
+
         var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeLeaf>();
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
 
@@ -57,5 +64,10 @@ public class UpdateStats : SystemBase
         Stats.VisibleOctreeClusters = visibleClusters.Length;
 
         stats.Dispose();
+
+        if (Main.IsLocked)
+        {
+            this.wasLockedLastUpdate = true;
+        }
     }
 }

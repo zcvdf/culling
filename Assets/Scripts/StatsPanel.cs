@@ -7,13 +7,10 @@ public class StatsPanel : MonoBehaviour
 {
     [SerializeField] private Text text;
 
-    void Start()
-    {
-
-    }
-
     void Update()
     {
+        if (!Main.DisplayStats) return;
+
         this.text.text =
             $"Total Entity Number : {Stats.TotalEntityNumber}\n"
             + $"Visible Octree Clusters : {Stats.VisibleOctreeClusters}\n"

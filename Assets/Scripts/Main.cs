@@ -27,6 +27,7 @@ public class Main : MonoBehaviour
     public static VisibleOctreeCluster[] VisibleOctreeClusters;
 
     public static bool IsLocked;
+    public static bool DisplayStats;
 
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
@@ -58,6 +59,7 @@ public class Main : MonoBehaviour
         this.viewerCamera.Use(true);
         this.statsPanel.enabled = false;
         SetLock(this.lockOnStart);
+        SetStatsPanelVisible(false);
     }
 
     private void Update()
@@ -192,9 +194,15 @@ public class Main : MonoBehaviour
         Gizmos.DrawCube(FrustrumAABB.Center, FrustrumAABB.Size);
     }
 
+    void SetStatsPanelVisible(bool visible)
+    {
+        DisplayStats = visible;
+        this.statsPanel.enabled = visible;
+    }
+
     void ToggleStatsPanelVisible()
     {
-        this.statsPanel.enabled = !this.statsPanel.enabled;
+        SetStatsPanelVisible(!DisplayStats);
     }
 
     void SetLock(bool locked)
