@@ -92,16 +92,6 @@ public static class Octree
         return new int4(posID, 0);
     }
 
-    public static float3 LeafIDToPoint(int4 leafID)
-    {
-        return new float3(leafID.xyz) * new float3(LeafSize) + new float3(LeafExtent);
-    }
-
-    public static int3 PointToNode(float3 point, int depth)
-    {
-        return new int3(math.floor(point / NodeSize(depth)));
-    }
-
     public static float3 NodeIDToPoint(int3 nodeID, int depth)
     {
         var nodeExtent = NodeExtent(depth);
@@ -115,13 +105,6 @@ public static class Octree
     {
         minChildrenID = nodeID << 1;
         maxChildrenID = minChildrenID + new int3(2);
-    }
-
-    // Subdivide cluster in leafs
-    public static void GetMinMaxClusterNodeIDs(int3 clusterID, int depth, out int3 minNodeID, out int3 maxNodeID)
-    {
-        minNodeID = clusterID << depth;
-        maxNodeID = minNodeID + new int3(1 << depth);
     }
 
     public static int3 GetLeafParentNodeID(int3 leafID, int parentDepth)
