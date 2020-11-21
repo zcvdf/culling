@@ -126,7 +126,7 @@ public class Main : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             ++this.displayOctreeDepth;
-            if (this.displayOctreeDepth > Octree.Depth) this.displayOctreeDepth = -1;
+            if (this.displayOctreeDepth > Octree.LeafLayer) this.displayOctreeDepth = -1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))

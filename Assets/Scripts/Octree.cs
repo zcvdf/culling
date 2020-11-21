@@ -7,14 +7,15 @@ using UnityEngine;
 
 public static class Octree
 {
-    public const int Depth = 2;
+    public const int LeafLayer = 2;
 
     public const float ClusterExtent = 200f;
     public const float ClusterSize = ClusterExtent * 2f;
+    public const int ClusterSubdivisions = (1 << LeafLayer);
 
-    public const int ClusterSubdivisions = (1 << Depth);
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
+
     public const int MaxLayer = 1 << 4;
     public const int MaxPosition = 1 << 20;
 
@@ -109,7 +110,7 @@ public static class Octree
 
     public static int3 GetLeafParentNodeID(int3 leafID, int parentDepth)
     {
-        var rshift = Depth - parentDepth;
+        var rshift = LeafLayer - parentDepth;
         return leafID >> rshift;
     }
 
