@@ -12,7 +12,9 @@ public class StatsPanel : MonoBehaviour
         if (!Main.DisplayStats) return;
 
         this.text.text =
-            $"Total Entity Number : {Stats.TotalEntityNumber}\n"
+              $"FPS : {Stats.FPS}\n"
+            + "\n"
+            + $"Total Entity Number : {Stats.TotalEntityNumber}\n"
             + $"Visible Octree Clusters : {Stats.VisibleOctreeClusters}\n"
             + "\n"
             + $"Total Culled : {Stats.TotalCulledPercentage:0.0}%\n"

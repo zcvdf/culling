@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
 
@@ -10,10 +11,21 @@ using UnityEngine;
 [UpdateAfter(typeof(HybridRendererSystem))]
 public class UpdateStats : SystemBase
 {
+    const int NbFrameSample = 10;
+
     bool wasLockedLastUpdate = false;
+    double lastElapsedTime;
+    int frame;
+
+    protected override void OnStartRunning()
+    {
+        this.lastElapsedTime = this.Time.ElapsedTime;
+    }
 
     protected override void OnUpdate()
     {
+        UpdateFPSDatas();
+
         if (!Main.DisplayStats) return;
         if (Main.IsLocked && this.wasLockedLastUpdate) return;
 
@@ -68,6 +80,22 @@ public class UpdateStats : SystemBase
         if (Main.IsLocked)
         {
             this.wasLockedLastUpdate = true;
+        }
+    }
+
+    void UpdateFPSDatas()
+    {
+        ++this.frame;
+
+        if (this.frame >= NbFrameSample)
+        {
+            var t = this.Time.ElapsedTime - this.lastElapsedTime;
+
+            var averageDT = t / this.frame;
+            Stats.FPS = (int)math.round(1f / (averageDT));
+
+            this.frame = 0;
+            this.lastElapsedTime = this.Time.ElapsedTime;
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public static class Stats
 {
+    public static int FPS;
+
     public static int TotalEntityNumber;
     public static int VisibleOctreeClusters;
     public static int VisibleOctreeLeafs;
