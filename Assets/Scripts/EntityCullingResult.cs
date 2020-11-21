@@ -13,7 +13,7 @@ public enum CullingResult
 }
 
 [GenerateAuthoringComponent]
-public class EntityCullingResult : IComponentData
+public struct EntityCullingResult : IComponentData
 {
     public CullingResult Value;
 }
