@@ -44,21 +44,47 @@ public static class Octree
 
     public static int4 UnpackID(UInt64 id)
     {
+        var x = UnpackX(id);
+        var y = UnpackY(id);
+        var z = UnpackZ(id);
+        var l = UnpackLayer(id);
+
+        return new int4(x, y, z, l);
+    }
+
+    public static int UnpackX(UInt64 id)
+    {
         var ux = (UInt64)(id & PositionPackMask);
+        AssertValidPackedPosition(ux);
+
+        var x64 = (Int64)ux - PositionPackOffset;
+        return (int)x64;
+    }
+
+    public static int UnpackY(UInt64 id)
+    {
         var uy = (UInt64)((id >> 20) & PositionPackMask);
+        AssertValidPackedPosition(uy);
+
+        var y64 = (Int64)uy - PositionPackOffset;
+        return (int)y64;
+    }
+
+    public static int UnpackZ(UInt64 id)
+    {
         var uz = (UInt64)((id >> 40) & PositionPackMask);
-        var ul = (UInt64)((id >> 60) & LayerPackMask);
+        AssertValidPackedPosition(uz);
 
-        AssertValidPackedField(ux, uy, uz, ul);
-
-        var x64 = (Int64)ux - PositionPackOffset; 
-        var y64 = (Int64)uy - PositionPackOffset; 
         var z64 = (Int64)uz - PositionPackOffset;
-        var l64 = (Int64)ul;
+        return (int)z64;
+    }
 
-        var unpacked = new int4((int)x64, (int)y64, (int)z64, (int)l64);
+    public static int UnpackLayer(UInt64 id)
+    {
+        var ul = (UInt64)((id >> 60) & LayerPackMask);
+        AssertValidPackedLayer(ul);
 
-        return unpacked;
+        return (int)ul;
     }
 
     public static float NodeExtent(int layer)
@@ -118,9 +144,23 @@ public static class Octree
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)
     {
 #if ENABLE_ASSERTS
-        Debug.Assert(x < MaxPosition);
-        Debug.Assert(y < MaxPosition);
-        Debug.Assert(z < MaxPosition);
+        AssertValidPackedPosition(x);
+        AssertValidPackedPosition(y);
+        AssertValidPackedPosition(z);
+        AssertValidPackedLayer(l);
+#endif
+    }
+
+    private static void AssertValidPackedPosition(UInt64 p)
+    {
+#if ENABLE_ASSERTS
+        Debug.Assert(p < MaxPosition);
+#endif
+    }
+
+    private static void AssertValidPackedLayer(UInt64 l)
+    {
+#if ENABLE_ASSERTS
         Debug.Assert(l < MaxLayer);
 #endif
     }
