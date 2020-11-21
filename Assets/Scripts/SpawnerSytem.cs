@@ -42,5 +42,7 @@ public class SpawnerSystem : SystemBase
         }
 
         this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
+
+        Stats.TotalEntityNumber = spawner.Count;
     }
 }

@@ -24,9 +24,9 @@ public class UpdateVisibilityBuffers : SystemBase
 
             ProcessClusters(visibleClusters, visibleOctreeLeafs, visibleLeafInClusterCounts, frustrumAABB, frustrumPlanes);
 
-#if ENABLE_ASSERTS
-            AssertNoDupplicate(visibleClusters);
-#endif
+            #if ENABLE_ASSERTS
+                AssertNoDupplicate(visibleClusters);
+            #endif
         })
         .ScheduleParallel();
     }
@@ -95,6 +95,7 @@ public class UpdateVisibilityBuffers : SystemBase
                         {
                             var packedID = Octree.PackID(subNodeID);
                             visibleOctreeLeafs.Add(new VisibleOctreeLeaf { Value = packedID });
+
                             ++visibleLeafCount;
                         }
                     }

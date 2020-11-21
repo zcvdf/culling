@@ -43,6 +43,9 @@ public class CullingSystem : SystemBase
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
         var visibleLeafCounts = GetBuffer<VisibleLeafInClusterCount>(visibleLeafEntity).AsNativeArray();
 
+        Stats.VisibleOctreeLeafs = visibleLeafs.Length;
+        Stats.VisibleOctreeClusters = visibleClusters.Length;
+
         Main.VisibleOctreeLeafs = visibleLeafs.ToArray();
         Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
