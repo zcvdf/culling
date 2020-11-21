@@ -24,6 +24,10 @@ public static class Octree
     const UInt64 LayerPackMask = MaxLayer - 1;
     const UInt64 PositionPackMask = MaxPosition - 1;
 
+    const UInt64 XPackMask = (1 << 20) - 1;
+    const UInt64 YPackMask = ((1 << 40) - 1) ^ XPackMask;
+    const UInt64 ZPackMask = ((1 << 60) - 1) ^ (XPackMask | YPackMask);
+
     public static UInt64 PackID(int4 id)
     {
         var x64 = id.x + PositionPackOffset;
@@ -42,6 +46,23 @@ public static class Octree
         return packed;
     }
 
+    public static UInt64 PackXYZ(int3 id)
+    {
+        var x64 = id.x + PositionPackOffset;
+        var y64 = id.y + PositionPackOffset;
+        var z64 = id.z + PositionPackOffset;
+
+        var ux = (UInt64)x64;
+        var uy = (UInt64)y64;
+        var uz = (UInt64)z64;
+
+        AssertValidPackedField(ux, uy, uz, 0);
+
+        var packed = ux | (uy << 20) | (uz << 40);
+
+        return packed;
+    }
+
     public static int4 UnpackID(UInt64 id)
     {
         var x = UnpackX(id);
@@ -50,6 +71,15 @@ public static class Octree
         var l = UnpackLayer(id);
 
         return new int4(x, y, z, l);
+    }
+
+    public static int3 UnpackXYZ(UInt64 id)
+    {
+        var x = UnpackX(id);
+        var y = UnpackY(id);
+        var z = UnpackZ(id);
+
+        return new int3(x, y, z);
     }
 
     public static int UnpackX(UInt64 id)
@@ -139,6 +169,18 @@ public static class Octree
     {
         var rshift = LeafLayer - parentLayer;
         return new int4(leafID >> rshift, parentLayer);
+    }
+
+    public static UInt64 GetLeafParentNodePackedID(UInt64 leafID, int parentLayer)
+    {
+        var rshift = LeafLayer - parentLayer;
+
+        var newXYZ = PackXYZ(UnpackXYZ(leafID) >> rshift);
+
+        var ul = (UInt64)parentLayer;
+        var newLayer = (ul << 60);
+
+        return newXYZ | newLayer;
     }
 
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)

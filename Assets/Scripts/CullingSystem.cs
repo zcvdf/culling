@@ -100,16 +100,16 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool Contains(NativeArray<VisibleOctreeNode> visibleNodes, OctreeLeaf packedNode, int src, int range)
+    public static bool Contains(NativeArray<VisibleOctreeNode> visibleNodes, OctreeLeaf nodeComponent, int src, int range)
     {
-        var node = Octree.UnpackID(packedNode.Value);
+        var node = nodeComponent.Value;
 
         for (int i = src; i < src + range; ++i)
         {
-            var visibleNode = Octree.UnpackID(visibleNodes[i].Value);
-            var parentNode = Octree.GetLeafParentNodeID(node.xyz, visibleNode.w);
+            var visibleNodeLayer = Octree.UnpackLayer(visibleNodes[i].Value);
+            var parentNode = Octree.GetLeafParentNodePackedID(node, visibleNodeLayer);
 
-            if (math.all(visibleNode == parentNode)) return true;
+            if (node == parentNode) return true;
         }
 
         return false;
