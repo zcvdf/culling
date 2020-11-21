@@ -49,13 +49,21 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var clusterID = new int4(x, y, z, 0);
 
-                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID), Octree.ClusterExtent, frustrumPlanes, out var intersects))
+                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
-
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
 
-                        var visibleNodeCount = ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, clusterID);
+                        int visibleNodeCount;
+                        if (intersects)
+                        {
+                            visibleNodeCount = ProcessNodeRecursive(visibleOctreeNodes, frustrumPlanes, clusterID);
+                        }
+                        else
+                        {
+                            visibleOctreeNodes.Add(new VisibleOctreeNode { Value = packedClusterID });
+                            visibleNodeCount = 1;
+                        }
 
                         visibleNodeInClusterCounts.Add(new VisibleNodeInClusterCount { Value = visibleNodeCount });
                     }
@@ -83,9 +91,9 @@ public class UpdateVisibilityBuffers : SystemBase
             {
                 for (int z = min.z; z < max.z; ++z)
                 {
-                    var subNodeID = new int4(x, y, z, 0);
+                    var subNodeID = new int4(x, y, z, subDepth);
 
-                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID, subDepth), subNodeExtent, frustrumPlanes, out var intersects))
+                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
                     {
                         if (subDepth < Octree.LeafLayer)
                         {

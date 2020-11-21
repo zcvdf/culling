@@ -74,29 +74,29 @@ public static class Octree
     public static int4 PointToClusterID(float3 point)
     {
         var posID = new int3(math.floor(point / ClusterSize));
-        return new int4(posID, 0);
+        return new int4(posID, ClusterLayer);
     }
 
-    public static float3 ClusterIDToPoint(int4 clusterID)
+    public static float3 ClusterIDToPoint(int3 clusterID)
     {
-        return new float3(clusterID.xyz) * new float3(ClusterSize) + new float3(ClusterExtent);
+        return new float3(clusterID) * new float3(ClusterSize) + new float3(ClusterExtent);
     }
 
     public static void GetMinMaxClusterIDs(in AABB aabb, out int4 minClusterID, out int4 maxClusterID)
     {
         minClusterID = PointToClusterID(aabb.Min);
-        maxClusterID = PointToClusterID(aabb.Max) + new int4(1,1,1,0);
+        maxClusterID = PointToClusterID(aabb.Max) + new int4(1, 1, 1, 0);
     }
 
     public static int4 PointToILeafID(float3 point)
     {
         var posID = new int3(math.floor(point / LeafSize));
-        return new int4(posID, 0);
+        return new int4(posID, LeafLayer);
     }
 
-    public static float3 NodeIDToPoint(int4 nodeID, int layer)
+    public static float3 NodeIDToPoint(int4 nodeID)
     {
-        var nodeExtent = NodeExtent(layer);
+        var nodeExtent = NodeExtent(nodeID.w);
         var nodeSize = nodeExtent * 2f;
 
         return new float3(nodeID.xyz) * nodeSize + nodeExtent;
@@ -105,14 +105,14 @@ public static class Octree
     // Subdivide node in 8 children
     public static void GetMinMaxNodeChildrenID(int4 nodeID, out int4 minChildrenID, out int4 maxChildrenID)
     {
-        minChildrenID = new int4(nodeID.xyz << 1, 0);
+        minChildrenID = new int4(nodeID.xyz << 1, nodeID.w + 1);
         maxChildrenID = minChildrenID + new int4(2,2,2,0);
     }
 
-    public static int4 GetLeafParentNodeID(int4 leafID, int parentLayer)
+    public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
         var rshift = LeafLayer - parentLayer;
-        return new int4(leafID.xyz >> rshift, 0);
+        return new int4(leafID >> rshift, parentLayer);
     }
 
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)

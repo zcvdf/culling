@@ -169,7 +169,7 @@ public class Main : MonoBehaviour
         foreach (var visibleNode in VisibleOctreeNodes)
         {
             var nodeID = Octree.UnpackID(visibleNode.Value);
-            var parentID = Octree.GetLeafParentNodeID(nodeID, parentDepth);
+            var parentID = Octree.GetLeafParentNodeID(nodeID.xyz, parentDepth);
 
             parentNodesFromLeafs.Add(parentID);
         }
@@ -180,7 +180,7 @@ public class Main : MonoBehaviour
 
         foreach (var node in parentNodes)
         {
-            var center = Octree.NodeIDToPoint(node, parentDepth);
+            var center = Octree.NodeIDToPoint(node);
             var size = new float3(parentNodeSize);
 
             Gizmos.DrawWireCube(center, size);
