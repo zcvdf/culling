@@ -158,30 +158,17 @@ public class Main : MonoBehaviour
 
     void DrawVisibleOctreeNodes()
     {
-        var parentDepth = this.displayOctreeDepth;
-        if (parentDepth < 0) return;
-
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColor;
 
-        var parentNodesFromLeafs = new List<int4>();
-
-        foreach (var visibleNode in VisibleOctreeNodes)
+        foreach (var packedNode in VisibleOctreeNodes)
         {
-            var nodeID = Octree.UnpackID(visibleNode.Value);
-            var parentID = Octree.GetLeafParentNodeID(nodeID.xyz, parentDepth);
+            var node = Octree.UnpackID(packedNode.Value);
 
-            parentNodesFromLeafs.Add(parentID);
-        }
-
-        var parentNodes = parentNodesFromLeafs.Distinct();
-
-        var parentNodeSize = Octree.NodeSize(parentDepth);
-
-        foreach (var node in parentNodes)
-        {
             var center = Octree.NodeIDToPoint(node);
-            var size = new float3(parentNodeSize);
+            var size = new float3(Octree.NodeSize(node.w));
+
+            if (node.w != this.displayOctreeDepth) continue;
 
             Gizmos.DrawWireCube(center, size);
         }
