@@ -170,7 +170,7 @@ public static class Octree
         var additionalDivision = nodeID.w == ClusterLayer ? ClusterAdditionalDivision : 0;
 
         minChildrenID = new int4(nodeID.xyz << 1 + additionalDivision, nodeID.w + 1);
-        maxChildrenID = minChildrenID + new int4(2, 2, 2, 0) * (1 + additionalDivision);
+        maxChildrenID = minChildrenID + new int4(2, 2, 2, 0) * (1 << additionalDivision);
     }
 
     public static int4 GetParentNodeID(int4 nodeID, int parentLayer)
