@@ -13,6 +13,8 @@ struct Spawner : IComponentData
     public float GenerationSpan;
     public float MinScale;
     public float MaxScale;
+    public float MinRotationSpeed;
+    public float MaxRotationSpeed;
 }
 
 public struct VisibleOctreeCluster : IBufferElementData

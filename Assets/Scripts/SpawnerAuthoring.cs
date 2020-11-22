@@ -13,6 +13,8 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
     [SerializeField] float GenerationSpan = 1000f;
     [SerializeField] float MinScale = 1f;
     [SerializeField] float MaxScale = 20f;
+    [SerializeField] float MinRotationSpeed = 1f;
+    [SerializeField] float MaxRotationSpeed = 10f;
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
@@ -28,7 +30,9 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
             Count = this.Count,
             GenerationSpan = this.GenerationSpan,
             MinScale = this.MinScale,
-            MaxScale = this.MaxScale
+            MaxScale = this.MaxScale,
+            MinRotationSpeed = this.MinRotationSpeed,
+            MaxRotationSpeed = this.MaxRotationSpeed,
         };
 
         dstManager.AddComponentData(entity, spawner);

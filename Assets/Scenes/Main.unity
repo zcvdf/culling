@@ -2193,6 +2193,14 @@ PrefabInstance:
       propertyPath: MaxScale
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MaxRotationSpeed
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MinRotationSpeed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708348, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
