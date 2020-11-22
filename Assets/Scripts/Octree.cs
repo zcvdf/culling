@@ -9,10 +9,11 @@ public static class Octree
 {
     public const int ClusterLayer = 0;
     public const int LeafLayer = 1;
+    public const int ClusterAdditionalDivision = 1;
 
     public const float ClusterExtent = 400f;
     public const float ClusterSize = ClusterExtent * 2f;
-    public const int ClusterSubdivisions = (1 << (LeafLayer + 1));
+    public const int ClusterSubdivisions = (1 << (LeafLayer + ClusterAdditionalDivision));
 
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
@@ -115,7 +116,7 @@ public static class Octree
     {
         if (layer == ClusterLayer) return ClusterExtent;
 
-        return ClusterExtent / (1 << (layer + 1));
+        return ClusterExtent / (1 << (layer + ClusterAdditionalDivision));
     }
 
     public static float NodeSize(int layer)
@@ -156,23 +157,19 @@ public static class Octree
 
     public static void GetMinMaxNodeChildrenID(int4 nodeID, out int4 minChildrenID, out int4 maxChildrenID)
     {
-        if (nodeID.w == ClusterLayer)
-        {
-            minChildrenID = new int4(nodeID.xyz << 2, nodeID.w + 1);
-            maxChildrenID = minChildrenID + new int4(4, 4, 4, 0);
-        }
-        else
-        {
-            minChildrenID = new int4(nodeID.xyz << 1, nodeID.w + 1);
-            maxChildrenID = minChildrenID + new int4(2, 2, 2, 0);
-        }
+        var additionalDivision = nodeID.w == ClusterLayer ? ClusterAdditionalDivision : 0;
+
+        minChildrenID = new int4(nodeID.xyz << 1 + additionalDivision, nodeID.w + 1);
+        maxChildrenID = minChildrenID + new int4(2, 2, 2, 0) * (1 + additionalDivision);
     }
 
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
         if (parentLayer == LeafLayer) return new int4(leafID, LeafLayer);
 
-        var rshift = LeafLayer - parentLayer + (parentLayer == ClusterLayer ? 1 : 0);
+        var additionalShift = parentLayer == ClusterLayer ? ClusterAdditionalDivision : 0;
+
+        var rshift = LeafLayer - parentLayer + additionalShift;
         return new int4(leafID >> rshift, parentLayer);
     }
 
