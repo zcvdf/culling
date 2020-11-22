@@ -47,7 +47,7 @@ public class UpdateVisibilityBuffers : SystemBase
             {
                 for (int z = min.z; z < max.z; ++z)
                 {
-                    var clusterID = new int4(x, y, z, 0);
+                    var clusterID = new int4(x, y, z, Octree.ClusterLayer);
 
                     if (!Math.IsCubeCulled(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
                     {
@@ -64,7 +64,7 @@ public class UpdateVisibilityBuffers : SystemBase
                             visibleOctreeNodes.Add(new VisibleOctreeNode { Value = packedClusterID });
                             visibleNodeCount = 1;
                         }
-
+                        
                         visibleNodeInClusterCounts.Add(new VisibleNodeInClusterCount { Value = visibleNodeCount });
                     }
                 }
