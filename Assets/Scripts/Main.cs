@@ -35,6 +35,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
+    [SerializeField] Color octreeClustersColors = Color.white;
     [SerializeField] Color[] octreeLayerColors = new Color[1] { Color.white };
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
@@ -44,6 +45,7 @@ public class Main : MonoBehaviour
     bool displayBoundingSpheres = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
+    bool displayOctreeClusters = false;
 
     private void Awake()
     {
@@ -93,6 +95,11 @@ public class Main : MonoBehaviour
                 DrawEntityBoundingSpheres();
             }
 
+            if (this.displayOctreeClusters)
+            {
+                DrawVisibleClusters();
+            }
+
             if (this.displayOctreeDepth != -1)
             {
                 DrawVisibleOctreeNodes();
@@ -125,6 +132,11 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
+            this.displayOctreeClusters = !this.displayOctreeClusters;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
             ++this.displayOctreeDepth;
             if (this.displayOctreeDepth > Octree.LeafLayer) this.displayOctreeDepth = -1;
         }
@@ -156,50 +168,49 @@ public class Main : MonoBehaviour
         }
     }
 
+    void DrawVisibleClusters()
+    {
+        Gizmos.matrix = Matrix4x4.identity;
+
+        foreach (var packedNode in VisibleOctreeClusters)
+        {
+            var node = Octree.UnpackID(packedNode.Value);
+
+            var center = Octree.ClusterIDToPoint(node.xyz);
+            var size = new float3(Octree.ClusterSize);
+
+            Gizmos.color = this.octreeClustersColors;
+            Gizmos.DrawCube(center, size);
+
+            Gizmos.color = this.octreeClustersColors.Opaque();
+            Gizmos.DrawWireCube(center, size);
+        }
+    }
+
     void DrawVisibleOctreeNodes()
     {
         if (this.displayOctreeDepth < 0) return;
 
         Gizmos.matrix = Matrix4x4.identity;
 
-        var colorID = math.min(this.displayOctreeDepth, this.octreeLayerColors.Length - 1);
-        var octreeColor = this.octreeLayerColors[colorID];
-
-        if (this.displayOctreeDepth == 0)
+        foreach (var packedNode in VisibleOctreeNodes)
         {
-            foreach (var packedNode in VisibleOctreeClusters)
-            {
-                var node = Octree.UnpackID(packedNode.Value);
+            var node = Octree.UnpackID(packedNode.Value);
 
-                var center = Octree.NodeIDToPoint(node);
-                var size = new float3(Octree.NodeSize(node.w));
+            if (this.displayOctreeDepth != 0 && node.w != this.displayOctreeDepth) continue;
 
-                Gizmos.color = octreeColor;
-                Gizmos.DrawCube(center, size);
+            var colorID = math.min(node.w - 1, this.octreeLayerColors.Length - 1);
+            var octreeColor = this.octreeLayerColors[colorID];
 
-                Gizmos.color = octreeColor.Opaque();
-                Gizmos.DrawWireCube(center, size);
-            }
+            var center = Octree.NodeIDToPoint(node);
+            var size = new float3(Octree.NodeSize(node.w));
+
+            Gizmos.color = octreeColor;
+            Gizmos.DrawCube(center, size);
+
+            Gizmos.color = octreeColor.Opaque();
+            Gizmos.DrawWireCube(center, size);
         }
-        else
-        {
-            foreach (var packedNode in VisibleOctreeNodes)
-            {
-                var node = Octree.UnpackID(packedNode.Value);
-
-                if (node.w != this.displayOctreeDepth) continue;
-
-                var center = Octree.NodeIDToPoint(node);
-                var size = new float3(Octree.NodeSize(node.w));
-
-                Gizmos.color = octreeColor;
-                Gizmos.DrawCube(center, size);
-
-                Gizmos.color = octreeColor.Opaque();
-                Gizmos.DrawWireCube(center, size);
-            }
-        }
-        
     }
 
     void DrawFrustrumAABB()
