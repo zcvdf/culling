@@ -35,7 +35,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
-    [SerializeField] Color octreeColor;
+    [SerializeField] Color[] octreeLayerColors = new Color[1] { Color.white };
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
@@ -161,7 +161,9 @@ public class Main : MonoBehaviour
         if (this.displayOctreeDepth < 0) return;
 
         Gizmos.matrix = Matrix4x4.identity;
-        
+
+        var colorID = math.min(this.displayOctreeDepth, this.octreeLayerColors.Length - 1);
+        var octreeColor = this.octreeLayerColors[colorID];
 
         if (this.displayOctreeDepth == 0)
         {
@@ -172,10 +174,10 @@ public class Main : MonoBehaviour
                 var center = Octree.NodeIDToPoint(node);
                 var size = new float3(Octree.NodeSize(node.w));
 
-                Gizmos.color = this.octreeColor;
+                Gizmos.color = octreeColor;
                 Gizmos.DrawCube(center, size);
 
-                Gizmos.color = this.octreeColor.Opaque();
+                Gizmos.color = octreeColor.Opaque();
                 Gizmos.DrawWireCube(center, size);
             }
         }
@@ -190,10 +192,10 @@ public class Main : MonoBehaviour
                 var center = Octree.NodeIDToPoint(node);
                 var size = new float3(Octree.NodeSize(node.w));
 
-                Gizmos.color = this.octreeColor;
+                Gizmos.color = octreeColor;
                 Gizmos.DrawCube(center, size);
 
-                Gizmos.color = this.octreeColor.Opaque();
+                Gizmos.color = octreeColor.Opaque();
                 Gizmos.DrawWireCube(center, size);
             }
         }
