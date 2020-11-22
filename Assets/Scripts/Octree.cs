@@ -8,11 +8,11 @@ using UnityEngine;
 public static class Octree
 {
     public const int ClusterLayer = 0;
-    public const int LeafLayer = 2;
+    public const int LeafLayer = 1;
 
-    public const float ClusterExtent = 200f;
+    public const float ClusterExtent = 400f;
     public const float ClusterSize = ClusterExtent * 2f;
-    public const int ClusterSubdivisions = (1 << LeafLayer);
+    public const int ClusterSubdivisions = (1 << (LeafLayer + 1));
 
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
@@ -113,7 +113,9 @@ public static class Octree
 
     public static float NodeExtent(int layer)
     {
-        return ClusterExtent / (1 << layer);
+        if (layer == ClusterLayer) return ClusterExtent;
+
+        return ClusterExtent / (1 << (layer + 1));
     }
 
     public static float NodeSize(int layer)
@@ -152,18 +154,25 @@ public static class Octree
         return new float3(nodeID.xyz) * nodeSize + nodeExtent;
     }
 
-    // Subdivide node in 8 children
     public static void GetMinMaxNodeChildrenID(int4 nodeID, out int4 minChildrenID, out int4 maxChildrenID)
     {
-        minChildrenID = new int4(nodeID.xyz << 1, nodeID.w + 1);
-        maxChildrenID = minChildrenID + new int4(2,2,2,0);
+        if (nodeID.w == ClusterLayer)
+        {
+            minChildrenID = new int4(nodeID.xyz << 2, nodeID.w + 1);
+            maxChildrenID = minChildrenID + new int4(4, 4, 4, 0);
+        }
+        else
+        {
+            minChildrenID = new int4(nodeID.xyz << 1, nodeID.w + 1);
+            maxChildrenID = minChildrenID + new int4(2, 2, 2, 0);
+        }
     }
 
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
         if (parentLayer == LeafLayer) return new int4(leafID, LeafLayer);
 
-        var rshift = LeafLayer - parentLayer;
+        var rshift = LeafLayer - parentLayer + (parentLayer == ClusterLayer ? 1 : 0);
         return new int4(leafID >> rshift, parentLayer);
     }
 
@@ -171,7 +180,7 @@ public static class Octree
     {
         if (parentLayer == LeafLayer) return leafID;
 
-        var rshift = LeafLayer - parentLayer;
+        var rshift = LeafLayer - parentLayer + (parentLayer == ClusterLayer ? 1 : 0);
 
         var newXYZ = PackXYZ(UnpackXYZ(leafID) >> rshift);
 
