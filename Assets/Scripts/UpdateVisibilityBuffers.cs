@@ -21,7 +21,7 @@ public class UpdateVisibilityBuffers : SystemBase
             visibleClusters.Clear();
             visibleOctreeNodes.Clear();
             visibleNodeInClusterCounts.Clear();
-
+            
             AddRoot(visibleClusters, visibleOctreeNodes, visibleNodeInClusterCounts);
             ProcessClusters(visibleClusters, visibleOctreeNodes, visibleNodeInClusterCounts, frustrumAABB, frustrumPlanes);
 

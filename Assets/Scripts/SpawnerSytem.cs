@@ -45,16 +45,30 @@ public class SpawnerSystem : SystemBase
             var worldRotationAxis = rand.NextFloat3Direction();
             var worldRotationSpeed = rand.NextFloat(spawner.MinWorldRotationSpeed, spawner.MaxWorldRotationSpeed);
 
-            this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
-            this.EntityManager.SetComponentData(entity, new Translation { Value = position });
-            this.EntityManager.SetComponentData(entity, new Rotation{ Value = rotation });
+            var isStatic = rand.NextBool();
 
-            this.EntityManager.SetComponentData(entity, new SelfRotationAxis{ Value = selfRotationAxis });
-            this.EntityManager.SetComponentData(entity, new SelfRotationSpeed{ Value = selfRotationSpeed });
+            if (isStatic)
+            {
+                var trs = float4x4.TRS(position, rotation, scale);
+                this.EntityManager.SetComponentData(entity, new LocalToWorld { Value = trs });
 
-            this.EntityManager.SetComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
-            this.EntityManager.SetComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
+                this.EntityManager.RemoveComponent<Translation>(entity);
+                this.EntityManager.RemoveComponent<Rotation>(entity);
+                this.EntityManager.AddComponent<StaticOptimizeEntity>(entity);
+            }
+            else
+            {
+                this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
+                this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+                this.EntityManager.SetComponentData(entity, new Rotation { Value = rotation });
 
+                this.EntityManager.SetComponentData(entity, new SelfRotationAxis { Value = selfRotationAxis });
+                this.EntityManager.SetComponentData(entity, new SelfRotationSpeed { Value = selfRotationSpeed });
+
+                this.EntityManager.SetComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
+                this.EntityManager.SetComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
+            }
+            
             this.EntityManager.AddSharedComponentData(entity, new OctreeCluster());
         }
 

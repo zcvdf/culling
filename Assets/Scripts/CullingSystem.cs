@@ -58,7 +58,7 @@ public class CullingSystem : SystemBase
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
-            .ForEach((ref EntityCullingResult cullingResult, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
+            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
             {
                 if (!IsNodeVisible(visibleNodes, octreeNode, srcIndex, visibleNodeCount))
                 {
@@ -66,7 +66,7 @@ public class CullingSystem : SystemBase
                     return;
                 }
 
-                var boudingCenter = translation.Value;
+                var boudingCenter = bounds.Value.Center;
                 var boundingRadius = radiusComponent.Value;
 
                 if (!Math.IsInFrustrum(boudingCenter, boundingRadius, frustrumPlanes))

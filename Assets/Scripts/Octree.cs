@@ -16,16 +16,14 @@ public static class Octree
     public static readonly int4 Root = new int4(0, 0, 0, RootLayer);
     public static readonly UInt64 PackedRoot = PackID(Root);
 
-    public const int ClusterAdditionalDivision = 2;
+    public const int ClusterAdditionalDivision = 1;
 
-    public const float ClusterExtent = 4000f;
+    public const float ClusterExtent = 2500f;
     public const float ClusterSize = ClusterExtent * 2f;
     public const int ClusterSubdivisions = (1 << (LeafLayer + ClusterAdditionalDivision));
 
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
-
-    
 
     const Int64 PositionPackOffset = MaxPosition >> 1;
     const UInt64 LayerPackMask = MaxLayer - 1;

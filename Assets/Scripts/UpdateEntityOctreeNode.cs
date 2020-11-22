@@ -15,6 +15,7 @@ public class UpdateEntityOctreeNode : SystemBase
     {
         this.Entities
         .WithChangeFilter<WorldRenderBounds>()
+        .WithAll<EntityTag>()
         .ForEach((ref OctreeNode octreeNode, in WorldRenderBounds boundsComponent) =>
         {
             var bounds = boundsComponent.Value;
