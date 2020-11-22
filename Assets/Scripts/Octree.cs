@@ -8,10 +8,10 @@ using UnityEngine;
 public static class Octree
 {
     public const int ClusterLayer = 0;
-    public const int LeafLayer = 1;
+    public const int LeafLayer = 2;
     public const int ClusterAdditionalDivision = 1;
 
-    public const float ClusterExtent = 400f;
+    public const float ClusterExtent = 2000f;
     public const float ClusterSize = ClusterExtent * 2f;
     public const int ClusterSubdivisions = (1 << (LeafLayer + ClusterAdditionalDivision));
 

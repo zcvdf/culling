@@ -395,7 +395,6 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 3132c2e4e6056b54c89eafbfb8a88a79, type: 2}
   - {fileID: 2100000, guid: 97d08b2d293dfb34e9d8a824bb43a433, type: 2}
   - {fileID: 2100000, guid: 66edc06c52814ba488fced8df3b2dc74, type: 2}
-  octreeOutlineMaterial: {fileID: 2100000, guid: 22ab0cb034b92bb4aa42cb6236c70e57, type: 2}
   frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   frustrumPlanesMesh: {fileID: 753912383}
@@ -1051,7 +1050,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.5
-  far clip plane: 1000
+  far clip plane: 5000
   field of view: 45
   orthographic: 0
   orthographic size: 5
@@ -1199,7 +1198,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 5000
+  far clip plane: 100000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -1278,9 +1277,9 @@ MonoBehaviour:
   MouseXAxis: Mouse X
   MouseYAxis: Mouse Y
   RotationSensitivity: 3
-  ZoomSensitivity: 2
+  ZoomSensitivity: 10
   MinZoom: 2
-  MaxZoom: 10000
+  MaxZoom: 100000
   TargetTransform: {fileID: 911220650}
 --- !u!1001 &984135956
 PrefabInstance:
@@ -2180,7 +2179,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: Count
-      value: 1048576
+      value: 65536
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: GenerationSpan
+      value: 5000
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MinScale
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MaxScale
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708348, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: m_LocalPosition.x

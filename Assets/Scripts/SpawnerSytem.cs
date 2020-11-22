@@ -34,10 +34,14 @@ public class SpawnerSystem : SystemBase
         {
             var entity = entities[i];
 
-            var offset = 2000f * (rand.NextFloat3(new float3(2f)) - new float3(1f));
+            var offset = spawner.GenerationSpan * (rand.NextFloat3(new float3(2f)) - new float3(1f));
             var position = new float3(spawner.Origin) + offset;
+            var scale = rand.NextFloat3(new float3(spawner.MinScale), new float3(spawner.MaxScale));
+            var rotation = rand.NextQuaternionRotation();
 
+            this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
             this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+            this.EntityManager.SetComponentData(entity, new Rotation{ Value = rotation });
             this.EntityManager.AddSharedComponentData(entity, new OctreeCluster());
         }
 
