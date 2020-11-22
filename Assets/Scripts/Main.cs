@@ -35,7 +35,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
-    [SerializeField] Color octreeClustersColors = Color.white;
+    [SerializeField] Color octreeClustersColor = Color.white;
     [SerializeField] Color[] octreeLayerColors = new Color[1] { Color.white };
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] MeshFilter frustrumPlanesMesh;
@@ -177,13 +177,12 @@ public class Main : MonoBehaviour
             var node = Octree.UnpackID(packedNode.Value);
 
             var center = Octree.ClusterIDToPoint(node.xyz);
-            var size = new float3(Octree.ClusterSize);
+            var size = Octree.ClusterSize;
 
-            Gizmos.color = this.octreeClustersColors;
-            Gizmos.DrawCube(center, size);
+            Gizmos.color = this.octreeClustersColor;
+            Gizmos.DrawCube(center, new float3(size));
 
-            Gizmos.color = this.octreeClustersColors.Opaque();
-            Gizmos.DrawWireCube(center, size);
+            Draw.CubeWireframe(center, size * 0.5f, this.octreeClustersColor.Opaque());
         }
     }
 
@@ -203,13 +202,12 @@ public class Main : MonoBehaviour
             var octreeColor = this.octreeLayerColors[colorID];
 
             var center = Octree.NodeIDToPoint(node);
-            var size = new float3(Octree.NodeSize(node.w));
-
+            var size = Octree.NodeSize(node.w);
+            
             Gizmos.color = octreeColor;
-            Gizmos.DrawCube(center, size);
+            Gizmos.DrawCube(center, new float3(size));
 
-            Gizmos.color = octreeColor.Opaque();
-            Gizmos.DrawWireCube(center, size);
+            Draw.CubeWireframe(center, size * 0.5f, octreeColor.Opaque());
         }
     }
 
@@ -240,5 +238,71 @@ public class Main : MonoBehaviour
     void ToggleLock()
     {
         SetLock(!IsLocked);
+    }
+}
+
+public static class Draw
+{
+    public static void CubeWireframe(float3 center, float extent, Color color)
+    {
+        var x = new float3(extent, 0, 0);
+        var y = new float3(0, extent, 0);
+        var z = new float3(0, 0, extent);
+
+        GL.Begin(GL.LINES);
+        GL.Color(color);
+
+        GL.Vertex(center + x + y - z);
+        GL.Vertex(center - x + y - z);
+
+        GL.Vertex(center - x + y - z);
+        GL.Vertex(center - x + y + z);
+
+        GL.Vertex(center - x + y + z);
+        GL.Vertex(center + x + y + z);
+
+        GL.Vertex(center + x + y + z);
+        GL.Vertex(center + x + y - z);
+
+
+        GL.Vertex(center + x - y - z);
+        GL.Vertex(center - x - y - z);
+
+        GL.Vertex(center - x - y - z);
+        GL.Vertex(center - x - y + z);
+
+        GL.Vertex(center - x - y + z);
+        GL.Vertex(center + x - y + z);
+
+        GL.Vertex(center + x - y + z);
+        GL.Vertex(center + x - y - z);
+
+
+        GL.Vertex(center + x + y - z);
+        GL.Vertex(center + x - y - z);
+
+        GL.Vertex(center + x + y + z);
+        GL.Vertex(center + x - y + z);
+
+        GL.Vertex(center - x + y + z);
+        GL.Vertex(center - x - y + z);
+
+        GL.Vertex(center - x + y - z);
+        GL.Vertex(center - x - y - z);
+
+        GL.End();
+    }
+}
+
+public static class MiscExt
+{
+    public static float4 ToFloat4(this Color color)
+    {
+        return new float4(color.r, color.g, color.b, color.a);
+    }
+
+    public static Color Opaque(this Color color)
+    {
+        return new Color(color.r, color.g, color.b, 1f);
     }
 }

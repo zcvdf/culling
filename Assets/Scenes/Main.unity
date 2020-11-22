@@ -391,7 +391,7 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
-  octreeClustersColors: {r: 0.47843137, g: 0, b: 1, a: 0.078431375}
+  octreeClustersColor: {r: 0.486094, g: 0, b: 1, a: 0.09803922}
   octreeLayerColors:
   - {r: 0, g: 0.29411766, b: 1, a: 0.078431375}
   - {r: 0, g: 1, b: 0.7921569, a: 0.078431375}
