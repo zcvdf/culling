@@ -37,7 +37,6 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
     [SerializeField] Material[] octreeLayerMaterials;
-    [SerializeField] Material octreeOutlineMaterial;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] Mesh cubeMesh;
     [SerializeField] MeshFilter frustrumPlanesMesh;
@@ -196,7 +195,7 @@ public class Main : MonoBehaviour
             var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
             matrices.Add(matrix);
 
-            Draw.CubeCubeEdges(this.cubeMesh, this.octreeOutlineMaterial, material.color.Opaque(), size * 0.5f, center);
+            Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
         }
         
         Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
@@ -229,7 +228,7 @@ public class Main : MonoBehaviour
             var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
             matrices.Add(matrix);
 
-            Draw.CubeCubeEdges(this.cubeMesh, this.octreeOutlineMaterial, material.color.Opaque(), size * 0.5f, center);
+            Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
         }
 
         Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
@@ -267,7 +266,7 @@ public class Main : MonoBehaviour
 
 public static class Draw
 {
-    public static void CubeCubeEdges(Mesh cubeMesh, Material material, Color color, float cubeExtent, Vector3 center, float thickness = 1f)
+    public static void CubeCubeEdges(Mesh cubeMesh, Color color, float cubeExtent, Vector3 center, float thickness = 1f)
     {
         var size = cubeExtent * 2f;
         var t = thickness;
@@ -324,8 +323,23 @@ public static class Draw
             edgeMatrices.Add(Matrix4x4.TRS(centers[j], Quaternion.identity, scales[j]));
         }
 
-        material.color = color;
-        Graphics.DrawMeshInstanced(cubeMesh, 0, material, edgeMatrices);
+        LineMaterial.color = color;
+        Graphics.DrawMeshInstanced(cubeMesh, 0, LineMaterial, edgeMatrices);
+    }
+
+    static Material LineMaterialInstance;
+    static Material LineMaterial
+    {
+        get
+        {
+            if (LineMaterialInstance == null)
+            {
+                LineMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                LineMaterialInstance.enableInstancing = true;
+            }
+
+            return LineMaterialInstance;
+        }
     }
 }
 
