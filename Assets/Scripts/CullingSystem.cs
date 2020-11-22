@@ -41,16 +41,16 @@ public class CullingSystem : SystemBase
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
         var visibleNodeCounts = GetBuffer<VisibleNodeInClusterCount>(visibleNodeCountEntity).AsNativeArray();
 
-        Main.VisibleOctreeNodes = visibleNodes.ToArray();
-        Main.VisibleOctreeClusters = visibleClusters.ToArray();
+        var jobsDependency = this.Dependency;
 
+        // This code is fine but triggers job safety checks if they are enabled
         for (int i = 0, srcNodeCountIndex = 0; i < visibleClusters.Length; ++i)
         {
             var visibleCluster = visibleClusters[i];
             var visibleNodeCount = visibleNodeCounts[i].Value;
             var srcIndex = srcNodeCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
 
-            this.Entities
+            var jobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
             .WithReadOnly(visibleNodes)
@@ -89,10 +89,15 @@ public class CullingSystem : SystemBase
 
                 cullingResult.Value = CullingResult.NotCulled;
             })
-            .ScheduleParallel();
+            .ScheduleParallel(jobsDependency);
+
+            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
 
             srcNodeCountIndex += visibleNodeCount;
         }
+
+        Main.VisibleOctreeNodes = visibleNodes.ToArray();
+        Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
         planeOccluderExtents.Dispose(this.Dependency);
         planeOccluderTranslations.Dispose(this.Dependency);
