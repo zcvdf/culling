@@ -10,11 +10,14 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
 {
     [SerializeField] GameObject Prefab;
     [SerializeField] int Count;
-    [SerializeField] float GenerationSpan = 1000f;
+    [SerializeField] float MinGenerationSpan = 200f;
+    [SerializeField] float MaxGenerationSpan = 2000f;
     [SerializeField] float MinScale = 1f;
     [SerializeField] float MaxScale = 20f;
-    [SerializeField] float MinRotationSpeed = 1f;
-    [SerializeField] float MaxRotationSpeed = 10f;
+    [SerializeField] float MinSelfRotationSpeed = 1f;
+    [SerializeField] float MaxSelfRotationSpeed = 10f;
+    [SerializeField] float MinWorldRotationSpeed = 0.01f;
+    [SerializeField] float MaxWorldRotationSpeed = 1f;
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
@@ -28,11 +31,14 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
             Origin = this.transform.position,
             Prefab = conversionSystem.GetPrimaryEntity(this.Prefab),
             Count = this.Count,
-            GenerationSpan = this.GenerationSpan,
+            MinGenerationSpan = this.MinGenerationSpan,
+            MaxGenerationSpan = this.MaxGenerationSpan,
             MinScale = this.MinScale,
             MaxScale = this.MaxScale,
-            MinRotationSpeed = this.MinRotationSpeed,
-            MaxRotationSpeed = this.MaxRotationSpeed,
+            MinSelfRotationSpeed = this.MinSelfRotationSpeed,
+            MaxSelfRotationSpeed = this.MaxSelfRotationSpeed,
+            MinWorldRotationSpeed = this.MinWorldRotationSpeed,
+            MaxWorldRotationSpeed = this.MaxWorldRotationSpeed,
         };
 
         dstManager.AddComponentData(entity, spawner);

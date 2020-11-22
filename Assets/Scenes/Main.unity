@@ -2201,6 +2201,30 @@ PrefabInstance:
       propertyPath: MinRotationSpeed
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MinWorldRotationSpeed
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MinSelfRotationSpeed
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MaxWorldRotationSpeed
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MaxSelfRotationSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MaxGenerationSpan
+      value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
+      propertyPath: MinGenerationSpan
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708348, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

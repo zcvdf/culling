@@ -34,19 +34,26 @@ public class SpawnerSystem : SystemBase
         {
             var entity = entities[i];
 
-            var offset = spawner.GenerationSpan * (rand.NextFloat3(new float3(2f)) - new float3(1f));
+            var offset = rand.NextFloat(spawner.MinGenerationSpan, spawner.MaxGenerationSpan) * rand.NextFloat3Direction();
             var position = new float3(spawner.Origin) + offset;
             var scale = rand.NextFloat3(new float3(spawner.MinScale), new float3(spawner.MaxScale));
             var rotation = rand.NextQuaternionRotation();
-            var rotationAxis = rand.NextFloat3Direction();
-            var rotationSpeed = rand.NextFloat();
+
+            var selfRotationAxis = rand.NextFloat3Direction();
+            var selfRotationSpeed = rand.NextFloat(spawner.MinSelfRotationSpeed, spawner.MaxSelfRotationSpeed);
+
+            var worldRotationAxis = rand.NextFloat3Direction();
+            var worldRotationSpeed = rand.NextFloat(spawner.MinWorldRotationSpeed, spawner.MaxWorldRotationSpeed);
 
             this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
             this.EntityManager.SetComponentData(entity, new Translation { Value = position });
             this.EntityManager.SetComponentData(entity, new Rotation{ Value = rotation });
 
-            this.EntityManager.SetComponentData(entity, new SelfRotationAxis{ Value = rotationAxis });
-            this.EntityManager.SetComponentData(entity, new SelfRotationSpeed{ Value = rotationSpeed });
+            this.EntityManager.SetComponentData(entity, new SelfRotationAxis{ Value = selfRotationAxis });
+            this.EntityManager.SetComponentData(entity, new SelfRotationSpeed{ Value = selfRotationSpeed });
+
+            this.EntityManager.SetComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
+            this.EntityManager.SetComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
 
             this.EntityManager.AddSharedComponentData(entity, new OctreeCluster());
         }

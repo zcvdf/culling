@@ -10,11 +10,14 @@ struct Spawner : IComponentData
     public Vector3 Origin;
     public Entity Prefab;
     public int Count;
-    public float GenerationSpan;
+    public float MinGenerationSpan;
+    public float MaxGenerationSpan;
     public float MinScale;
     public float MaxScale;
-    public float MinRotationSpeed;
-    public float MaxRotationSpeed;
+    public float MinSelfRotationSpeed;
+    public float MaxSelfRotationSpeed;
+    public float MinWorldRotationSpeed;
+    public float MaxWorldRotationSpeed;
 }
 
 public struct VisibleOctreeCluster : IBufferElementData
