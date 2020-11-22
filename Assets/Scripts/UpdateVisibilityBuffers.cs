@@ -22,6 +22,7 @@ public class UpdateVisibilityBuffers : SystemBase
             visibleOctreeNodes.Clear();
             visibleNodeInClusterCounts.Clear();
 
+            AddRoot(visibleClusters, visibleOctreeNodes, visibleNodeInClusterCounts);
             ProcessClusters(visibleClusters, visibleOctreeNodes, visibleNodeInClusterCounts, frustrumAABB, frustrumPlanes);
 
             #if ENABLE_ASSERTS
@@ -29,6 +30,15 @@ public class UpdateVisibilityBuffers : SystemBase
             #endif
         })
         .ScheduleParallel();
+    }
+
+    static void AddRoot(DynamicBuffer<VisibleOctreeCluster> visibleClusters,
+            DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
+            DynamicBuffer<VisibleNodeInClusterCount> visibleNodeInClusterCounts)
+    {
+        visibleClusters.Add(new VisibleOctreeCluster { Value = Octree.PackedRoot });
+        visibleOctreeNodes.Add(new VisibleOctreeNode { Value = Octree.PackedRoot });
+        visibleNodeInClusterCounts.Add(new VisibleNodeInClusterCount { Value = 1 });
     }
 
     static void ProcessClusters(DynamicBuffer<VisibleOctreeCluster> visibleClusters,

@@ -1277,7 +1277,7 @@ MonoBehaviour:
   MouseXAxis: Mouse X
   MouseYAxis: Mouse Y
   RotationSensitivity: 3
-  ZoomSensitivity: 10
+  ZoomSensitivity: 50
   MinZoom: 2
   MaxZoom: 100000
   TargetTransform: {fileID: 911220650}

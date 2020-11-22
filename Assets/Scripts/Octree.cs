@@ -14,10 +14,11 @@ public static class Octree
     public const int LeafLayer = 2;
     public const int RootLayer = MaxLayer - 1;
     public static readonly int4 Root = new int4(0, 0, 0, RootLayer);
+    public static readonly UInt64 PackedRoot = PackID(Root);
 
-    public const int ClusterAdditionalDivision = 1;
+    public const int ClusterAdditionalDivision = 2;
 
-    public const float ClusterExtent = 2000f;
+    public const float ClusterExtent = 4000f;
     public const float ClusterSize = ClusterExtent * 2f;
     public const int ClusterSubdivisions = (1 << (LeafLayer + ClusterAdditionalDivision));
 
@@ -186,6 +187,12 @@ public static class Octree
         return new int4(nodeID.xyz >> rshift, parentLayer);
     }
 
+    public static UInt64 GetParentNodePackedID(UInt64 nodeID, int parentLayer)
+    {
+        // TODO : Try to optimize this if need
+        return PackID(GetParentNodeID(UnpackID(nodeID), parentLayer));
+    }
+
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
         if (parentLayer == LeafLayer) return new int4(leafID, LeafLayer);
@@ -237,7 +244,7 @@ public static class Octree
     private static void AssertParentLayer(int layer, int parentLayer)
     {
 #if ENABLE_ASSERTS
-        Debug.Assert(layer < parentLayer);
+        Debug.Assert(parentLayer < layer);
 #endif
     }
 }

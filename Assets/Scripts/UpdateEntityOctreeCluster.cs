@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -13,20 +15,42 @@ public class UpdateEntityOctreeCluster : SystemBase
         var cmd = new EntityCommandBuffer(Allocator.Temp);
 
         this.Entities
-        .WithChangeFilter<Translation>()
+        .WithChangeFilter<WorldRenderBounds>()
         .WithAll<EntityTag>()
         .WithoutBurst()
-        .ForEach((in Translation translation, in Entity entity, in OctreeCluster cluster) =>
+        .ForEach((in WorldRenderBounds boundsComponent, in Entity entity, in OctreeCluster cluster) =>
         {
-            var newCluster = Octree.PackID(Octree.PointToClusterID(translation.Value));
+            var bounds = boundsComponent.Value;
 
-            if (newCluster != cluster.Value)
+            var newIDUnpacked = ComputeClusterID(bounds);
+
+            var newID = Octree.PackID(newIDUnpacked);
+
+            if (newID != cluster.Value)
             {
-                cmd.SetSharedComponent(entity, new OctreeCluster { Value = newCluster });
+                cmd.SetSharedComponent(entity, new OctreeCluster { Value = newID });
             }
         })
         .Run();
 
         cmd.Playback(this.EntityManager);
+    }
+
+    private static int4 ComputeClusterID(in AABB bounds)
+    {
+        var clusterID = Octree.PointToClusterID(bounds.Center);
+
+        var clusterAABB = new AABB();
+        clusterAABB.Center = Octree.ClusterIDToPoint(clusterID.xyz);
+        clusterAABB.Extents = new float3(Octree.ClusterExtent);
+
+        if (clusterAABB.Contains(bounds))
+        {
+            return clusterID;
+        }
+        else
+        {
+            return Octree.Root;
+        }
     }
 }

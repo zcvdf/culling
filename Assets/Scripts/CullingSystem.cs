@@ -10,7 +10,7 @@ using UnityEngine;
 
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateEntityOctreeCluster))]
-[UpdateAfter(typeof(UpdateEntityOctreeLeaf))]
+[UpdateAfter(typeof(UpdateEntityOctreeNode))]
 [UpdateAfter(typeof(UpdateVisibilityBuffers))]
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
@@ -58,9 +58,9 @@ public class CullingSystem : SystemBase
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
-            .ForEach((ref EntityCullingResult cullingResult, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeLeaf octreeLeaf) =>
+            .ForEach((ref EntityCullingResult cullingResult, in Translation translation, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
             {
-                if (!Contains(visibleNodes, octreeLeaf, srcIndex, visibleNodeCount))
+                if (!IsNodeVisible(visibleNodes, octreeNode, srcIndex, visibleNodeCount))
                 {
                     cullingResult.Value = CullingResult.CulledByOctreeNodes;
                     return;
@@ -105,15 +105,31 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool Contains(NativeArray<VisibleOctreeNode> visibleNodes, OctreeLeaf leaf, int src, int range)
+    public static bool IsNodeVisible(NativeArray<VisibleOctreeNode> visibleNodes, OctreeNode node, int src, int range)
     {
+        if (node.Value == Octree.PackedRoot) return true;
+
+        var nodeLayer = Octree.UnpackLayer(node.Value);
+
         for (int i = src; i < src + range; ++i)
         {
             var visibleNode = visibleNodes[i].Value;
             var visibleNodeLayer = Octree.UnpackLayer(visibleNode);
-            var parentNode = Octree.GetLeafParentNodePackedID(leaf.Value, visibleNodeLayer);
 
-            if (visibleNode == parentNode) return true;
+            if (nodeLayer < visibleNodeLayer)
+            {
+                return true;
+            }    
+            else if (nodeLayer == visibleNodeLayer)
+            {
+                if (visibleNode == node.Value) return true;
+            }
+            else
+            {
+                var parentNode = Octree.GetParentNodePackedID(node.Value, visibleNodeLayer);
+
+                if (visibleNode == parentNode) return true;
+            }
         }
 
         return false;

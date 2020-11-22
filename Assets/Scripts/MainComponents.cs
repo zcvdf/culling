@@ -31,7 +31,7 @@ public struct VisibleOctreeNode : IBufferElementData
 {
     public UInt64 Value;
 
-    public static implicit operator OctreeLeaf(VisibleOctreeNode x) => new OctreeLeaf { Value = x.Value };
+    public static implicit operator OctreeNode(VisibleOctreeNode x) => new OctreeNode { Value = x.Value };
 }
 
 public struct VisibleNodeInClusterCount : IBufferElementData

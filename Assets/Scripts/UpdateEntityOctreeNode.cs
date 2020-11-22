@@ -9,19 +9,19 @@ using System;
 using Unity.Rendering;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
-public class UpdateEntityOctreeLeaf : SystemBase
+public class UpdateEntityOctreeNode : SystemBase
 {
     protected override void OnUpdate()
     {
         this.Entities
         .WithChangeFilter<WorldRenderBounds>()
-        .ForEach((ref OctreeLeaf octreeLeaf, in WorldRenderBounds boundsComponent) =>
+        .ForEach((ref OctreeNode octreeNode, in WorldRenderBounds boundsComponent) =>
         {
             var bounds = boundsComponent.Value;
 
             var newID = ComputeOctreeNodeID(bounds);
 
-            octreeLeaf = new OctreeLeaf
+            octreeNode = new OctreeNode
             {
                 Value = Octree.PackID(newID)
             };
