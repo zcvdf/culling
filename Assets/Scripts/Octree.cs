@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -161,12 +161,16 @@ public static class Octree
 
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
+        if (parentLayer == LeafLayer) return new int4(leafID, LeafLayer);
+
         var rshift = LeafLayer - parentLayer;
         return new int4(leafID >> rshift, parentLayer);
     }
 
     public static UInt64 GetLeafParentNodePackedID(UInt64 leafID, int parentLayer)
     {
+        if (parentLayer == LeafLayer) return leafID;
+
         var rshift = LeafLayer - parentLayer;
 
         var newXYZ = PackXYZ(UnpackXYZ(leafID) >> rshift);
