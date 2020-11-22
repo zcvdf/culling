@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class Main : MonoBehaviour
 {
@@ -35,11 +36,10 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
-    [SerializeField] Color octreeClustersColor = Color.white;
-    [SerializeField] Color[] octreeLayerColors = new Color[1] { Color.white };
+    [SerializeField] Material[] octreeLayerMaterials;
+    [SerializeField] Material octreeOutlineMaterial;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] Mesh cubeMesh;
-    [SerializeField] Material octreeCubesMaterial;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
     [SerializeField] bool lockOnStart = false;
@@ -47,7 +47,6 @@ public class Main : MonoBehaviour
     bool displayBoundingSpheres = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
-    bool displayOctreeClusters = false;
 
     private void Awake()
     {
@@ -89,7 +88,7 @@ public class Main : MonoBehaviour
         {
             if (this.displayOctreeDepth != -1)
             {
-                DrawVisibleOctreeNodes();
+                DrawOctree();
             }
         }
     }
@@ -103,11 +102,6 @@ public class Main : MonoBehaviour
             if (this.displayBoundingSpheres)
             {
                 DrawEntityBoundingSpheres();
-            }
-
-            if (this.displayOctreeClusters)
-            {
-                DrawVisibleClusters();
             }
 
             if (this.displayFrustrumAABB)
@@ -137,13 +131,8 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            this.displayOctreeClusters = !this.displayOctreeClusters;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
             ++this.displayOctreeDepth;
-            if (this.displayOctreeDepth > Octree.LeafLayer) this.displayOctreeDepth = -1;
+            if (this.displayOctreeDepth > Octree.LeafLayer + 1) this.displayOctreeDepth = -1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
@@ -173,49 +162,77 @@ public class Main : MonoBehaviour
         }
     }
 
+    void DrawOctree()
+    {
+        if (this.displayOctreeDepth == -1) return;
+
+        if (this.displayOctreeDepth == 0)
+        {
+            DrawVisibleClusters();
+        }
+        else if (this.displayOctreeDepth == Octree.LeafLayer + 1)
+        {
+            DrawAllVisibleOctreeLayers();
+        }
+        else
+        {
+            DrawVisibleOctreeNodes(this.displayOctreeDepth);
+        }
+    }
+
     void DrawVisibleClusters()
     {
-        Gizmos.matrix = Matrix4x4.identity;
+        var material = this.octreeLayerMaterials[0];
+
+        var size = Octree.ClusterSize;
+        var matrices = new List<Matrix4x4>(VisibleOctreeClusters.Length);
 
         foreach (var packedNode in VisibleOctreeClusters)
         {
             var node = Octree.UnpackID(packedNode.Value);
 
             var center = Octree.ClusterIDToPoint(node.xyz);
-            var size = Octree.ClusterSize;
 
-            Gizmos.color = this.octreeClustersColor;
-            Gizmos.DrawCube(center, new float3(size));
+            var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
+            matrices.Add(matrix);
 
-            Draw.CubeWireframe(center, size * 0.5f, this.octreeClustersColor.Opaque());
+            Draw.CubeCubeEdges(this.cubeMesh, this.octreeOutlineMaterial, material.color.Opaque(), size * 0.5f, center);
+        }
+        
+        Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
+    }
+
+    void DrawAllVisibleOctreeLayers()
+    {
+        for (int i = 1; i < Octree.LeafLayer; ++i)
+        {
+            DrawVisibleOctreeNodes(i);
         }
     }
 
-    void DrawVisibleOctreeNodes()
+    void DrawVisibleOctreeNodes(int layer)
     {
-        if (this.displayOctreeDepth < 0) return;
+        var matID = math.min(layer, this.octreeLayerMaterials.Length - 1);
+        var material = this.octreeLayerMaterials[matID];
 
         var matrices = new List<Matrix4x4>(VisibleOctreeNodes.Length);
+        var size = Octree.NodeSize(layer);
 
         foreach (var packedNode in VisibleOctreeNodes)
         {
             var node = Octree.UnpackID(packedNode.Value);
 
-            if (this.displayOctreeDepth != 0 && node.w != this.displayOctreeDepth) continue;
-
-            var colorID = math.min(node.w - 1, this.octreeLayerColors.Length - 1);
-            var octreeColor = this.octreeLayerColors[colorID];
+            if (node.w != layer) continue;
 
             var center = Octree.NodeIDToPoint(node);
-            var size = Octree.NodeSize(node.w);
-
+            
             var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
             matrices.Add(matrix);
-            
-            Draw.CubeWireframe(center, size * 0.5f, octreeColor.Opaque());
+
+            Draw.CubeCubeEdges(this.cubeMesh, this.octreeOutlineMaterial, material.color.Opaque(), size * 0.5f, center);
         }
 
-        Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.octreeCubesMaterial, matrices);
+        Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
     }
 
     void DrawFrustrumAABB()
@@ -250,54 +267,65 @@ public class Main : MonoBehaviour
 
 public static class Draw
 {
-    public static void CubeWireframe(float3 center, float extent, Color color)
+    public static void CubeCubeEdges(Mesh cubeMesh, Material material, Color color, float cubeExtent, Vector3 center, float thickness = 1f)
     {
-        var x = new float3(extent, 0, 0);
-        var y = new float3(0, extent, 0);
-        var z = new float3(0, 0, extent);
+        var size = cubeExtent * 2f;
+        var t = thickness;
 
-        GL.Begin(GL.LINES);
-        GL.Color(color);
-        
-        GL.Vertex(center + x + y - z);
-        GL.Vertex(center - x + y - z);
+        var x = new Vector3(cubeExtent, 0, 0);
+        var y = new Vector3(0, cubeExtent, 0);
+        var z = new Vector3(0, 0, cubeExtent);
 
-        GL.Vertex(center - x + y - z);
-        GL.Vertex(center - x + y + z);
+        var centers = new Vector3[12]
+        {
+            center + x + z,
+            center + x - z,
 
-        GL.Vertex(center - x + y + z);
-        GL.Vertex(center + x + y + z);
+            center - x + z,
+            center - x - z,
 
-        GL.Vertex(center + x + y + z);
-        GL.Vertex(center + x + y - z);
+            center + y + z,
+            center + y - z,
 
+            center - y + z,
+            center - y - z,
 
-        GL.Vertex(center + x - y - z);
-        GL.Vertex(center - x - y - z);
+            center + x + y,
+            center + x - y,
 
-        GL.Vertex(center - x - y - z);
-        GL.Vertex(center - x - y + z);
+            center - x + y,
+            center - x - y,
+        };
 
-        GL.Vertex(center - x - y + z);
-        GL.Vertex(center + x - y + z);
+        var scales = new Vector3[12]
+        {
+            new Vector3(t, size, t),
+            new Vector3(t, size, t),
 
-        GL.Vertex(center + x - y + z);
-        GL.Vertex(center + x - y - z);
+            new Vector3(t, size, t),
+            new Vector3(t, size, t),
 
+            new Vector3(size, t, t),
+            new Vector3(size, t, t),
 
-        GL.Vertex(center + x + y - z);
-        GL.Vertex(center + x - y - z);
+            new Vector3(size, t, t),
+            new Vector3(size, t, t),
 
-        GL.Vertex(center + x + y + z);
-        GL.Vertex(center + x - y + z);
+            new Vector3(t, t, size),
+            new Vector3(t, t, size),
 
-        GL.Vertex(center - x + y + z);
-        GL.Vertex(center - x - y + z);
+            new Vector3(t, t, size),
+            new Vector3(t, t, size),
+        };
 
-        GL.Vertex(center - x + y - z);
-        GL.Vertex(center - x - y - z);
+        var edgeMatrices = new List<Matrix4x4>(12);
+        for (int j = 0; j < 12; ++j)
+        {
+            edgeMatrices.Add(Matrix4x4.TRS(centers[j], Quaternion.identity, scales[j]));
+        }
 
-        GL.End();
+        material.color = color;
+        Graphics.DrawMeshInstanced(cubeMesh, 0, material, edgeMatrices);
     }
 }
 

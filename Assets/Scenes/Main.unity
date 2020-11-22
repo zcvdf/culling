@@ -391,13 +391,13 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
-  octreeClustersColor: {r: 0.486094, g: 0, b: 1, a: 0.09803922}
-  octreeLayerColors:
-  - {r: 0, g: 0.29411766, b: 1, a: 0.078431375}
-  - {r: 0, g: 1, b: 0.7921569, a: 0.078431375}
+  octreeLayerMaterials:
+  - {fileID: 2100000, guid: 3132c2e4e6056b54c89eafbfb8a88a79, type: 2}
+  - {fileID: 2100000, guid: 97d08b2d293dfb34e9d8a824bb43a433, type: 2}
+  - {fileID: 2100000, guid: 66edc06c52814ba488fced8df3b2dc74, type: 2}
+  octreeOutlineMaterial: {fileID: 2100000, guid: 22ab0cb034b92bb4aa42cb6236c70e57, type: 2}
   frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  octreeCubesMaterial: {fileID: 2100000, guid: 3132c2e4e6056b54c89eafbfb8a88a79, type: 2}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
   lockOnStart: 1
