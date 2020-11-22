@@ -18,6 +18,7 @@ struct Spawner : IComponentData
     public float MaxSelfRotationSpeed;
     public float MinWorldRotationSpeed;
     public float MaxWorldRotationSpeed;
+    public int StaticEntityPercentage;
 }
 
 public struct VisibleOctreeCluster : IBufferElementData

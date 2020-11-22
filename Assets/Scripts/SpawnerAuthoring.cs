@@ -18,6 +18,7 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
     [SerializeField] float MaxSelfRotationSpeed = 10f;
     [SerializeField] float MinWorldRotationSpeed = 0.01f;
     [SerializeField] float MaxWorldRotationSpeed = 1f;
+    [SerializeField] [Range(0, 100)]  int StaticEntityPercentage = 80;
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
@@ -39,6 +40,7 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
             MaxSelfRotationSpeed = this.MaxSelfRotationSpeed,
             MinWorldRotationSpeed = this.MinWorldRotationSpeed,
             MaxWorldRotationSpeed = this.MaxWorldRotationSpeed,
+            StaticEntityPercentage = this.StaticEntityPercentage,
         };
 
         dstManager.AddComponentData(entity, spawner);

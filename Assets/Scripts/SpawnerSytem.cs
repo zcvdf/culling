@@ -45,7 +45,7 @@ public class SpawnerSystem : SystemBase
             var worldRotationAxis = rand.NextFloat3Direction();
             var worldRotationSpeed = rand.NextFloat(spawner.MinWorldRotationSpeed, spawner.MaxWorldRotationSpeed);
 
-            var isStatic = rand.NextBool();
+            var isStatic = rand.NextInt(0, 100) < spawner.StaticEntityPercentage;
 
             if (isStatic)
             {
@@ -62,11 +62,11 @@ public class SpawnerSystem : SystemBase
                 this.EntityManager.SetComponentData(entity, new Translation { Value = position });
                 this.EntityManager.SetComponentData(entity, new Rotation { Value = rotation });
 
-                this.EntityManager.SetComponentData(entity, new SelfRotationAxis { Value = selfRotationAxis });
-                this.EntityManager.SetComponentData(entity, new SelfRotationSpeed { Value = selfRotationSpeed });
+                this.EntityManager.AddComponentData(entity, new SelfRotationAxis { Value = selfRotationAxis });
+                this.EntityManager.AddComponentData(entity, new SelfRotationSpeed { Value = selfRotationSpeed });
 
-                this.EntityManager.SetComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
-                this.EntityManager.SetComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
+                this.EntityManager.AddComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
+                this.EntityManager.AddComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
             }
             
             this.EntityManager.AddSharedComponentData(entity, new OctreeCluster());
