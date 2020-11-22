@@ -76,74 +76,48 @@ public static class Math
             && !IsClipped(point, planes.Far);
     }
 
-    public static unsafe bool IsCubeClipped(float3* points, Plane plane, out bool intersects)
+    public static bool IsCubeClipped(float3 center, float extent, Plane plane, out bool intersects)
     {
-        var isFirstClipped = IsClipped(points[0], plane);
-        var hasClippedPoint = isFirstClipped;
+        var extentVector = new float3(extent);
+        var localFarest = math.sign(plane.normal) * extentVector;
 
-        for (int i = 1; i < 8; ++i)
+        var farest = center + localFarest;
+
+        if (IsClipped(farest, plane))
         {
-            var isClipped = IsClipped(points[i], plane);
-
-            hasClippedPoint |= isClipped;
-
-            if (isClipped == !isFirstClipped)
-            {
-                intersects = true;
-                return false;
-            }
+            intersects = false;
+            return true;
         }
-
-        intersects = false;
-        return hasClippedPoint;
-    }
-
-    public unsafe static bool IsCubeInFrustrum(float3 center, float extent, in WorldFrustrumPlanes planes, out bool intersect)
-    {
-        if (!IsInFrustrum(center, extent * Sqrt3, planes))
+        else
         {
-            intersect = false;
+            var closest = center - localFarest;
+            intersects = IsClipped(closest, plane);
+
             return false;
         }
+    }
 
-        var x = new float3(extent, 0, 0);
-        var y = new float3(0, extent, 0);
-        var z = new float3(0, 0, extent);
+    public static bool IsCubeCulled(float3 center, float extent, in WorldFrustrumPlanes planes, out bool intersect)
+    {
+        var intersects0 = new bool4(false);
+        var intersects1 = new bool2(false);
 
-        var points = stackalloc float3[8];
-        points[0] = center + x + y + z;
-        points[1] = center + x + y - z;
-        points[2] = center + x - y + z;
-        points[3] = center + x - y - z;
-        points[4] = center - x + y + z;
-        points[5] = center - x + y - z;
-        points[6] = center - x - y + z;
-        points[7] = center - x - y - z;
-
-        var intersects = stackalloc bool[6];
-
-        var isClipped = IsCubeClipped(points, planes.Left, out intersects[0])
-            || IsCubeClipped(points, planes.Right, out intersects[1])
-            || IsCubeClipped(points, planes.Down, out intersects[2])
-            || IsCubeClipped(points, planes.Up, out intersects[3])
-            || IsCubeClipped(points, planes.Near, out intersects[4])
-            || IsCubeClipped(points, planes.Far, out intersects[5]);
+        var isClipped = IsCubeClipped(center, extent, planes.Left, out intersects0.x)
+            || IsCubeClipped(center, extent, planes.Right, out intersects0.y)
+            || IsCubeClipped(center, extent, planes.Down, out intersects0.z)
+            || IsCubeClipped(center, extent, planes.Up, out intersects0.w)
+            || IsCubeClipped(center, extent, planes.Near, out intersects1.x)
+            || IsCubeClipped(center, extent, planes.Far, out intersects1.y);
 
         if (isClipped)
         {
             intersect = false;
-            return false;
+            return true;
         }
         else
         {
-            intersect = intersects[0]
-                || intersects[1]
-                || intersects[2]
-                || intersects[3]
-                || intersects[4]
-                || intersects[5];
-
-            return true;
+            intersect = math.any(intersects0) || math.any(intersects1);
+            return false;
         }
     }
 

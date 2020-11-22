@@ -49,7 +49,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var clusterID = new int4(x, y, z, 0);
 
-                    if (Math.IsCubeInFrustrum(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
+                    if (!Math.IsCubeCulled(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
                         visibleClusters.Add(new VisibleOctreeCluster { Value = packedClusterID });
@@ -93,7 +93,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var subNodeID = new int4(x, y, z, subDepth);
 
-                    if (Math.IsCubeInFrustrum(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
+                    if (!Math.IsCubeCulled(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
                     {
                         if (subDepth < Octree.LeafLayer && intersects)
                         {
