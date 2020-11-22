@@ -7,8 +7,14 @@ using UnityEngine;
 
 public static class Octree
 {
+    public const int MaxLayer = 1 << 4;
+    public const int MaxPosition = 1 << 20;
+
     public const int ClusterLayer = 0;
     public const int LeafLayer = 2;
+    public const int RootLayer = MaxLayer - 1;
+    public static readonly int4 Root = new int4(0, 0, 0, RootLayer);
+
     public const int ClusterAdditionalDivision = 1;
 
     public const float ClusterExtent = 2000f;
@@ -18,8 +24,7 @@ public static class Octree
     public const float LeafExtent = ClusterExtent / ClusterSubdivisions;
     public const float LeafSize = LeafExtent * 2f;
 
-    public const int MaxLayer = 1 << 4;
-    public const int MaxPosition = 1 << 20;
+    
 
     const Int64 PositionPackOffset = MaxPosition >> 1;
     const UInt64 LayerPackMask = MaxLayer - 1;
@@ -147,6 +152,11 @@ public static class Octree
         return new int4(posID, LeafLayer);
     }
 
+    public static float3 LeafIDToPoint(int3 leafID)
+    {
+        return new float3(leafID) * LeafSize + LeafExtent;
+    }
+
     public static float3 NodeIDToPoint(int4 nodeID)
     {
         var nodeExtent = NodeExtent(nodeID.w);
@@ -161,6 +171,19 @@ public static class Octree
 
         minChildrenID = new int4(nodeID.xyz << 1 + additionalDivision, nodeID.w + 1);
         maxChildrenID = minChildrenID + new int4(2, 2, 2, 0) * (1 + additionalDivision);
+    }
+
+    public static int4 GetParentNodeID(int4 nodeID, int parentLayer)
+    {
+        if (parentLayer == nodeID.w) return nodeID;
+
+        AssertParentLayer(nodeID.w, parentLayer);
+
+        var additionalShift = parentLayer == ClusterLayer ? ClusterAdditionalDivision : 0;
+
+        var rshift = nodeID.w - parentLayer + additionalShift;
+
+        return new int4(nodeID.xyz >> rshift, parentLayer);
     }
 
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
@@ -208,6 +231,13 @@ public static class Octree
     {
 #if ENABLE_ASSERTS
         Debug.Assert(l < MaxLayer);
+#endif
+    }
+
+    private static void AssertParentLayer(int layer, int parentLayer)
+    {
+#if ENABLE_ASSERTS
+        Debug.Assert(layer < parentLayer);
 #endif
     }
 }
