@@ -161,7 +161,7 @@ public class Main : MonoBehaviour
         if (this.displayOctreeDepth < 0) return;
 
         Gizmos.matrix = Matrix4x4.identity;
-        Gizmos.color = this.octreeColor;
+        
 
         if (this.displayOctreeDepth == 0)
         {
@@ -172,6 +172,10 @@ public class Main : MonoBehaviour
                 var center = Octree.NodeIDToPoint(node);
                 var size = new float3(Octree.NodeSize(node.w));
 
+                Gizmos.color = this.octreeColor;
+                Gizmos.DrawCube(center, size);
+
+                Gizmos.color = this.octreeColor.Opaque();
                 Gizmos.DrawWireCube(center, size);
             }
         }
@@ -186,6 +190,10 @@ public class Main : MonoBehaviour
                 var center = Octree.NodeIDToPoint(node);
                 var size = new float3(Octree.NodeSize(node.w));
 
+                Gizmos.color = this.octreeColor;
+                Gizmos.DrawCube(center, size);
+
+                Gizmos.color = this.octreeColor.Opaque();
                 Gizmos.DrawWireCube(center, size);
             }
         }

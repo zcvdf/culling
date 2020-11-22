@@ -391,7 +391,7 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
-  octreeColor: {r: 0.46446085, g: 0, b: 1, a: 1}
+  octreeColor: {r: 0.46446085, g: 0, b: 1, a: 0.19607843}
   frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
