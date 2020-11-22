@@ -38,6 +38,8 @@ public class Main : MonoBehaviour
     [SerializeField] Color octreeClustersColor = Color.white;
     [SerializeField] Color[] octreeLayerColors = new Color[1] { Color.white };
     [SerializeField] Color frustrumAABBColor;
+    [SerializeField] Mesh cubeMesh;
+    [SerializeField] Material octreeCubesMaterial;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
     [SerializeField] bool lockOnStart = false;
@@ -82,6 +84,14 @@ public class Main : MonoBehaviour
         nearPlane.LocalUp = this.viewerCamera.transform.up * this.viewerCamera.Camera.NearPlaneHalfHeight();
         nearPlane.Normal = FrustrumPlanes.Near.normal;
         NearPlane = nearPlane;
+
+        if (World != null && !World.Equals(null))
+        {
+            if (this.displayOctreeDepth != -1)
+            {
+                DrawVisibleOctreeNodes();
+            }
+        }
     }
 
     private void OnDrawGizmos()
@@ -98,11 +108,6 @@ public class Main : MonoBehaviour
             if (this.displayOctreeClusters)
             {
                 DrawVisibleClusters();
-            }
-
-            if (this.displayOctreeDepth != -1)
-            {
-                DrawVisibleOctreeNodes();
             }
 
             if (this.displayFrustrumAABB)
@@ -190,7 +195,7 @@ public class Main : MonoBehaviour
     {
         if (this.displayOctreeDepth < 0) return;
 
-        Gizmos.matrix = Matrix4x4.identity;
+        var matrices = new List<Matrix4x4>(VisibleOctreeNodes.Length);
 
         foreach (var packedNode in VisibleOctreeNodes)
         {
@@ -203,12 +208,14 @@ public class Main : MonoBehaviour
 
             var center = Octree.NodeIDToPoint(node);
             var size = Octree.NodeSize(node.w);
-            
-            Gizmos.color = octreeColor;
-            Gizmos.DrawCube(center, new float3(size));
 
+            var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
+            matrices.Add(matrix);
+            
             Draw.CubeWireframe(center, size * 0.5f, octreeColor.Opaque());
         }
+
+        Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.octreeCubesMaterial, matrices);
     }
 
     void DrawFrustrumAABB()
@@ -251,7 +258,7 @@ public static class Draw
 
         GL.Begin(GL.LINES);
         GL.Color(color);
-
+        
         GL.Vertex(center + x + y - z);
         GL.Vertex(center - x + y - z);
 
