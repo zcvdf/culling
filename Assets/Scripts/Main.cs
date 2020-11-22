@@ -203,7 +203,7 @@ public class Main : MonoBehaviour
 
     void DrawAllVisibleOctreeLayers()
     {
-        for (int i = 1; i < Octree.LeafLayer; ++i)
+        for (int i = 1; i <= Octree.LeafLayer; ++i)
         {
             DrawVisibleOctreeNodes(i);
         }
