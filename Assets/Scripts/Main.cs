@@ -158,20 +158,38 @@ public class Main : MonoBehaviour
 
     void DrawVisibleOctreeNodes()
     {
+        if (this.displayOctreeDepth < 0) return;
+
         Gizmos.matrix = Matrix4x4.identity;
         Gizmos.color = this.octreeColor;
 
-        foreach (var packedNode in VisibleOctreeNodes)
+        if (this.displayOctreeDepth == 0)
         {
-            var node = Octree.UnpackID(packedNode.Value);
+            foreach (var packedNode in VisibleOctreeClusters)
+            {
+                var node = Octree.UnpackID(packedNode.Value);
 
-            var center = Octree.NodeIDToPoint(node);
-            var size = new float3(Octree.NodeSize(node.w));
+                var center = Octree.NodeIDToPoint(node);
+                var size = new float3(Octree.NodeSize(node.w));
 
-            if (node.w != this.displayOctreeDepth) continue;
-
-            Gizmos.DrawWireCube(center, size);
+                Gizmos.DrawWireCube(center, size);
+            }
         }
+        else
+        {
+            foreach (var packedNode in VisibleOctreeNodes)
+            {
+                var node = Octree.UnpackID(packedNode.Value);
+
+                if (node.w != this.displayOctreeDepth) continue;
+
+                var center = Octree.NodeIDToPoint(node);
+                var size = new float3(Octree.NodeSize(node.w));
+
+                Gizmos.DrawWireCube(center, size);
+            }
+        }
+        
     }
 
     void DrawFrustrumAABB()
