@@ -30,18 +30,12 @@ public static class Octree
 
     public static UInt64 PackID(int4 id)
     {
-        var x64 = id.x + PositionPackOffset;
-        var y64 = id.y + PositionPackOffset;
-        var z64 = id.z + PositionPackOffset;
         var l64 = id.w;
-
-        var ux = (UInt64)x64;
-        var uy = (UInt64)y64;
-        var uz = (UInt64)z64;
         var ul = (UInt64)l64;
+        AssertValidPackedLayer(ul);
 
-        AssertValidPackedField(ux, uy, uz, ul);
-        var packed = ux | (uy << 20) | (uz << 40) | (ul << 60);
+        var packedXYZ = PackXYZ(id.xyz);
+        var packed = packedXYZ | (ul << 60);
 
         return packed;
     }
