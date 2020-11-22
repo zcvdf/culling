@@ -158,7 +158,7 @@ public static class Math
     public static bool IsSphereOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection,
         float occluderDistance, float occluderRadius, bool cullInside)
     {
-        // Handling of the objects in occluder sphere handling
+        // Handling of the objects in occluder sphere
         var occluderToObject = viewerToObject - viewerToOccluder;
 
         // If it is requested to cull the inside of the sphere, we need to check if the bounding sphere of the object is completely submerged by the occluder.
@@ -184,6 +184,10 @@ public static class Math
         var ratio = objectProjectedDistance / occluderDistance;
 
         var maxDist = ratio * occluderRadius - objectRadius;
+
+        // At this distance, the object is bigger than cone radius
+        if (maxDist < 0f) return false;
+
         var maxDistSq = maxDist * maxDist;
 
         var projectionToObject = viewerToObject - objectProjection;
