@@ -50,7 +50,7 @@ public class CullingSystem : SystemBase
         // This code is fine but triggers job safety checks if they are enabled
         foreach (var visibleCluster in visibleNodeSets[0])
         {
-            /*var jobHandle = */this.Entities
+            var jobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
             .WithReadOnly(visibleNodeSets)
@@ -89,9 +89,9 @@ public class CullingSystem : SystemBase
 
                 cullingResult.Value = CullingResult.NotCulled;
             })
-            .ScheduleParallel(/*jobsDependency*/);
+            .ScheduleParallel(jobsDependency);
 
-            //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
         Main.VisibleOctreeNodes = visibleNodeSets.RawIDs;
