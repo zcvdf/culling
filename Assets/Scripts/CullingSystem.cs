@@ -41,15 +41,11 @@ public class CullingSystem : SystemBase
         var visiblityLayer0 = visibilityBuffer.Layer0;
         var visiblityLayer1 = visibilityBuffer.Layer1;
 
-        var visibleClusters = visibilityBuffer.Layer0.ToNativeArray(Allocator.Temp);
-
         //var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
-        for (int i = 0; i < visibleClusters.Length; ++i)
+        foreach (var visibleCluster in visiblityLayer0)
         {
-            var visibleCluster = visibleClusters[i];
-
             /*var jobHandle = */this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
@@ -95,8 +91,8 @@ public class CullingSystem : SystemBase
             //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
+        Main.VisibleOctreeClusters = visibilityBuffer.Layer0.ToNativeArray(Allocator.Temp).ToArray();
         Main.VisibleOctreeNodes = visibilityBuffer.Layer1.ToNativeArray(Allocator.Temp).ToArray();
-        Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
         planeOccluderExtents.Dispose(this.Dependency);
         planeOccluderTranslations.Dispose(this.Dependency);
