@@ -111,7 +111,7 @@ public struct VisibleSets
     public int Length => Octree.LeafLayer + 1;
 }
 
-public class VisibilityBuffer : IComponentData
+public class VisibleSetsComponent : IComponentData
 {
     public VisibleSets Value;
 }
@@ -123,6 +123,6 @@ public class VisibiliyBuffersAuthoring : MonoBehaviour, IConvertGameObjectToEnti
         var visibleSets = new VisibleSets();
         visibleSets.Setup();
 
-        dstManager.AddComponentData(entity, new VisibilityBuffer { Value = visibleSets });
+        dstManager.AddComponentData(entity, new VisibleSetsComponent { Value = visibleSets });
     }
 }

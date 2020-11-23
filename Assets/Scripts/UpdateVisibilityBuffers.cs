@@ -29,8 +29,8 @@ public class UpdateVisibilityBuffers : SystemBase
 
     protected override void OnDestroy()
     {
-        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibleSets = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity).Value;
+        var visibleSetsEntity = GetSingletonEntity<VisibleSetsComponent>();
+        var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibleSetsEntity).Value;
 
         visibleSets.Dispose();
     }
@@ -42,8 +42,8 @@ public class UpdateVisibilityBuffers : SystemBase
 
         LastScheduledJob.Complete();
 
-        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibleSets = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity).Value;
+        var visibleSetsEntity = GetSingletonEntity<VisibleSetsComponent>();
+        var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibleSetsEntity).Value;
 
         LastScheduledJob = new ActualJob()
         {

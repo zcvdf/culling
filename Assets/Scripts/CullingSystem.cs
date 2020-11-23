@@ -17,7 +17,7 @@ public class CullingSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<VisibilityBuffer>();
+        RequireSingletonForUpdate<VisibleSetsComponent>();
     }
 
     protected override void OnUpdate()
@@ -40,8 +40,8 @@ public class CullingSystem : SystemBase
 
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
-        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
+        var visibilityBufferEntity = GetSingletonEntity<VisibleSetsComponent>();
+        var visibilityBuffer = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibilityBufferEntity);
 
         var visibleNodeSets = visibilityBuffer.Value;
 
