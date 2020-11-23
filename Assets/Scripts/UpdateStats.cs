@@ -13,7 +13,6 @@ public class UpdateStats : SystemBase
 {
     const int NbFrameSample = 10;
 
-    bool wasLockedLastUpdate = false;
     double lastElapsedTime;
     int frame;
 
@@ -32,9 +31,6 @@ public class UpdateStats : SystemBase
         UpdateFPSDatas();
 
         if (!Main.DisplayStats) return;
-        if (Main.IsLocked && this.wasLockedLastUpdate) return;
-
-        this.wasLockedLastUpdate = false;
 
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
@@ -83,15 +79,10 @@ public class UpdateStats : SystemBase
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
         Stats.VisibleOctreeClusters = visibleSets.ClusterLayer.Count();
-        Stats.VisibleOctreeNodes = visibleSets.LeafLayer.Count();
+        Stats.VisibleOctreeLeafs = visibleSets.LeafLayer.Count();
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();
-
-        if (Main.IsLocked)
-        {
-            this.wasLockedLastUpdate = true;
-        }
     }
 
     void UpdateFPSDatas()
