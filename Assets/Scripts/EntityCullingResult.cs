@@ -11,7 +11,6 @@ public enum CullingResult
     CulledByFrustrumPlanes,
     CulledBySphereOccluder,
     CulledByQuadOccluder,
-    RootNode,
 }
 
 [GenerateAuthoringComponent]

@@ -37,7 +37,7 @@ public class UpdateStats : SystemBase
         var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleOctreeEntity).AsNativeArray();
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
 
-        var stats = new NativeArray<int>(7, Allocator.TempJob);
+        var stats = new NativeArray<int>(6, Allocator.TempJob);
 
         foreach (var visibleCluster in visibleClusters)
         {

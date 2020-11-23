@@ -15,14 +15,13 @@ public class UpdateEntityColor : SystemBase
         var inFrumstrumColor = Main.EntityInFrustrumColor;
         var occludedColor = Main.EntityOccludedColor;
 
-        var colors = new NativeArray<float4>(7, Allocator.TempJob);
+        var colors = new NativeArray<float4>(6, Allocator.TempJob);
         colors[0] = inFrumstrumColor;
         colors[1] = outFrumstrumColor;
         colors[2] = outFrumstrumColor;
         colors[3] = outFrumstrumColor;
         colors[4] = occludedColor;
         colors[5] = occludedColor;
-        colors[6] = Color.green.ToFloat4();
 
         this.Entities
         .WithAll<EntityTag>()
