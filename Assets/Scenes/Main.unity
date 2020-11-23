@@ -400,7 +400,7 @@ MonoBehaviour:
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
-  lockOnStart: 1
+  lockOnStart: 0
 --- !u!4 &416611509 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4071409969668994287, guid: f2621b7f7e7d25b439407f70ec52a21e, type: 3}
