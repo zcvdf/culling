@@ -15,6 +15,7 @@ public static class Stats
     public static int CulledByFrustrumPlanes;
     public static int CulledBySphereOccluders;
     public static int CulledByQuadOccluders;
+    public static int AtRootOctreeLayer;
 
     public static int TotalCulled => CulledByOctreeClusters + CulledByOctreeNodes 
         + CulledByFrustrumPlanes + CulledBySphereOccluders + CulledByQuadOccluders;
@@ -30,6 +31,8 @@ public static class Stats
     public static float CulledBySphereOccludersPercentage => AsPercentage(CulledBySphereOccluders);
 
     public static float CulledByQuadOccludersPercentage => AsPercentage(CulledByQuadOccluders);
+
+    public static float AtRootOctreeLayerPercentage => AsPercentage(AtRootOctreeLayer);
 
     private static float AsPercentage(int entityCount)
     {

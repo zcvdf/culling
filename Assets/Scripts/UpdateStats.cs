@@ -37,7 +37,7 @@ public class UpdateStats : SystemBase
         var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleOctreeEntity).AsNativeArray();
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
 
-        var stats = new NativeArray<int>(6, Allocator.TempJob);
+        var stats = new NativeArray<int>(7, Allocator.TempJob);
 
         foreach (var visibleCluster in visibleClusters)
         {
@@ -45,10 +45,15 @@ public class UpdateStats : SystemBase
             .WithAll<EntityTag>()
             .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
             .WithNativeDisableParallelForRestriction(stats)
-            .ForEach((in EntityCullingResult result) =>
+            .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
             {
                 var id = (int)result.Value;
                 ++stats[id];
+
+                if (octreeNode.Value == Octree.PackedRoot)
+                {
+                    ++stats[6];
+                }    
             })
             .Run();
         }
@@ -63,6 +68,7 @@ public class UpdateStats : SystemBase
         var culledByFrustrumPlanes = stats[3];
         var culledBySphereOccluder = stats[4];
         var culledByQuadOccluder = stats[5];
+        var atRootOctreeLayer = stats[6];
 
         var culledByOctreeClusters = Stats.TotalEntityNumber - culledByOctreeNodes 
             - culledByFrustrumPlanes - culledByQuadOccluder - culledBySphereOccluder - notCulled;
@@ -74,6 +80,7 @@ public class UpdateStats : SystemBase
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
         Stats.VisibleOctreeNodes = visibleNodes.Length;
         Stats.VisibleOctreeClusters = visibleClusters.Length;
+        Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();
 

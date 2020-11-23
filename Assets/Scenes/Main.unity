@@ -391,6 +391,7 @@ MonoBehaviour:
   entityInFrustrumColor: {r: 0.23137255, g: 0.5803922, b: 1, a: 1}
   entityOccludedColor: {r: 1, g: 0, b: 0, a: 1}
   boudingSphereColor: {r: 0, g: 1, b: 0.3864882, a: 0.3137255}
+  rootOctreeLayerColor: {r: 0, g: 0.060156345, b: 1, a: 1}
   octreeLayerMaterials:
   - {fileID: 2100000, guid: 3132c2e4e6056b54c89eafbfb8a88a79, type: 2}
   - {fileID: 2100000, guid: 97d08b2d293dfb34e9d8a824bb43a433, type: 2}

@@ -20,6 +20,7 @@ public class Main : MonoBehaviour
     public static float4 EntityOutFrumstrumColor;
     public static float4 EntityInFrustrumColor;
     public static float4 EntityOccludedColor;
+    public static float4 EntityAtRootLayerColor;
 
     public static World World;
     public static EntityManager EntityManager;
@@ -29,6 +30,7 @@ public class Main : MonoBehaviour
 
     public static bool IsLocked;
     public static bool DisplayStats;
+    public static bool ShowRootLayerEntities;
 
     [SerializeField] ViewerCamera viewerCamera;
     [SerializeField] OrbitalCamera orbitalCamera;
@@ -36,6 +38,7 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
     [SerializeField] Color boudingSphereColor;
+    [SerializeField] Color rootOctreeLayerColor;
     [SerializeField] Material[] octreeLayerMaterials;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] Mesh cubeMesh;
@@ -52,6 +55,8 @@ public class Main : MonoBehaviour
         EntityOutFrumstrumColor = this.entityOutFrumstrumColor.ToFloat4();
         EntityInFrustrumColor = this.entityInFrustrumColor.ToFloat4();
         EntityOccludedColor = this.entityOccludedColor.ToFloat4();
+        EntityAtRootLayerColor = this.rootOctreeLayerColor.ToFloat4();
+        SetShowRootLayerEntities(false);
     }
 
     private void Start()
@@ -132,6 +137,11 @@ public class Main : MonoBehaviour
         {
             ++this.displayOctreeDepth;
             if (this.displayOctreeDepth > Octree.LeafLayer + 1) this.displayOctreeDepth = -1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            ToggleShowRootLayerEntities();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha8))
@@ -261,5 +271,15 @@ public class Main : MonoBehaviour
     void ToggleLock()
     {
         SetLock(!IsLocked);
+    }
+
+    void SetShowRootLayerEntities(bool show)
+    {
+        ShowRootLayerEntities = show;
+    }
+
+    void ToggleShowRootLayerEntities()
+    {
+        SetShowRootLayerEntities(!ShowRootLayerEntities);
     }
 }

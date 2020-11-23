@@ -23,6 +23,8 @@ public class StatsPanel : MonoBehaviour
             + $"\tCulled By Octree Nodes : {Stats.CulledByOctreeNodesPercentage:0.0}%\n"
             + $"\tCulled By Frustrum Planes : {Stats.CulledByFrustrumPlanesPercentage:0.0}%\n"
             + $"\tCulled By Sphere Occluders : {Stats.CulledBySphereOccludersPercentage:0.0}%\n"
-            + $"\tCulled By Quad Occluders : {Stats.CulledByQuadOccludersPercentage:0.0}%\n";
+            + $"\tCulled By Quad Occluders : {Stats.CulledByQuadOccludersPercentage:0.0}%\n"
+            + "\n"
+            + $"Entities At Root Octree Layer : {Stats.AtRootOctreeLayerPercentage:0.0}%\n";
     }
 }

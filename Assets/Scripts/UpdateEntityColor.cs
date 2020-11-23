@@ -23,13 +23,23 @@ public class UpdateEntityColor : SystemBase
         colors[4] = occludedColor;
         colors[5] = occludedColor;
 
+        var rootLayerColor = Main.EntityAtRootLayerColor;
+        var showRootLayer = Main.ShowRootLayerEntities;
+
         this.Entities
         .WithAll<EntityTag>()
         .WithReadOnly(colors)
-        .ForEach((ref URPMaterialPropertyBaseColor color, in EntityCullingResult cullingResult) =>
+        .ForEach((ref URPMaterialPropertyBaseColor color, in EntityCullingResult cullingResult, in OctreeNode octreeNode) =>
         {
-            var id = (int)cullingResult.Value;
-            color.Value = colors[id];
+            if (showRootLayer && octreeNode.Value == Octree.PackedRoot)
+            {
+                color.Value = rootLayerColor;
+            }
+            else
+            {
+                var id = (int)cullingResult.Value;
+                color.Value = colors[id];
+            }
         })
         .WithDisposeOnCompletion(colors)
         .ScheduleParallel();
