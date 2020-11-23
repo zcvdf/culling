@@ -18,7 +18,7 @@ public static class Octree
 
     public const int ClusterAdditionalDivision = 0;
 
-    public const float ClusterExtent = 2500f;
+    public const float ClusterExtent = 1000;
     public const float ClusterSize = ClusterExtent * 2f;
     public const int ClusterSubdivisions = (1 << (LeafLayer + ClusterAdditionalDivision));
 
