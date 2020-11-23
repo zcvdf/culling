@@ -33,6 +33,8 @@ public class CullingSystem : SystemBase
         var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
+        UpdateVisibilityBuffers.LastScheduledJob.Complete();
+
         var visibleNodeEntity = GetSingletonEntity<VisibleOctreeNode>();
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
         var visibleNodeCountEntity = GetSingletonEntity<VisibleNodeInClusterCount>();
@@ -41,7 +43,7 @@ public class CullingSystem : SystemBase
         var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
         var visibleNodeCounts = GetBuffer<VisibleNodeInClusterCount>(visibleNodeCountEntity).AsNativeArray();
 
-        var jobsDependency = this.Dependency;
+        //var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
         for (int i = 0, srcNodeCountIndex = 0; i < visibleClusters.Length; ++i)
@@ -50,7 +52,7 @@ public class CullingSystem : SystemBase
             var visibleNodeCount = visibleNodeCounts[i].Value;
             var srcIndex = srcNodeCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
 
-            var jobHandle = this.Entities
+            /*var jobHandle = */this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
             .WithReadOnly(visibleNodes)
@@ -89,9 +91,9 @@ public class CullingSystem : SystemBase
 
                 cullingResult.Value = CullingResult.NotCulled;
             })
-            .ScheduleParallel(jobsDependency);
+            .ScheduleParallel(/*jobsDependency*/);
 
-            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
 
             srcNodeCountIndex += visibleNodeCount;
         }

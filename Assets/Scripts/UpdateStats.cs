@@ -31,6 +31,8 @@ public class UpdateStats : SystemBase
 
         this.wasLockedLastUpdate = false;
 
+        UpdateVisibilityBuffers.LastScheduledJob.Complete();
+
         var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeNode>();
         var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
 

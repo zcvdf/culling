@@ -3,18 +3,63 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using Unity.Mathematics;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
 public class UpdateVisibilityBuffers : SystemBase
 {
+    public static JobHandle LastScheduledJob;
+
+    struct ActualJob : IJob
+    {
+        public DynamicBuffer<VisibleOctreeCluster> VisibleClusters;
+        public DynamicBuffer<VisibleOctreeNode> VisibleOctreeNodes;
+        public DynamicBuffer<VisibleNodeInClusterCount> VisibleNodeInClusterCounts;
+        public AABB FrustrumAABB;
+        public WorldFrustrumPlanes FrustrumPlanes;
+
+        public void Execute()
+        {
+            this.VisibleClusters.Clear();
+            this.VisibleOctreeNodes.Clear();
+            this.VisibleNodeInClusterCounts.Clear();
+
+            AddRoot(this.VisibleClusters, this.VisibleOctreeNodes, this.VisibleNodeInClusterCounts);
+            ProcessClusters(this.VisibleClusters, this.VisibleOctreeNodes, this.VisibleNodeInClusterCounts, this.FrustrumAABB, this.FrustrumPlanes);
+
+#if ENABLE_ASSERTS
+            AssertNoDupplicate(this.VisibleClusters);
+#endif
+        }
+    }
+
     protected override void OnUpdate()
     {
         var frustrumAABB = Main.FrustrumAABB;
         var frustrumPlanes = Main.FrustrumPlanes;
 
-        this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
+        LastScheduledJob.Complete();
+
+        var visibilityBufferEntity = GetSingletonEntity<VisibleOctreeNode>();
+        var visibleClusters = this.EntityManager.GetBuffer<VisibleOctreeCluster>(visibilityBufferEntity);
+        var visibleOctreeNodes = this.EntityManager.GetBuffer<VisibleOctreeNode>(visibilityBufferEntity);
+        var visibleNodeInClusterCounts = this.EntityManager.GetBuffer<VisibleNodeInClusterCount>(visibilityBufferEntity);
+
+        LastScheduledJob = new ActualJob()
+        {
+            VisibleClusters = visibleClusters,
+            VisibleOctreeNodes = visibleOctreeNodes,
+            VisibleNodeInClusterCounts = visibleNodeInClusterCounts,
+            FrustrumAABB = frustrumAABB,
+            FrustrumPlanes = frustrumPlanes,
+        }
+        .Schedule(this.Dependency);
+
+        this.Dependency = JobHandle.CombineDependencies(LastScheduledJob, this.Dependency);
+
+        /*this.Entities.ForEach((DynamicBuffer<VisibleOctreeCluster> visibleClusters, 
             DynamicBuffer<VisibleOctreeNode> visibleOctreeNodes,
             DynamicBuffer<VisibleNodeInClusterCount> visibleNodeInClusterCounts) =>
         {
@@ -29,7 +74,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 AssertNoDupplicate(visibleClusters);
             #endif
         })
-        .ScheduleParallel();
+        .ScheduleParallel();*/
     }
 
     static void AddRoot(DynamicBuffer<VisibleOctreeCluster> visibleClusters,
