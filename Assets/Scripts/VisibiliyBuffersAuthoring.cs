@@ -14,10 +14,6 @@ public class VisibiliyBuffersAuthoring : MonoBehaviour, IConvertGameObjectToEnti
 {
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        dstManager.AddBuffer<VisibleOctreeNode>(entity);
-        dstManager.AddBuffer<VisibleOctreeCluster>(entity);
-        dstManager.AddBuffer<VisibleNodeInClusterCount>(entity);
-
         var visibilityBuffer = new VisibilityBuffer
         {
             Layer0 = new NativeHashSet<ulong>(16, Allocator.Persistent),

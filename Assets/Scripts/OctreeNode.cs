@@ -9,6 +9,4 @@ using UnityEngine;
 public struct OctreeNode : IComponentData
 {
     public UInt64 Value;
-
-    public static implicit operator VisibleOctreeNode(OctreeNode x) => new VisibleOctreeNode { Value = x.Value };
 }

@@ -21,25 +21,6 @@ struct Spawner : IComponentData
     public int StaticEntityPercentage;
 }
 
-public struct VisibleOctreeCluster : IBufferElementData
-{
-    public UInt64 Value;
-
-    public static implicit operator OctreeCluster(VisibleOctreeCluster x) => new OctreeCluster { Value = x.Value };
-}
-
-public struct VisibleOctreeNode : IBufferElementData
-{
-    public UInt64 Value;
-
-    public static implicit operator OctreeNode(VisibleOctreeNode x) => new OctreeNode { Value = x.Value };
-}
-
-public struct VisibleNodeInClusterCount : IBufferElementData
-{
-    public int Value;
-}
-
 public struct WorldOccluderExtents : IComponentData
 {
     public float3 LocalRight;
