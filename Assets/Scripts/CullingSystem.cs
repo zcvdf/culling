@@ -41,12 +41,12 @@ public class CullingSystem : SystemBase
         var visiblityLayer0 = visibilityBuffer.Layer0;
         var visiblityLayer1 = visibilityBuffer.Layer1;
 
-        //var jobsDependency = this.Dependency;
+        var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
         foreach (var visibleCluster in visiblityLayer0)
         {
-            /*var jobHandle = */this.Entities
+            var jobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
             .WithReadOnly(visiblityLayer0)
@@ -86,9 +86,9 @@ public class CullingSystem : SystemBase
 
                 cullingResult.Value = CullingResult.NotCulled;
             })
-            .ScheduleParallel(/*jobsDependency*/);
+            .ScheduleParallel(jobsDependency);
 
-            //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
         Main.VisibleOctreeClusters = visibilityBuffer.Layer0.ToNativeArray(Allocator.Temp).ToArray();
