@@ -82,8 +82,8 @@ public class UpdateStats : SystemBase
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
-        Stats.VisibleOctreeClusters = visibleSets[0].Count();
-        Stats.VisibleOctreeNodes = visibleSets[1].Count();
+        Stats.VisibleOctreeClusters = visibleSets.ClusterLayer.Count();
+        Stats.VisibleOctreeNodes = visibleSets.LeafLayer.Count();
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();

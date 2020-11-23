@@ -94,8 +94,7 @@ public class CullingSystem : SystemBase
             //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
-        Main.VisibleOctreeClusters = visibleNodeSets[0].ToNativeArray(Allocator.Temp).ToArray();
-        Main.VisibleOctreeNodes = visibleNodeSets[1].ToNativeArray(Allocator.Temp).ToArray();
+        Main.VisibleOctreeNodes = visibleNodeSets.RawIDs;
 
         planeOccluderExtents.Dispose(this.Dependency);
         planeOccluderTranslations.Dispose(this.Dependency);

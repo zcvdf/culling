@@ -25,8 +25,7 @@ public class Main : MonoBehaviour
     public static World World;
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
-    public static ulong[] VisibleOctreeNodes;
-    public static ulong[] VisibleOctreeClusters;
+    public static ulong[][] VisibleOctreeNodes;
 
     public static bool IsLocked;
     public static bool DisplayStats;
@@ -92,7 +91,7 @@ public class Main : MonoBehaviour
         {
             if (this.displayOctreeDepth != -1)
             {
-                DrawOctree();
+                DrawVisibleOctreeNodes(this.displayOctreeDepth);
             }
         }
     }
@@ -136,7 +135,7 @@ public class Main : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             ++this.displayOctreeDepth;
-            if (this.displayOctreeDepth > Octree.LeafLayer + 1) this.displayOctreeDepth = -1;
+            if (this.displayOctreeDepth > Octree.LeafLayer) this.displayOctreeDepth = -1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
@@ -171,67 +170,19 @@ public class Main : MonoBehaviour
         }
     }
 
-    void DrawOctree()
-    {
-        if (this.displayOctreeDepth == -1) return;
-
-        if (this.displayOctreeDepth == 0)
-        {
-            DrawVisibleClusters();
-        }
-        else if (this.displayOctreeDepth == Octree.LeafLayer + 1)
-        {
-            DrawAllVisibleOctreeLayers();
-        }
-        else
-        {
-            DrawVisibleOctreeNodes(this.displayOctreeDepth);
-        }
-    }
-
-    void DrawVisibleClusters()
-    {
-        var material = this.octreeLayerMaterials[0];
-
-        var size = Octree.ClusterSize;
-        var matrices = new List<Matrix4x4>(VisibleOctreeClusters.Length);
-
-        foreach (var packedNode in VisibleOctreeClusters)
-        {
-            var node = Octree.UnpackID(packedNode);
-
-            var center = Octree.ClusterIDToPoint(node.xyz);
-
-            var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
-            matrices.Add(matrix);
-
-            Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
-        }
-        
-        Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
-    }
-
-    void DrawAllVisibleOctreeLayers()
-    {
-        for (int i = 1; i <= Octree.LeafLayer; ++i)
-        {
-            DrawVisibleOctreeNodes(i);
-        }
-    }
-
     void DrawVisibleOctreeNodes(int layer)
     {
         var matID = math.min(layer, this.octreeLayerMaterials.Length - 1);
         var material = this.octreeLayerMaterials[matID];
 
-        var matrices = new List<Matrix4x4>(VisibleOctreeNodes.Length);
+        var nodes = VisibleOctreeNodes[layer];
+
+        var matrices = new List<Matrix4x4>(nodes.Length);
         var size = Octree.NodeSize(layer);
 
-        foreach (var packedNode in VisibleOctreeNodes)
+        foreach (var packedNode in nodes)
         {
             var node = Octree.UnpackID(packedNode);
-
-            if (node.w != layer) continue;
 
             var center = Octree.NodeIDToPoint(node);
             

@@ -108,6 +108,24 @@ public struct VisibleSets
     }
 
     public int Length => Octree.LeafLayer + 1;
+
+    public ulong[][] RawIDs
+    {
+        get
+        {
+            var ids = new ulong[this.Length][];
+
+            for (int i = 0; i < this.Length; ++i)
+            {
+                ids[i] = this[i].ToNativeArray(Allocator.Temp).ToArray();
+            }
+
+            return ids;
+        }
+    }
+
+    public NativeHashSet<ulong> ClusterLayer => this[Octree.ClusterLayer];
+    public NativeHashSet<ulong> LeafLayer => this[Octree.LeafLayer];
 }
 
 public class VisibleSetsComponent : IComponentData
