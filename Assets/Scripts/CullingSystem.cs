@@ -35,34 +35,33 @@ public class CullingSystem : SystemBase
 
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
-        var visibleNodeEntity = GetSingletonEntity<VisibleOctreeNode>();
-        var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
-        var visibleNodeCountEntity = GetSingletonEntity<VisibleNodeInClusterCount>();
+        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
+        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
 
-        var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleNodeEntity).AsNativeArray();
-        var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
-        var visibleNodeCounts = GetBuffer<VisibleNodeInClusterCount>(visibleNodeCountEntity).AsNativeArray();
+        var visiblityLayer0 = visibilityBuffer.Layer0;
+        var visiblityLayer1 = visibilityBuffer.Layer1;
+
+        var visibleClusters = visibilityBuffer.Layer0.ToNativeArray(Allocator.Temp);
 
         //var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
-        for (int i = 0, srcNodeCountIndex = 0; i < visibleClusters.Length; ++i)
+        for (int i = 0; i < visibleClusters.Length; ++i)
         {
             var visibleCluster = visibleClusters[i];
-            var visibleNodeCount = visibleNodeCounts[i].Value;
-            var srcIndex = srcNodeCountIndex; // Avoid weird compiler behavior resetting 'srcLeafCountIndex' to 0 if it's taken directly in the lambda
 
             /*var jobHandle = */this.Entities
             .WithAll<EntityTag>()
-            .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
-            .WithReadOnly(visibleNodes)
+            .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
+            .WithReadOnly(visiblityLayer0)
+            .WithReadOnly(visiblityLayer1)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
             .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
             {
-                if (!IsNodeVisible(visibleNodes, octreeNode, srcIndex, visibleNodeCount))
+                if (!IsNodeVisible(octreeNode, visiblityLayer0, visiblityLayer1))
                 {
                     cullingResult.Value = CullingResult.CulledByOctreeNodes;
                     return;
@@ -94,11 +93,9 @@ public class CullingSystem : SystemBase
             .ScheduleParallel(/*jobsDependency*/);
 
             //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
-
-            srcNodeCountIndex += visibleNodeCount;
         }
 
-        Main.VisibleOctreeNodes = visibleNodes.ToArray();
+        Main.VisibleOctreeNodes = visibilityBuffer.Layer1.ToNativeArray(Allocator.Temp).ToArray();
         Main.VisibleOctreeClusters = visibleClusters.ToArray();
 
         planeOccluderExtents.Dispose(this.Dependency);
@@ -107,31 +104,19 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool IsNodeVisible(NativeArray<VisibleOctreeNode> visibleNodes, OctreeNode node, int src, int range)
+    public static bool IsNodeVisible(in OctreeNode node, in NativeHashSet<ulong> layer0, in NativeHashSet<ulong> layer1)
     {
         if (node.Value == Octree.PackedRoot) return true;
 
         var nodeLayer = Octree.UnpackLayer(node.Value);
 
-        for (int i = src; i < src + range; ++i)
+        if (nodeLayer == 0)
         {
-            var visibleNode = visibleNodes[i].Value;
-            var visibleNodeLayer = Octree.UnpackLayer(visibleNode);
-
-            if (nodeLayer < visibleNodeLayer)
-            {
-                return true;
-            }    
-            else if (nodeLayer == visibleNodeLayer)
-            {
-                if (visibleNode == node.Value) return true;
-            }
-            else
-            {
-                var parentNode = Octree.GetParentNodePackedID(node.Value, visibleNodeLayer);
-
-                if (visibleNode == parentNode) return true;
-            }
+            return layer0.Contains(node.Value);
+        }
+        else if (nodeLayer == 1)
+        {
+            return layer1.Contains(node.Value);
         }
 
         return false;

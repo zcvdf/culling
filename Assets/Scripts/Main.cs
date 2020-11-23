@@ -25,8 +25,8 @@ public class Main : MonoBehaviour
     public static World World;
     public static EntityManager EntityManager;
     public static EntityQuery EntityQuery;
-    public static VisibleOctreeNode[] VisibleOctreeNodes;
-    public static VisibleOctreeCluster[] VisibleOctreeClusters;
+    public static ulong[] VisibleOctreeNodes;
+    public static ulong[] VisibleOctreeClusters;
 
     public static bool IsLocked;
     public static bool DisplayStats;
@@ -198,7 +198,7 @@ public class Main : MonoBehaviour
 
         foreach (var packedNode in VisibleOctreeClusters)
         {
-            var node = Octree.UnpackID(packedNode.Value);
+            var node = Octree.UnpackID(packedNode);
 
             var center = Octree.ClusterIDToPoint(node.xyz);
 
@@ -229,7 +229,7 @@ public class Main : MonoBehaviour
 
         foreach (var packedNode in VisibleOctreeNodes)
         {
-            var node = Octree.UnpackID(packedNode.Value);
+            var node = Octree.UnpackID(packedNode);
 
             if (node.w != layer) continue;
 

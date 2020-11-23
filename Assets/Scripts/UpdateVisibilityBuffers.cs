@@ -29,6 +29,15 @@ public class UpdateVisibilityBuffers : SystemBase
         }
     }
 
+    protected override void OnDestroy()
+    {
+        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
+        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
+
+        visibilityBuffer.Layer0.Dispose();
+        visibilityBuffer.Layer1.Dispose();
+    }
+
     protected override void OnUpdate()
     {
         var frustrumAABB = Main.FrustrumAABB;
