@@ -11,12 +11,12 @@ public static class Octree
     public const int MaxPosition = 1 << 20;
 
     public const int ClusterLayer = 0;
-    public const int LeafLayer = 1;
+    public const int LeafLayer = 2;
     public const int RootLayer = MaxLayer - 1;
     public static readonly int4 Root = new int4(0, 0, 0, RootLayer);
     public static readonly UInt64 PackedRoot = PackID(Root);
 
-    public const int ClusterAdditionalDivision = 1;
+    public const int ClusterAdditionalDivision = 0;
 
     public const float ClusterExtent = 2500f;
     public const float ClusterSize = ClusterExtent * 2f;
