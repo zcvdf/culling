@@ -23,7 +23,7 @@ public class UpdateVisibilityBuffers : SystemBase
             this.VisibleSets.Clear();
 
             AddRoot(this.VisibleSets[0]);
-            ProcessClusters(this.VisibleSets, this.FrustrumAABB, this.FrustrumPlanes);
+            ProcessFrustrumClusters(this.VisibleSets, this.FrustrumAABB, this.FrustrumPlanes);
         }
     }
 
@@ -61,7 +61,7 @@ public class UpdateVisibilityBuffers : SystemBase
         setLayer0.Add(Octree.PackedRoot);
     }
 
-    static void ProcessClusters(VisibleSets visibleSets,
+    static void ProcessFrustrumClusters(VisibleSets visibleSets,
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
     {
@@ -77,16 +77,7 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var clusterID = new int4(x, y, z, Octree.ClusterLayer);
 
-                    if (!Math.IsCubeCulled(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
-                    {
-                        var packedClusterID = Octree.PackID(clusterID);
-                        visibleSets[0].Add(packedClusterID);
-
-                        if (intersects)
-                        {
-                            ProcessNodeRecursive(visibleSets, frustrumPlanes, clusterID);
-                        }
-                    }
+                    ProcessNodeRecursive(visibleSets, frustrumPlanes, clusterID);
                 }
             }
         }
@@ -100,8 +91,7 @@ public class UpdateVisibilityBuffers : SystemBase
         int4 min;
         int4 max;
         Octree.GetMinMaxNodeChildrenID(nodeID, out min, out max);
-        var subDepth = depth + 1;
-        var subNodeExtent = Octree.NodeExtent(subDepth);
+        var subNodeExtent = Octree.NodeExtent(depth);
 
         for (int x = min.x; x < max.x; ++x)
         {
@@ -109,16 +99,16 @@ public class UpdateVisibilityBuffers : SystemBase
             {
                 for (int z = min.z; z < max.z; ++z)
                 {
-                    var subNodeID = new int4(x, y, z, subDepth);
+                    var subNodeID = new int4(x, y, z, depth);
 
                     if (!Math.IsCubeCulled(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
                     {
                         var packedID = Octree.PackID(subNodeID);
-                        visibleSets[subDepth].Add(packedID);
+                        visibleSets[depth].Add(packedID);
 
-                        if (subDepth < Octree.LeafLayer && intersects)
+                        if (depth < Octree.LeafLayer && intersects)
                         {
-                            ProcessNodeRecursive(visibleSets, frustrumPlanes, subNodeID, subDepth);
+                            ProcessNodeRecursive(visibleSets, frustrumPlanes, subNodeID, depth + 1);
                         }
                     }
                 }
