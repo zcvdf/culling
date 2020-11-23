@@ -33,19 +33,19 @@ public class UpdateStats : SystemBase
 
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
-        var visibleOctreeEntity = GetSingletonEntity<VisibleOctreeNode>();
-        var visibleClusterEntity = GetSingletonEntity<VisibleOctreeCluster>();
+        var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
+        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
 
-        var visibleNodes = GetBuffer<VisibleOctreeNode>(visibleOctreeEntity).AsNativeArray();
-        var visibleClusters = GetBuffer<VisibleOctreeCluster>(visibleClusterEntity).AsNativeArray();
+        var visiblityLayer0 = visibilityBuffer.Layer0;
+        var visiblityLayer1 = visibilityBuffer.Layer1;
 
         var stats = new NativeArray<int>(7, Allocator.TempJob);
 
-        foreach (var visibleCluster in visibleClusters)
+        foreach (var visibleCluster in visiblityLayer0)
         {
             this.Entities
             .WithAll<EntityTag>()
-            .WithSharedComponentFilter<OctreeCluster>(visibleCluster)
+            .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
             .WithNativeDisableParallelForRestriction(stats)
             .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
             {
@@ -80,8 +80,8 @@ public class UpdateStats : SystemBase
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
-        Stats.VisibleOctreeNodes = visibleNodes.Length;
-        Stats.VisibleOctreeClusters = visibleClusters.Length;
+        Stats.VisibleOctreeNodes = visiblityLayer1.Count();
+        Stats.VisibleOctreeClusters = visiblityLayer0.Count();
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();
