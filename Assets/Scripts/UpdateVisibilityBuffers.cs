@@ -14,28 +14,25 @@ public class UpdateVisibilityBuffers : SystemBase
 
     struct ActualJob : IJob
     {
-        public NativeHashSet<ulong> Layer0;
-        public NativeHashSet<ulong> Layer1;
+        public VisibleSets VisibleSets;
         public AABB FrustrumAABB;
         public WorldFrustrumPlanes FrustrumPlanes;
 
         public void Execute()
         {
-            this.Layer0.Clear();
-            this.Layer1.Clear();
+            this.VisibleSets.Clear();
 
-            AddRoot(this.Layer0);
-            ProcessClusters(this.Layer0, this.Layer1, this.FrustrumAABB, this.FrustrumPlanes);
+            AddRoot(this.VisibleSets[0]);
+            ProcessClusters(this.VisibleSets, this.FrustrumAABB, this.FrustrumPlanes);
         }
     }
 
     protected override void OnDestroy()
     {
         var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
+        var visibleSets = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity).Value;
 
-        visibilityBuffer.Layer0.Dispose();
-        visibilityBuffer.Layer1.Dispose();
+        visibleSets.Dispose();
     }
 
     protected override void OnUpdate()
@@ -46,12 +43,11 @@ public class UpdateVisibilityBuffers : SystemBase
         LastScheduledJob.Complete();
 
         var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
+        var visibleSets = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity).Value;
 
         LastScheduledJob = new ActualJob()
         {
-            Layer0 = visibilityBuffer.Layer0,
-            Layer1 = visibilityBuffer.Layer1,
+            VisibleSets = visibleSets,
             FrustrumAABB = frustrumAABB,
             FrustrumPlanes = frustrumPlanes,
         }
@@ -65,8 +61,7 @@ public class UpdateVisibilityBuffers : SystemBase
         setLayer0.Add(Octree.PackedRoot);
     }
 
-    static void ProcessClusters(NativeHashSet<ulong> setLayer0,
-            NativeHashSet<ulong> setLayer1,
+    static void ProcessClusters(VisibleSets visibleSets,
             AABB frustrumAABB,
             WorldFrustrumPlanes frustrumPlanes)
     {
@@ -85,11 +80,11 @@ public class UpdateVisibilityBuffers : SystemBase
                     if (!Math.IsCubeCulled(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes, out var intersects))
                     {
                         var packedClusterID = Octree.PackID(clusterID);
-                        setLayer0.Add(packedClusterID);
+                        visibleSets[0].Add(packedClusterID);
 
                         if (intersects)
                         {
-                            ProcessLayer1(setLayer1, frustrumPlanes, clusterID);
+                            ProcessNodeRecursive(visibleSets, frustrumPlanes, clusterID);
                         }
                     }
                 }
@@ -97,7 +92,7 @@ public class UpdateVisibilityBuffers : SystemBase
         }
     }
 
-    static void ProcessLayer1(NativeHashSet<ulong> setLayer1,
+    static void ProcessNodeRecursive(VisibleSets visibleSets,
             WorldFrustrumPlanes frustrumPlanes,
             int4 nodeID,
             int depth = 0)
@@ -119,7 +114,12 @@ public class UpdateVisibilityBuffers : SystemBase
                     if (!Math.IsCubeCulled(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
                     {
                         var packedID = Octree.PackID(subNodeID);
-                        setLayer1.Add(packedID);
+                        visibleSets[subDepth].Add(packedID);
+
+                        if (subDepth < Octree.LeafLayer && intersects)
+                        {
+                            ProcessNodeRecursive(visibleSets, frustrumPlanes, subNodeID, subDepth);
+                        }
                     }
                 }
             }

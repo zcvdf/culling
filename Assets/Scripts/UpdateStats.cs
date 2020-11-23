@@ -17,6 +17,11 @@ public class UpdateStats : SystemBase
     double lastElapsedTime;
     int frame;
 
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<VisibilityBuffer>();
+    }
+
     protected override void OnStartRunning()
     {
         this.lastElapsedTime = this.Time.ElapsedTime;
@@ -34,14 +39,11 @@ public class UpdateStats : SystemBase
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
         var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
-        var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
-
-        var visiblityLayer0 = visibilityBuffer.Layer0;
-        var visiblityLayer1 = visibilityBuffer.Layer1;
+        var visibleNodeSets = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity).Value;
 
         var stats = new NativeArray<int>(7, Allocator.TempJob);
 
-        foreach (var visibleCluster in visiblityLayer0)
+        foreach (var visibleCluster in visibleNodeSets[0])
         {
             this.Entities
             .WithAll<EntityTag>()
@@ -80,8 +82,8 @@ public class UpdateStats : SystemBase
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
-        Stats.VisibleOctreeNodes = visiblityLayer1.Count();
-        Stats.VisibleOctreeClusters = visiblityLayer0.Count();
+        Stats.VisibleOctreeClusters = visibleNodeSets[0].Count();
+        Stats.VisibleOctreeNodes = visibleNodeSets[1].Count();
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();

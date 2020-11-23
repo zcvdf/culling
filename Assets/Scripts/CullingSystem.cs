@@ -15,6 +15,11 @@ using UnityEngine;
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
 {
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<VisibilityBuffer>();
+    }
+
     protected override void OnUpdate()
     {
         var viewer = Main.Viewer;
@@ -38,26 +43,24 @@ public class CullingSystem : SystemBase
         var visibilityBufferEntity = GetSingletonEntity<VisibilityBuffer>();
         var visibilityBuffer = this.EntityManager.GetComponentData<VisibilityBuffer>(visibilityBufferEntity);
 
-        var visiblityLayer0 = visibilityBuffer.Layer0;
-        var visiblityLayer1 = visibilityBuffer.Layer1;
+        var visibleNodeSets = visibilityBuffer.Value;
 
         var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
-        foreach (var visibleCluster in visiblityLayer0)
+        foreach (var visibleCluster in visibleNodeSets[0])
         {
-            var jobHandle = this.Entities
+            /*var jobHandle = */this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
-            .WithReadOnly(visiblityLayer0)
-            .WithReadOnly(visiblityLayer1)
+            .WithReadOnly(visibleNodeSets)
             .WithReadOnly(sphereOccluderTranslations)
             .WithReadOnly(sphereOccluderRadiuses)
             .WithReadOnly(planeOccluderTranslations)
             .WithReadOnly(planeOccluderExtents)
             .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
             {
-                if (!IsNodeVisible(octreeNode, visiblityLayer0, visiblityLayer1))
+                if (!IsNodeVisible(octreeNode, visibleNodeSets))
                 {
                     cullingResult.Value = CullingResult.CulledByOctreeNodes;
                     return;
@@ -86,13 +89,13 @@ public class CullingSystem : SystemBase
 
                 cullingResult.Value = CullingResult.NotCulled;
             })
-            .ScheduleParallel(jobsDependency);
+            .ScheduleParallel(/*jobsDependency*/);
 
-            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            //this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
-        Main.VisibleOctreeClusters = visibilityBuffer.Layer0.ToNativeArray(Allocator.Temp).ToArray();
-        Main.VisibleOctreeNodes = visibilityBuffer.Layer1.ToNativeArray(Allocator.Temp).ToArray();
+        Main.VisibleOctreeClusters = visibleNodeSets[0].ToNativeArray(Allocator.Temp).ToArray();
+        Main.VisibleOctreeNodes = visibleNodeSets[1].ToNativeArray(Allocator.Temp).ToArray();
 
         planeOccluderExtents.Dispose(this.Dependency);
         planeOccluderTranslations.Dispose(this.Dependency);
@@ -100,21 +103,12 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    public static bool IsNodeVisible(in OctreeNode node, in NativeHashSet<ulong> layer0, in NativeHashSet<ulong> layer1)
+    public static bool IsNodeVisible(in OctreeNode node, in VisibleSets visibleSets)
     {
         if (node.Value == Octree.PackedRoot) return true;
 
         var nodeLayer = Octree.UnpackLayer(node.Value);
 
-        if (nodeLayer == 0)
-        {
-            return layer0.Contains(node.Value);
-        }
-        else if (nodeLayer == 1)
-        {
-            return layer1.Contains(node.Value);
-        }
-
-        return false;
+        return visibleSets[nodeLayer].Contains(node.Value);
     }
 }
