@@ -8,7 +8,7 @@ using UnityEngine;
 using Unity.Mathematics;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
-public class UpdateVisibilityBuffers : SystemBase
+public class UpdateVisibleSets : SystemBase
 {
     public static JobHandle LastScheduledJob;
 

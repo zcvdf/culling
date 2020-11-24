@@ -1619,7 +1619,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3070961103938459665, guid: edd3dacef5d1a724cb8ecf0b6e2d92e8, type: 3}
       propertyPath: m_Name
-      value: VisibiliyBuffer
+      value: VisibleSets
       objectReference: {fileID: 0}
     - target: {fileID: 3070961103938459667, guid: edd3dacef5d1a724cb8ecf0b6e2d92e8, type: 3}
       propertyPath: m_LocalPosition.x

@@ -11,7 +11,7 @@ using UnityEngine;
 [UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateEntityOctreeCluster))]
 [UpdateAfter(typeof(UpdateEntityOctreeNode))]
-[UpdateAfter(typeof(UpdateVisibilityBuffers))]
+[UpdateAfter(typeof(UpdateVisibleSets))]
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
 {
@@ -57,7 +57,7 @@ public class CullingSystem : SystemBase
         var quadOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var quadOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
-        UpdateVisibilityBuffers.LastScheduledJob.Complete();
+        UpdateVisibleSets.LastScheduledJob.Complete();
 
         var visibilityBufferEntity = GetSingletonEntity<VisibleSetsComponent>();
         var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibilityBufferEntity).Value;

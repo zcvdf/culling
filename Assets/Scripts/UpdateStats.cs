@@ -32,7 +32,7 @@ public class UpdateStats : SystemBase
 
         if (!Main.DisplayStats) return;
 
-        UpdateVisibilityBuffers.LastScheduledJob.Complete();
+        UpdateVisibleSets.LastScheduledJob.Complete();
 
         var visibleSetsEntity = GetSingletonEntity<VisibleSetsComponent>();
         var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibleSetsEntity).Value;
