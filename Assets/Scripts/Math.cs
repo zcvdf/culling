@@ -121,6 +121,26 @@ public static class Math
         }
     }
 
+    public static bool IsCubeClipped(float3 center, float extent, Plane plane)
+    {
+        var extentVector = new float3(extent);
+        var localFarest = math.sign(plane.normal) * extentVector;
+
+        var farest = center + localFarest;
+
+        return IsClipped(farest, plane);
+    }
+
+    public static bool IsCubeCulled(float3 center, float extent, in WorldFrustrumPlanes planes)
+    {
+        return IsCubeClipped(center, extent, planes.Left)
+            || IsCubeClipped(center, extent, planes.Right)
+            || IsCubeClipped(center, extent, planes.Down)
+            || IsCubeClipped(center, extent, planes.Up)
+            || IsCubeClipped(center, extent, planes.Near)
+            || IsCubeClipped(center, extent, planes.Far);
+    }
+
     public static bool IsSphereOccluderInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes, out bool hasNearIntersection)
     {
         // Special handling of the near clipping plane for occluders (planes[4])

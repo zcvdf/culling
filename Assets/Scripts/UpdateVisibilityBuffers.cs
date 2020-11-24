@@ -77,16 +77,22 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var clusterID = new int4(x, y, z, Octree.ClusterLayer);
 
-                    ProcessNodeRecursive(visibleSets, frustrumPlanes, clusterID);
+                    if (!Math.IsCubeCulled(Octree.ClusterIDToPoint(clusterID.xyz), Octree.ClusterExtent, frustrumPlanes))
+                    {
+                        var packedID = Octree.PackID(clusterID);
+                        visibleSets.ClusterLayer.Add(packedID);
+
+                        ProcessNodeChildrenRecursive(visibleSets, frustrumPlanes, clusterID, 1);
+                    }
                 }
             }
         }
     }
 
-    static void ProcessNodeRecursive(VisibleSets visibleSets,
+    static void ProcessNodeChildrenRecursive(VisibleSets visibleSets,
             WorldFrustrumPlanes frustrumPlanes,
             int4 nodeID,
-            int depth = 0)
+            int depth)
     {
         int4 min;
         int4 max;
@@ -101,14 +107,14 @@ public class UpdateVisibilityBuffers : SystemBase
                 {
                     var subNodeID = new int4(x, y, z, depth);
 
-                    if (!Math.IsCubeCulled(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes, out var intersects))
+                    if (!Math.IsCubeCulled(Octree.NodeIDToPoint(subNodeID), subNodeExtent, frustrumPlanes))
                     {
                         var packedID = Octree.PackID(subNodeID);
                         visibleSets[depth].Add(packedID);
 
-                        if (depth < Octree.LeafLayer && intersects)
+                        if (depth < Octree.LeafLayer)
                         {
-                            ProcessNodeRecursive(visibleSets, frustrumPlanes, subNodeID, depth + 1);
+                            ProcessNodeChildrenRecursive(visibleSets, frustrumPlanes, subNodeID, depth + 1);
                         }
                     }
                 }
