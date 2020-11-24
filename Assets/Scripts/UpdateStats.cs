@@ -48,15 +48,20 @@ public class UpdateStats : SystemBase
             .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
             {
                 var id = (int)result.Value;
-                ++stats[id];
-
-                if (octreeNode.Value == Octree.PackedRoot)
-                {
-                    ++stats[6];
-                }    
+                ++stats[id];  
             })
             .Run();
         }
+
+        this.Entities
+            .WithAll<EntityTag>()
+            .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
+            .WithNativeDisableParallelForRestriction(stats)
+            .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
+            {
+                ++stats[6];
+            })
+            .Run();
 
         var notCulled = stats[0];
 

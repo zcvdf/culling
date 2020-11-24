@@ -22,7 +22,6 @@ public class UpdateVisibilityBuffers : SystemBase
         {
             this.VisibleSets.Clear();
 
-            AddRoot(this.VisibleSets[0]);
             ProcessFrustrumClusters(this.VisibleSets, this.FrustrumAABB, this.FrustrumPlanes);
         }
     }
@@ -54,11 +53,6 @@ public class UpdateVisibilityBuffers : SystemBase
         .Schedule(this.Dependency);
 
         this.Dependency = JobHandle.CombineDependencies(LastScheduledJob, this.Dependency);
-    }
-
-    static void AddRoot(NativeHashSet<ulong> setLayer0)
-    {
-        setLayer0.Add(Octree.PackedRoot);
     }
 
     static void ProcessFrustrumClusters(VisibleSets visibleSets,

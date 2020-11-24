@@ -79,7 +79,7 @@ public class CullingSystem : SystemBase
         // This code is fine but triggers job safety checks if they are enabled
         foreach (var visibleCluster in visibleSets[0])
         {
-            var jobHandle = this.Entities
+            var clusterJobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
             .WithReadOnly(globalInputs)
@@ -89,8 +89,21 @@ public class CullingSystem : SystemBase
             })
             .ScheduleParallel(jobsDependency);
 
-            this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
+            this.Dependency = JobHandle.CombineDependencies(this.Dependency, clusterJobHandle);
         }
+
+        // Process Octree root node
+        var rootJobHandle = this.Entities
+        .WithAll<EntityTag>()
+        .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
+        .WithReadOnly(globalInputs)
+        .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
+        {
+            ProcessOctreeRoot(ref cullingResult, globalInputs, bounds, radius, octreeNode);
+        })
+        .ScheduleParallel(jobsDependency);
+
+        this.Dependency = JobHandle.CombineDependencies(this.Dependency, rootJobHandle);
 
         Main.VisibleOctreeNodes = visibleSets.RawIDs;
 
@@ -109,6 +122,19 @@ public class CullingSystem : SystemBase
             return;
         }
 
+        var entityInputs = new PerEntityCullingInput
+        {
+            Bounds = bounds,
+            OtreeNode = octreeNode,
+            Radius = radius
+        };
+
+        PostOctreeCulling(ref result, in entityInputs, in global);
+    }
+
+    static void ProcessOctreeRoot(ref EntityCullingResult result, in GlobalCullingInput global,
+        in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode)
+    {
         var entityInputs = new PerEntityCullingInput
         {
             Bounds = bounds,
@@ -149,8 +175,6 @@ public class CullingSystem : SystemBase
 
     public static bool IsNodeVisible(in OctreeNode node, in VisibleSets visibleSets)
     {
-        if (node.Value == Octree.PackedRoot) return true;
-
         var nodeLayer = Octree.UnpackLayer(node.Value);
 
         return visibleSets[nodeLayer].Contains(node.Value);
