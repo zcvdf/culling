@@ -15,6 +15,25 @@ using UnityEngine;
 [UpdateAfter(typeof(TransformSystemGroup))]
 public class CullingSystem : SystemBase
 {
+    struct GlobalCullingInput
+    {
+        [ReadOnly] public WorldFrustrumPlanes FrustrumPlanes;
+        [ReadOnly] public VisibleSets VisibleSets;
+        [ReadOnly] public NativeArray<Translation> SphereOccluderTranslations;
+        [ReadOnly] public NativeArray<WorldOccluderRadius> SphereOccluderRadiuses;
+        [ReadOnly] public NativeArray<Translation> QuadOccluderTranslations;
+        [ReadOnly] public NativeArray<WorldOccluderExtents> QuadOccluderExtents;
+        [ReadOnly] public float3 Viewer;
+        [ReadOnly] public Quad NearPlane;
+    }
+
+    struct PerEntityCullingInput
+    {
+        [ReadOnly] public WorldRenderBounds Bounds; 
+        [ReadOnly] public WorldBoundingRadius Radius;
+        [ReadOnly] public OctreeNode OtreeNode;
+    }
+
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<VisibleSetsComponent>();
@@ -35,71 +54,97 @@ public class CullingSystem : SystemBase
         var sphereOccluderTranslations = sphereOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         var sphereOccluderRadiuses = sphereOccluderQuery.ToComponentDataArray<WorldOccluderRadius>(Allocator.TempJob);
 
-        var planeOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
-        var planeOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
+        var quadOccluderTranslations = planeOccluderQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
+        var quadOccluderExtents = planeOccluderQuery.ToComponentDataArray<WorldOccluderExtents>(Allocator.TempJob);
 
         UpdateVisibilityBuffers.LastScheduledJob.Complete();
 
         var visibilityBufferEntity = GetSingletonEntity<VisibleSetsComponent>();
-        var visibilityBuffer = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibilityBufferEntity);
+        var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibilityBufferEntity).Value;
 
-        var visibleNodeSets = visibilityBuffer.Value;
+        var globalInputs = new GlobalCullingInput
+        {
+            FrustrumPlanes = frustrumPlanes,
+            Viewer = viewer,
+            SphereOccluderRadiuses = sphereOccluderRadiuses,
+            SphereOccluderTranslations = sphereOccluderTranslations,
+            QuadOccluderExtents = quadOccluderExtents,
+            QuadOccluderTranslations = quadOccluderTranslations,
+            VisibleSets = visibleSets,
+            NearPlane = nearPlane,
+        };
 
         var jobsDependency = this.Dependency;
 
         // This code is fine but triggers job safety checks if they are enabled
-        foreach (var visibleCluster in visibleNodeSets[0])
+        foreach (var visibleCluster in visibleSets[0])
         {
             var jobHandle = this.Entities
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
-            .WithReadOnly(visibleNodeSets)
-            .WithReadOnly(sphereOccluderTranslations)
-            .WithReadOnly(sphereOccluderRadiuses)
-            .WithReadOnly(planeOccluderTranslations)
-            .WithReadOnly(planeOccluderExtents)
-            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radiusComponent, in OctreeNode octreeNode) =>
+            .WithReadOnly(globalInputs)
+            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
             {
-                if (!IsNodeVisible(octreeNode, visibleNodeSets))
-                {
-                    cullingResult.Value = CullingResult.CulledByOctreeNodes;
-                    return;
-                }
-
-                var boudingCenter = bounds.Value.Center;
-                var boundingRadius = radiusComponent.Value;
-
-                if (!Math.IsInFrustrum(boudingCenter, boundingRadius, frustrumPlanes))
-                {
-                    cullingResult.Value = CullingResult.CulledByFrustrumPlanes;
-                    return;
-                }
-
-                if (Math.IsOccludedBySphere(boudingCenter, boundingRadius, viewer, sphereOccluderTranslations, sphereOccluderRadiuses, frustrumPlanes))
-                {
-                    cullingResult.Value = CullingResult.CulledBySphereOccluder;
-                    return;
-                }
-
-                if (Math.IsOccludedByPlane(boudingCenter, boundingRadius, viewer, nearPlane, planeOccluderTranslations, planeOccluderExtents))
-                {
-                    cullingResult.Value = CullingResult.CulledByQuadOccluder;
-                    return;
-                }
-
-                cullingResult.Value = CullingResult.NotCulled;
+                ProcessVisibleCluster(ref cullingResult, globalInputs, bounds, radius, octreeNode);
             })
             .ScheduleParallel(jobsDependency);
 
             this.Dependency = JobHandle.CombineDependencies(this.Dependency, jobHandle);
         }
 
-        Main.VisibleOctreeNodes = visibleNodeSets.RawIDs;
+        Main.VisibleOctreeNodes = visibleSets.RawIDs;
 
-        planeOccluderExtents.Dispose(this.Dependency);
-        planeOccluderTranslations.Dispose(this.Dependency);
+        quadOccluderExtents.Dispose(this.Dependency);
+        quadOccluderTranslations.Dispose(this.Dependency);
         sphereOccluderRadiuses.Dispose(this.Dependency);
         sphereOccluderTranslations.Dispose(this.Dependency);
+    }
+
+    static void ProcessVisibleCluster(ref EntityCullingResult result, in GlobalCullingInput global, 
+        in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) 
+    {
+        if (!IsNodeVisible(octreeNode, global.VisibleSets))
+        {
+            result.Value = CullingResult.CulledByOctreeNodes;
+            return;
+        }
+
+        var entityInputs = new PerEntityCullingInput
+        {
+            Bounds = bounds,
+            OtreeNode = octreeNode,
+            Radius = radius
+        };
+
+        PostOctreeCulling(ref result, in entityInputs, in global);
+    }
+
+    static void PostOctreeCulling(ref EntityCullingResult result, in PerEntityCullingInput entity, in GlobalCullingInput global)
+    {
+        var boudingCenter = entity.Bounds.Value.Center;
+        var boundingRadius = entity.Radius.Value;
+
+        if (!Math.IsInFrustrum(boudingCenter, boundingRadius, global.FrustrumPlanes))
+        {
+            result.Value = CullingResult.CulledByFrustrumPlanes;
+            return;
+        }
+
+        if (Math.IsOccludedBySphere(boudingCenter, boundingRadius, global.Viewer, 
+            global.SphereOccluderTranslations, global.SphereOccluderRadiuses, global.FrustrumPlanes))
+        {
+            result.Value = CullingResult.CulledBySphereOccluder;
+            return;
+        }
+
+        if (Math.IsOccludedByPlane(boudingCenter, boundingRadius, global.Viewer, 
+            global.NearPlane, global.QuadOccluderTranslations, global.QuadOccluderExtents))
+        {
+            result.Value = CullingResult.CulledByQuadOccluder;
+            return;
+        }
+
+        result.Value = CullingResult.NotCulled;
     }
 
     public static bool IsNodeVisible(in OctreeNode node, in VisibleSets visibleSets)
