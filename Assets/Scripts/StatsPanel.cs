@@ -21,6 +21,7 @@ public class StatsPanel : MonoBehaviour
             + $"Total Culled : {Stats.TotalCulledPercentage:0.0}%\n"
             + $"\tCulled By Octree Clusters : {Stats.CulledByOctreeClustersPercentage:0.0}%\n"
             + $"\tCulled By Octree Nodes : {Stats.CulledByOctreeNodesPercentage:0.0}%\n"
+            + $"\tCulled By Frustrum AABB : {Stats.CulledByFrustrumAABBPercentage:0.0}%\n"
             + $"\tCulled By Frustrum Planes : {Stats.CulledByFrustrumPlanesPercentage:0.0}%\n"
             + $"\tCulled By Sphere Occluders : {Stats.CulledBySphereOccludersPercentage:0.0}%\n"
             + $"\tCulled By Quad Occluders : {Stats.CulledByQuadOccludersPercentage:0.0}%\n"

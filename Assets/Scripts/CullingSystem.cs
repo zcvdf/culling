@@ -17,6 +17,7 @@ public class CullingSystem : SystemBase
 {
     struct GlobalCullingInput
     {
+        [ReadOnly] public AABB FrustrumAABB;
         [ReadOnly] public WorldFrustrumPlanes FrustrumPlanes;
         [ReadOnly] public VisibleSets VisibleSets;
         [ReadOnly] public NativeArray<Translation> SphereOccluderTranslations;
@@ -64,6 +65,7 @@ public class CullingSystem : SystemBase
 
         var globalInputs = new GlobalCullingInput
         {
+            FrustrumAABB = frustrumAABB,
             FrustrumPlanes = frustrumPlanes,
             Viewer = viewer,
             SphereOccluderRadiuses = sphereOccluderRadiuses,
@@ -135,6 +137,12 @@ public class CullingSystem : SystemBase
     static void ProcessOctreeRoot(ref EntityCullingResult result, in GlobalCullingInput global,
         in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode)
     {
+        if (!global.FrustrumAABB.Overlap(bounds.Value))
+        {
+            result.Value = CullingResult.CulledByFrustrumAABB;
+            return;
+        }
+
         var entityInputs = new PerEntityCullingInput
         {
             Bounds = bounds,

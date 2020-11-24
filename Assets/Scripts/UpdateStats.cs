@@ -37,7 +37,7 @@ public class UpdateStats : SystemBase
         var visibleSetsEntity = GetSingletonEntity<VisibleSetsComponent>();
         var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibleSetsEntity).Value;
 
-        var stats = new NativeArray<int>(7, Allocator.TempJob);
+        var stats = new NativeArray<int>(8, Allocator.TempJob);
 
         foreach (var visibleCluster in visibleSets[0])
         {
@@ -57,9 +57,14 @@ public class UpdateStats : SystemBase
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
             .WithNativeDisableParallelForRestriction(stats)
-            .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
+            .ForEach((in EntityCullingResult result) =>
             {
-                ++stats[6];
+                if (result.Value == CullingResult.CulledByFrustrumAABB)
+                {
+                    ++stats[6];
+                }
+
+                ++stats[7];
             })
             .Run();
 
@@ -73,12 +78,14 @@ public class UpdateStats : SystemBase
         var culledByFrustrumPlanes = stats[3];
         var culledBySphereOccluder = stats[4];
         var culledByQuadOccluder = stats[5];
-        var atRootOctreeLayer = stats[6];
+        var culledByFrustrumAABB = stats[6];
+        var atRootOctreeLayer = stats[7];
 
         var culledByOctreeClusters = Stats.TotalEntityNumber - culledByOctreeNodes 
-            - culledByFrustrumPlanes - culledByQuadOccluder - culledBySphereOccluder - notCulled;
+            - culledByFrustrumPlanes - culledByQuadOccluder - culledBySphereOccluder - notCulled - culledByFrustrumAABB;
 
         Stats.CulledByOctreeNodes = culledByOctreeNodes;
+        Stats.CulledByFrustrumAABB = culledByFrustrumAABB;
         Stats.CulledByFrustrumPlanes = culledByFrustrumPlanes;
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;

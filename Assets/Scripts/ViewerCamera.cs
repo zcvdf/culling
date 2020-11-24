@@ -8,7 +8,7 @@ public class ViewerCamera : MonoBehaviour
     [SerializeField] float moveSpeed = 20f;
     private bool isUsed = false;
     private new Camera camera;
-    public bool IsLocked = false;
+    [HideInInspector] public bool IsLocked = false;
 
     private void Awake()
     {

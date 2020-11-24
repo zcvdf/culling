@@ -12,6 +12,7 @@ public static class Stats
 
     public static int CulledByOctreeClusters;
     public static int CulledByOctreeNodes;
+    public static int CulledByFrustrumAABB;
     public static int CulledByFrustrumPlanes;
     public static int CulledBySphereOccluders;
     public static int CulledByQuadOccluders;
@@ -25,6 +26,8 @@ public static class Stats
     public static float CulledByOctreeClustersPercentage => AsPercentage(CulledByOctreeClusters);
 
     public static float CulledByOctreeNodesPercentage => AsPercentage(CulledByOctreeNodes);
+
+    public static float CulledByFrustrumAABBPercentage => AsPercentage(CulledByFrustrumAABB);
 
     public static float CulledByFrustrumPlanesPercentage => AsPercentage(CulledByFrustrumPlanes);
 

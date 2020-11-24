@@ -36,7 +36,17 @@ public static class Math
 {
     public const float Sqrt3 = 1.73205080f;
 
-    public static float SignedDistanceToPlane(float3 point, Plane plane)
+    public static bool Overlap(in this AABB b0, in AABB b1)
+{
+    if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
+    {
+        return false;
+    }
+
+    return b0.Max.x >= b1.Min.x && b0.Max.y >= b1.Min.y && b0.Max.z >= b1.Min.z;
+}
+
+public static float SignedDistanceToPlane(float3 point, Plane plane)
     {
         float3 normal = plane.normal;
         float distance = plane.distance;
