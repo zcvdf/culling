@@ -2,8 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum StatsDetails
+{
+    None,
+    Normal,
+    Advanced,
+}
+
 public static class Stats
 {
+    public static StatsDetails Details = StatsDetails.None;
+
     public static int FPS;
 
     public static int TotalEntityNumber;
@@ -40,5 +49,17 @@ public static class Stats
     private static float AsPercentage(int entityCount)
     {
         return 100f * (entityCount / (float)TotalEntityNumber);
+    }
+
+    public static void NextDetailsLevel()
+    {
+        var detail = (int)Details + 1;
+
+        if (detail > 2)
+        {
+            detail = 0;
+        }
+
+        Details = (StatsDetails)detail;
     }
 }

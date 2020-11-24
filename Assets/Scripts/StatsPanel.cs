@@ -9,15 +9,17 @@ public class StatsPanel : MonoBehaviour
 
     void Update()
     {
-        if (!Main.DisplayStats) return;
+        if (Stats.Details == StatsDetails.None) return;
 
-        this.text.text =
-              $"FPS : {Stats.FPS}\n"
+        var text = $"FPS : {Stats.FPS}\n"
             + "\n"
             + $"Total Entity Number : {Stats.TotalEntityNumber}\n"
             + $"Visible Octree Clusters : {Stats.VisibleOctreeClusters}\n"
-            + $"Visible Octree Leafs : {Stats.VisibleOctreeLeafs}\n"
-            + "\n"
+            + $"Visible Octree Leafs : {Stats.VisibleOctreeLeafs}\n";
+
+        if (Stats.Details == StatsDetails.Advanced)
+        {
+            text += "\n"
             + $"Total Culled : {Stats.TotalCulledPercentage:0.0}%\n"
             + $"\tCulled By Octree Clusters : {Stats.CulledByOctreeClustersPercentage:0.0}%\n"
             + $"\tCulled By Octree Nodes : {Stats.CulledByOctreeNodesPercentage:0.0}%\n"
@@ -27,5 +29,8 @@ public class StatsPanel : MonoBehaviour
             + $"\tCulled By Quad Occluders : {Stats.CulledByQuadOccludersPercentage:0.0}%\n"
             + "\n"
             + $"Entities At Root Octree Layer : {Stats.AtRootOctreeLayerPercentage:0.0}%\n";
+        }
+
+        this.text.text = text;
     }
 }

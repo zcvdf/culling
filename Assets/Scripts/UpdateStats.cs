@@ -30,12 +30,17 @@ public class UpdateStats : SystemBase
     {
         UpdateFPSDatas();
 
-        if (!Main.DisplayStats) return;
+        if (Stats.Details == StatsDetails.None) return;
 
         UpdateVisibleSets.LastScheduledJob.Complete();
 
         var visibleSetsEntity = GetSingletonEntity<VisibleSetsComponent>();
         var visibleSets = this.EntityManager.GetComponentData<VisibleSetsComponent>(visibleSetsEntity).Value;
+
+        Stats.VisibleOctreeClusters = visibleSets.ClusterLayer.Count();
+        Stats.VisibleOctreeLeafs = visibleSets.LeafLayer.Count();
+
+        if (Stats.Details == StatsDetails.Normal) return;
 
         var stats = new NativeArray<int>(8, Allocator.TempJob);
 
@@ -54,19 +59,19 @@ public class UpdateStats : SystemBase
         }
 
         this.Entities
-            .WithAll<EntityTag>()
-            .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
-            .WithNativeDisableParallelForRestriction(stats)
-            .ForEach((in EntityCullingResult result) =>
+        .WithAll<EntityTag>()
+        .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
+        .WithNativeDisableParallelForRestriction(stats)
+        .ForEach((in EntityCullingResult result) =>
+        {
+            if (result.Value == CullingResult.CulledByFrustrumAABB)
             {
-                if (result.Value == CullingResult.CulledByFrustrumAABB)
-                {
-                    ++stats[6];
-                }
+                ++stats[6];
+            }
 
-                ++stats[7];
-            })
-            .Run();
+            ++stats[7];
+        })
+        .Run();
 
         var notCulled = stats[0];
 
@@ -90,8 +95,6 @@ public class UpdateStats : SystemBase
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
         Stats.CulledByOctreeClusters = culledByOctreeClusters;
-        Stats.VisibleOctreeClusters = visibleSets.ClusterLayer.Count();
-        Stats.VisibleOctreeLeafs = visibleSets.LeafLayer.Count();
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();

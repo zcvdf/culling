@@ -28,7 +28,6 @@ public class Main : MonoBehaviour
     public static ulong[][] VisibleOctreeNodes;
 
     public static bool IsLocked;
-    public static bool DisplayStats;
     public static bool ShowRootLayerEntities;
 
     [SerializeField] ViewerCamera viewerCamera;
@@ -65,7 +64,7 @@ public class Main : MonoBehaviour
         this.viewerCamera.Use(true);
         this.statsPanel.enabled = false;
         SetLock(this.lockOnStart);
-        SetStatsPanelVisible(false);
+        HideStatsPanel();
     }
 
     private void Update()
@@ -129,7 +128,7 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            ToggleStatsPanelVisible();
+            NextStatsDetailsLevel();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -202,15 +201,16 @@ public class Main : MonoBehaviour
         Gizmos.DrawCube(FrustrumAABB.Center, FrustrumAABB.Size);
     }
 
-    void SetStatsPanelVisible(bool visible)
+    void HideStatsPanel()
     {
-        DisplayStats = visible;
-        this.statsPanel.enabled = visible;
+        Stats.Details = StatsDetails.None;
+        this.statsPanel.enabled = false;
     }
 
-    void ToggleStatsPanelVisible()
+    void NextStatsDetailsLevel()
     {
-        SetStatsPanelVisible(!DisplayStats);
+        Stats.NextDetailsLevel();
+        this.statsPanel.enabled = Stats.Details != StatsDetails.None;
     }
 
     void SetLock(bool locked)
