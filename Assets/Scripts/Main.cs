@@ -175,23 +175,40 @@ public class Main : MonoBehaviour
         var material = this.octreeLayerMaterials[matID];
 
         var nodes = VisibleOctreeNodes[layer];
-
-        var matrices = new List<Matrix4x4>(nodes.Length);
         var size = Octree.NodeSize(layer);
 
-        foreach (var packedNode in nodes)
+        var batchCount = nodes.Length / 1023;
+
+        // Add one additional batch for the rest
+        if (nodes.Length % 1023 != 0)
         {
-            var node = Octree.UnpackID(packedNode);
-
-            var center = Octree.NodeIDToPoint(node);
-            
-            var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
-            matrices.Add(matrix);
-
-            Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
+            ++batchCount;
         }
 
-        Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
+        var matrices = new List<Matrix4x4>(1023);
+
+        for (int i = 0; i < batchCount; ++i)
+        {
+            matrices.Clear();
+
+            for (int j = 0; j < 1023; ++j)
+            {
+                var k = i * 1023 + j;
+
+                if (k >= nodes.Length) break; // End of the rest batch processing
+
+                var node = Octree.UnpackID(nodes[k]);
+
+                var center = Octree.NodeIDToPoint(node);
+
+                var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
+                matrices.Add(matrix);
+
+                Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
+            }
+
+            Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
+        }
     }
 
     void DrawFrustrumAABB()
