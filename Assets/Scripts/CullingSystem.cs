@@ -87,7 +87,7 @@ public class CullingSystem : SystemBase
             .WithReadOnly(globalInputs)
             .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
             {
-                ProcessVisibleCluster(ref cullingResult, globalInputs, bounds, radius, octreeNode);
+                cullingResult.Value = ProcessVisibleCluster(globalInputs, bounds, radius, octreeNode);
             })
             .ScheduleParallel(jobsDependency);
 
@@ -101,7 +101,7 @@ public class CullingSystem : SystemBase
         .WithReadOnly(globalInputs)
         .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
         {
-            ProcessOctreeRoot(ref cullingResult, globalInputs, bounds, radius, octreeNode);
+            cullingResult.Value = ProcessOctreeRoot(globalInputs, bounds, radius, octreeNode);
         })
         .ScheduleParallel(jobsDependency);
 
@@ -115,13 +115,12 @@ public class CullingSystem : SystemBase
         sphereOccluderTranslations.Dispose(this.Dependency);
     }
 
-    static void ProcessVisibleCluster(ref EntityCullingResult result, in GlobalCullingInput global, 
+    static CullingResult ProcessVisibleCluster(in GlobalCullingInput global, 
         in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) 
     {
         if (!IsNodeVisible(octreeNode, global.VisibleSets))
         {
-            result.Value = CullingResult.CulledByOctreeNodes;
-            return;
+            return CullingResult.CulledByOctreeNodes;
         }
 
         var entityInputs = new PerEntityCullingInput
@@ -131,16 +130,15 @@ public class CullingSystem : SystemBase
             Radius = radius
         };
 
-        PostOctreeCulling(ref result, in entityInputs, in global);
+        return PostOctreeCulling(in entityInputs, in global);
     }
 
-    static void ProcessOctreeRoot(ref EntityCullingResult result, in GlobalCullingInput global,
+    static CullingResult ProcessOctreeRoot(in GlobalCullingInput global,
         in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode)
     {
         if (!global.FrustrumAABB.Overlap(bounds.Value))
         {
-            result.Value = CullingResult.CulledByFrustrumAABB;
-            return;
+            return CullingResult.CulledByFrustrumAABB;
         }
 
         var entityInputs = new PerEntityCullingInput
@@ -150,35 +148,32 @@ public class CullingSystem : SystemBase
             Radius = radius
         };
 
-        PostOctreeCulling(ref result, in entityInputs, in global);
+        return PostOctreeCulling(in entityInputs, in global);
     }
 
-    static void PostOctreeCulling(ref EntityCullingResult result, in PerEntityCullingInput entity, in GlobalCullingInput global)
+    static CullingResult PostOctreeCulling(in PerEntityCullingInput entity, in GlobalCullingInput global)
     {
         var boudingCenter = entity.Bounds.Value.Center;
         var boundingRadius = entity.Radius.Value;
 
         if (!Math.IsInFrustrum(boudingCenter, boundingRadius, global.FrustrumPlanes))
         {
-            result.Value = CullingResult.CulledByFrustrumPlanes;
-            return;
+            return CullingResult.CulledByFrustrumPlanes;
         }
 
         if (Math.IsOccludedBySphere(boudingCenter, boundingRadius, global.Viewer, 
             global.SphereOccluderTranslations, global.SphereOccluderRadiuses, global.FrustrumPlanes))
         {
-            result.Value = CullingResult.CulledBySphereOccluder;
-            return;
+            return CullingResult.CulledBySphereOccluder;
         }
 
         if (Math.IsOccludedByPlane(boudingCenter, boundingRadius, global.Viewer, 
             global.NearPlane, global.QuadOccluderTranslations, global.QuadOccluderExtents))
         {
-            result.Value = CullingResult.CulledByQuadOccluder;
-            return;
+            return CullingResult.CulledByQuadOccluder;
         }
 
-        result.Value = CullingResult.NotCulled;
+        return CullingResult.NotCulled;
     }
 
     public static bool IsNodeVisible(in OctreeNode node, in VisibleSets visibleSets)
