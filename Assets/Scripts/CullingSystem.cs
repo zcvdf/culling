@@ -78,7 +78,8 @@ public class CullingSystem : SystemBase
 
         var jobsDependency = this.Dependency;
 
-        // This code is fine but triggers job safety checks if they are enabled
+        // This code is fine but triggers job safety checks if they are enabled.
+        // According to the DOTS team, there are no equally fast alternatives not triggering the safety checks at the moment.
         foreach (var visibleCluster in visibleSets[0])
         {
             var clusterJobHandle = this.Entities
