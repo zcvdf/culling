@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -64,6 +64,26 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
     public static bool IsClipped(float3 center, Plane plane)
     {
         return SignedDistanceToPlane(center, plane) < 0f;
+    }
+
+    public static float3 LocalFarestAABBCornerFromPoint(in AABB aabb, float3 point)
+    {
+        return math.sign(aabb.Center - point) * aabb.Extents;
+    }
+
+    public static float3 LocalFarestAABBCornerInDirection(in AABB aabb, float3 direction)
+    {
+        return math.sign(direction) * aabb.Extents;
+    }
+
+    public static float3 LocalNearestAABBCornerFromPoint(in AABB aabb, float3 point)
+    {
+        return -LocalFarestAABBCornerFromPoint(aabb, point);
+    }
+
+    public static float3 LocalNearestAABBCornerInDirection(in AABB aabb, float3 direction)
+    {
+        return -LocalFarestAABBCornerInDirection(aabb, direction);
     }
 
     public static bool IsInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes)
@@ -246,6 +266,75 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             var occluderDirection = viewerToOccluder / occluderDistance;
 
             if (IsOccludedBySphere(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsOccludedBySphere(in AABB aabb, float3 viewer, float3 occluderPosition, float3 occluderDirection,
+        float occluderDistance, float occluderRadius, bool cullInside)
+    {
+        // Handling of the objects in occluder sphere
+        var localFarestFromOccluder = LocalFarestAABBCornerFromPoint(aabb, occluderPosition);
+        var farestFromOccluder = aabb.Center + localFarestFromOccluder;
+        var nearestFromOccluder = aabb.Center - localFarestFromOccluder;
+
+        // If it is requested to cull the inside of the sphere, we need to check if the fares corner of the AABB is in the occluder's sphere.
+        // But if we don't want to cull the inside, the object is still visible when its AABB is completely in the occluder OR when it intersects with it.
+        // So we compare with the nearest in this case
+        var maxDistToOccluderSq = occluderRadius * occluderRadius;
+        var cornerForCullingInside = cullInside ? farestFromOccluder : nearestFromOccluder;
+
+        if (math.lengthsq(cornerForCullingInside - occluderPosition) < maxDistToOccluderSq)
+        {
+            return cullInside;
+        }
+
+        // Handling of the objects behind the near slice of the occlusion cone
+        var viewerToObject = aabb.Center - viewer;
+        var objectProjectedNear = math.dot(occluderDirection, viewerToObject - math.sign(occluderDirection) * aabb.Extents);
+
+        var isBehindNearSlice = objectProjectedNear < occluderDistance;
+        if (isBehindNearSlice) return false;
+
+        // Occlusion cone culling
+        var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
+        var objectProjection = occluderDirection * objectProjectedDistance;
+
+        var farestFromProjection = viewerToObject + math.sign(viewerToObject - objectProjection) * aabb.Extents;
+
+        var farestProjectedDistance = math.dot(occluderDirection, farestFromProjection);
+        var farestProjection = occluderDirection * farestProjectedDistance;
+
+        var thalesRatio = farestProjectedDistance / occluderDistance;
+        var maxDist = thalesRatio * occluderRadius;
+        var maxDistSq = maxDist * maxDist;
+
+        var projectionToFarest = farestFromProjection - farestProjection;
+
+        // If the boudning sphere fits in the occlusion cone, cull it out
+        return math.lengthsq(projectionToFarest) < maxDistSq;
+    }
+
+    public static bool IsOccludedBySphere(in AABB aabb, float3 viewer,
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in WorldFrustrumPlanes frustrumPlanes)
+    {
+        for (int i = 0; i < occluderTranslations.Length; ++i)
+        {
+            var occluderCenter = occluderTranslations[i].Value;
+            var occluderRadius = occluderRadiuses[i].Value;
+
+            bool hasNearIntersection;
+            if (!IsSphereOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
+
+            var viewerToOccluder = occluderCenter - viewer;
+            var occluderDistance = math.length(viewerToOccluder);
+            var occluderDirection = viewerToOccluder / occluderDistance;
+
+            if (IsOccludedBySphere(aabb, viewer, occluderCenter, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
             {
                 return true;
             }

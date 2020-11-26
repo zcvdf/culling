@@ -162,7 +162,7 @@ public class CullingSystem : SystemBase
             return CullingResult.CulledByFrustrumPlanes;
         }
 
-        if (Math.IsOccludedBySphere(boudingCenter, boundingRadius, global.Viewer, 
+        if (Math.IsOccludedBySphere(entity.Bounds.Value, global.Viewer, 
             global.SphereOccluderTranslations, global.SphereOccluderRadiuses, global.FrustrumPlanes))
         {
             return CullingResult.CulledBySphereOccluder;
