@@ -185,7 +185,7 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
         return true;
     }
 
-    public static bool IsSphereOccluded(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection,
+    public static bool IsOccludedBySphere(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection,
         float occluderDistance, float occluderRadius, bool cullInside)
     {
         // Handling of the objects in occluder sphere
@@ -242,7 +242,7 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
 
-            if (IsSphereOccluded(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            if (IsOccludedBySphere(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
             {
                 return true;
             }
