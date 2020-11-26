@@ -66,24 +66,24 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
         return SignedDistanceToPlane(center, plane) < 0f;
     }
 
-    public static float3 LocalFarestAABBCornerFromPoint(in AABB aabb, float3 point)
+    public static float3 FarestAABBCornerFromPoint(in AABB aabb, float3 point)
     {
-        return math.sign(aabb.Center - point) * aabb.Extents;
+        return aabb.Center + math.sign(aabb.Center - point) * aabb.Extents;
     }
 
-    public static float3 LocalFarestAABBCornerInDirection(in AABB aabb, float3 direction)
+    public static float3 FarestAABBCornerInDirection(in AABB aabb, float3 direction)
     {
-        return math.sign(direction) * aabb.Extents;
+        return aabb.Center + math.sign(direction) * aabb.Extents;
     }
 
-    public static float3 LocalNearestAABBCornerFromPoint(in AABB aabb, float3 point)
+    public static float3 NearestAABBCornerFromPoint(in AABB aabb, float3 point)
     {
-        return -LocalFarestAABBCornerFromPoint(aabb, point);
+        return aabb.Center - math.sign(aabb.Center - point) * aabb.Extents;
     }
 
-    public static float3 LocalNearestAABBCornerInDirection(in AABB aabb, float3 direction)
+    public static float3 NearestAABBCornerInDirection(in AABB aabb, float3 direction)
     {
-        return -LocalFarestAABBCornerInDirection(aabb, direction);
+        return aabb.Center - math.sign(direction) * aabb.Extents;
     }
 
     public static bool IsInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes)
@@ -274,13 +274,12 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
         return false;
     }
 
-    public static bool IsOccludedBySphere(in AABB aabb, float3 viewer, float3 occluderPosition, float3 occluderDirection,
+    public static bool IsOccludedBySphere(in AABB aabb, float3 occluderPosition, float3 occluderDirection,
         float occluderDistance, float occluderRadius, bool cullInside)
     {
         // Handling of the objects in occluder sphere
-        var localFarestFromOccluder = LocalFarestAABBCornerFromPoint(aabb, occluderPosition);
-        var farestFromOccluder = aabb.Center + localFarestFromOccluder;
-        var nearestFromOccluder = aabb.Center - localFarestFromOccluder;
+        var farestFromOccluder = FarestAABBCornerFromPoint(aabb, occluderPosition);
+        var nearestFromOccluder = NearestAABBCornerFromPoint(aabb, occluderPosition);
 
         // If it is requested to cull the inside of the sphere, we need to check if the fares corner of the AABB is in the occluder's sphere.
         // But if we don't want to cull the inside, the object is still visible when its AABB is completely in the occluder OR when it intersects with it.
@@ -294,17 +293,16 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
         }
 
         // Handling of the objects behind the near slice of the occlusion cone
-        var viewerToObject = aabb.Center - viewer;
-        var objectProjectedNear = math.dot(occluderDirection, viewerToObject - math.sign(occluderDirection) * aabb.Extents);
+        var objectProjectedNear = math.dot(occluderDirection, NearestAABBCornerInDirection(aabb, occluderDirection));
 
         var isBehindNearSlice = objectProjectedNear < occluderDistance;
         if (isBehindNearSlice) return false;
 
         // Occlusion cone culling
-        var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
+        var objectProjectedDistance = math.dot(occluderDirection, aabb.Center);
         var objectProjection = occluderDirection * objectProjectedDistance;
 
-        var farestFromProjection = viewerToObject + math.sign(viewerToObject - objectProjection) * aabb.Extents;
+        var farestFromProjection = FarestAABBCornerFromPoint(aabb, objectProjection);
 
         var farestProjectedDistance = math.dot(occluderDirection, farestFromProjection);
         var farestProjection = occluderDirection * farestProjectedDistance;
@@ -315,7 +313,7 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
 
         var projectionToFarest = farestFromProjection - farestProjection;
 
-        // If the boudning sphere fits in the occlusion cone, cull it out
+        // If the farest corner is in the occlusion cone, cull it out
         return math.lengthsq(projectionToFarest) < maxDistSq;
     }
 
@@ -334,7 +332,11 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
 
-            if (IsOccludedBySphere(aabb, viewer, occluderCenter, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            var viewerAABB = new AABB();
+            viewerAABB.Center = aabb.Center - viewer;
+            viewerAABB.Extents = aabb.Extents;
+
+            if (IsOccludedBySphere(viewerAABB, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
             {
                 return true;
             }
