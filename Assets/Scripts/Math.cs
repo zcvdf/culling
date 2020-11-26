@@ -161,6 +161,15 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
         return IsClipped(farest, plane);
     }
 
+    public static bool IsClipped(in AABB aabb, Plane plane)
+    {
+        var localFarest = math.sign(plane.normal) * aabb.Extents;
+
+        var farest = aabb.Center + localFarest;
+
+        return IsClipped(farest, plane);
+    }
+
     public static bool IsCubeCulled(float3 center, float extent, in WorldFrustrumPlanes planes)
     {
         return IsCubeClipped(center, extent, planes.Left)
@@ -425,6 +434,46 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             var occlusionPlanes = GetOccluderPlanes(viewer, center, occluderNormal, localRight, localRightLength, localUp, localUpLength);
 
             if (IsOccludedByPlane(testedCenter, testedRadius, occlusionPlanes))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsOccludedByPlane(in AABB aabb, in OccluderPlanes planes)
+    {
+        return IsClipped(aabb, planes.Left)
+            && IsClipped(aabb, planes.Right)
+            && IsClipped(aabb, planes.Up)
+            && IsClipped(aabb, planes.Down)
+            && IsClipped(aabb, planes.Near);
+    }
+
+    public static bool IsOccludedByPlane(in AABB aabb, float3 viewer, in Quad nearPlane,
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderExtents> occluderExtents)
+    {
+        for (int i = 0; i < occluderTranslations.Length; ++i)
+        {
+            var center = occluderTranslations[i].Value;
+            var localRight = occluderExtents[i].LocalRight;
+            var localRightLength = occluderExtents[i].LocalRightLength;
+            var localUp = occluderExtents[i].LocalUp;
+            var localUpLength = occluderExtents[i].LocalUpLength;
+            var occluderNormal = GetOccluderlaneNormal(localRight, localUp);
+
+            var occluderQuad = new Quad();
+            occluderQuad.Center = center;
+            occluderQuad.LocalRight = localRight * localRightLength;
+            occluderQuad.LocalUp = localUp * localUpLength;
+            occluderQuad.Normal = occluderNormal;
+
+            if (!OccluderPlaneHasContribution(occluderQuad, nearPlane)) continue;
+
+            var occlusionPlanes = GetOccluderPlanes(viewer, center, occluderNormal, localRight, localRightLength, localUp, localUpLength);
+
+            if (IsOccludedByPlane(aabb, occlusionPlanes))
             {
                 return true;
             }

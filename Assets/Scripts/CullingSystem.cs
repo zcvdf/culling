@@ -168,7 +168,7 @@ public class CullingSystem : SystemBase
             return CullingResult.CulledBySphereOccluder;
         }
 
-        if (Math.IsOccludedByPlane(boudingCenter, boundingRadius, global.Viewer, 
+        if (Math.IsOccludedByPlane(entity.Bounds.Value, global.Viewer, 
             global.NearPlane, global.QuadOccluderTranslations, global.QuadOccluderExtents))
         {
             return CullingResult.CulledByQuadOccluder;
