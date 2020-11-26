@@ -157,7 +157,7 @@ public class CullingSystem : SystemBase
         var boudingCenter = entity.Bounds.Value.Center;
         var boundingRadius = entity.Radius.Value;
 
-        if (!Math.IsInFrustrum(boudingCenter, boundingRadius, global.FrustrumPlanes))
+        if (!Math.IsInFrustrum(entity.Bounds.Value, global.FrustrumPlanes))
         {
             return CullingResult.CulledByFrustrumPlanes;
         }

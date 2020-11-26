@@ -95,6 +95,15 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             && !IsClipped(center, radius, planes.Near)
             && !IsClipped(center, radius, planes.Far);
     }
+    public static bool IsInFrustrum(in AABB aabb, in WorldFrustrumPlanes planes)
+    {
+        return !IsClipped(aabb, planes.Left)
+            && !IsClipped(aabb, planes.Right)
+            && !IsClipped(aabb, planes.Down)
+            && !IsClipped(aabb, planes.Up)
+            && !IsClipped(aabb, planes.Near)
+            && !IsClipped(aabb, planes.Far);
+    }
 
     public static bool IsInFrustrum(float3 point, in WorldFrustrumPlanes planes)
     {
