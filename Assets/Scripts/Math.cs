@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -188,18 +188,21 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
     public static bool IsOccludedBySphere(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection,
         float occluderDistance, float occluderRadius, bool cullInside)
     {
-        // Handling of the objects in occluder sphere
-        var occluderToObject = viewerToObject - viewerToOccluder;
-
-        // If it is requested to cull the inside of the sphere, we need to check if the bounding sphere of the object is completely submerged by the occluder.
-        // But if we don't want to cull the inside, the bounding sphere is still visible when it is completely in the occluder AND when it intersects with it.
-        var maxDistToOccluderSq = occluderRadius + (cullInside ? -objectRadius : objectRadius);
-        maxDistToOccluderSq *= maxDistToOccluderSq;
-
-        var isInMaxDistToOccluder = math.lengthsq(occluderToObject) < maxDistToOccluderSq;
-        if (isInMaxDistToOccluder)
+        // Handling of the objects in occluder sphere. Skip it if the object can't fit in the occluder
+        if (objectRadius < occluderRadius)
         {
-            return cullInside;
+            var occluderToObject = viewerToObject - viewerToOccluder;
+
+            // If it is requested to cull the inside of the sphere, we need to check if the bounding sphere of the object is completely submerged by the occluder.
+            // But if we don't want to cull the inside, the object must be visible when the bounding sphere is completely in the occluder OR when it intersects with it.
+            var maxDistToOccluderSq = occluderRadius + (cullInside ? -objectRadius : objectRadius);
+            maxDistToOccluderSq *= maxDistToOccluderSq;
+
+            var isInMaxDistToOccluder = math.lengthsq(occluderToObject) < maxDistToOccluderSq;
+            if (isInMaxDistToOccluder)
+            {
+                return cullInside;
+            }
         }
 
         // Handling of the objects behind the near slice of the occlusion cone
