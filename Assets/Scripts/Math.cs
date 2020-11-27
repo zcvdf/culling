@@ -37,33 +37,23 @@ public static class Math
     public const float Sqrt3 = 1.73205080f;
 
     public static bool Overlap(in this AABB b0, in AABB b1)
-{
-    if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
     {
-        return false;
-    }
+        if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
+        {
+            return false;
+        }
 
-    return b0.Max.x >= b1.Min.x && b0.Max.y >= b1.Min.y && b0.Max.z >= b1.Min.z;
-}
-
-public static float SignedDistanceToPlane(float3 point, Plane plane)
-    {
-        float3 normal = plane.normal;
-        float distance = plane.distance;
-        float3 planePoint = -normal * distance;
-        var delta = point - planePoint;
-
-        return math.dot(normal, delta);
+        return b0.Max.x >= b1.Min.x && b0.Max.y >= b1.Min.y && b0.Max.z >= b1.Min.z;
     }
 
     public static bool IsClipped(float3 center, float radius, Plane plane)
     {
-        return SignedDistanceToPlane(center, plane) < -radius;
+        return plane.GetDistanceToPoint(center) < -radius;
     }
 
     public static bool IsClipped(float3 center, Plane plane)
     {
-        return SignedDistanceToPlane(center, plane) < 0f;
+        return plane.GetDistanceToPoint(center) < 0f;
     }
 
     public static float3 FarestAABBCornerFromPoint(in AABB aabb, float3 point)
@@ -209,7 +199,7 @@ public static float SignedDistanceToPlane(float3 point, Plane plane)
             return false;
         }
 
-        var nearDist = SignedDistanceToPlane(center, planes.Near);
+        var nearDist = planes.Near.GetDistanceToPoint(center);
         if (nearDist < 0f)
         {
             return false;
