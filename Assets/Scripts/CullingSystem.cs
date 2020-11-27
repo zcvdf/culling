@@ -8,7 +8,6 @@ using Unity.Transforms;
 using Unity.Jobs;
 using UnityEngine;
 
-[UpdateAfter(typeof(UpdateWorldBoundingRadiusSystem))]
 [UpdateAfter(typeof(UpdateEntityOctreeCluster))]
 [UpdateAfter(typeof(UpdateEntityOctreeNode))]
 [UpdateAfter(typeof(UpdateVisibleSets))]
@@ -31,7 +30,6 @@ public class CullingSystem : SystemBase
     struct PerEntityCullingInput
     {
         [ReadOnly] public WorldRenderBounds Bounds; 
-        [ReadOnly] public WorldBoundingRadius Radius;
         [ReadOnly] public OctreeNode OtreeNode;
     }
 
@@ -86,9 +84,9 @@ public class CullingSystem : SystemBase
             .WithAll<EntityTag>()
             .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
             .WithReadOnly(globalInputs)
-            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
+            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in OctreeNode octreeNode) =>
             {
-                cullingResult.Value = ProcessVisibleCluster(globalInputs, bounds, radius, octreeNode);
+                cullingResult.Value = ProcessVisibleCluster(globalInputs, bounds, octreeNode);
             })
             .ScheduleParallel(jobsDependency);
 
@@ -100,9 +98,9 @@ public class CullingSystem : SystemBase
         .WithAll<EntityTag>()
         .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
         .WithReadOnly(globalInputs)
-        .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) =>
+        .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in OctreeNode octreeNode) =>
         {
-            cullingResult.Value = ProcessOctreeRoot(globalInputs, bounds, radius, octreeNode);
+            cullingResult.Value = ProcessOctreeRoot(globalInputs, bounds, octreeNode);
         })
         .ScheduleParallel(jobsDependency);
 
@@ -117,7 +115,7 @@ public class CullingSystem : SystemBase
     }
 
     static CullingResult ProcessVisibleCluster(in GlobalCullingInput global, 
-        in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode) 
+        in WorldRenderBounds bounds, in OctreeNode octreeNode) 
     {
         if (!IsNodeVisible(octreeNode, global.VisibleSets))
         {
@@ -128,14 +126,13 @@ public class CullingSystem : SystemBase
         {
             Bounds = bounds,
             OtreeNode = octreeNode,
-            Radius = radius
         };
 
         return PostOctreeCulling(in entityInputs, in global);
     }
 
     static CullingResult ProcessOctreeRoot(in GlobalCullingInput global,
-        in WorldRenderBounds bounds, in WorldBoundingRadius radius, in OctreeNode octreeNode)
+        in WorldRenderBounds bounds, in OctreeNode octreeNode)
     {
         if (!global.FrustrumAABB.Overlap(bounds.Value))
         {
@@ -146,7 +143,6 @@ public class CullingSystem : SystemBase
         {
             Bounds = bounds,
             OtreeNode = octreeNode,
-            Radius = radius
         };
 
         return PostOctreeCulling(in entityInputs, in global);
@@ -154,9 +150,6 @@ public class CullingSystem : SystemBase
 
     static CullingResult PostOctreeCulling(in PerEntityCullingInput entity, in GlobalCullingInput global)
     {
-        var boudingCenter = entity.Bounds.Value.Center;
-        var boundingRadius = entity.Radius.Value;
-
         if (!Math.IsInFrustrum(entity.Bounds.Value, global.FrustrumPlanes))
         {
             return CullingResult.CulledByFrustrumPlanes;
