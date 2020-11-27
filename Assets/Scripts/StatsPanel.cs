@@ -13,7 +13,7 @@ public class StatsPanel : MonoBehaviour
 
         var text = $"FPS : {Stats.FPS}\n"
             + "\n"
-            + $"Total Entity Number : {Stats.TotalEntityNumber}\n"
+            + $"Total Entity Number : {Stats.TotalEntityNumber:N0}\n"
             + $"Visible Octree Clusters : {Stats.VisibleOctreeClusters}\n"
             + $"Visible Octree Leafs : {Stats.VisibleOctreeLeafs}\n";
 
