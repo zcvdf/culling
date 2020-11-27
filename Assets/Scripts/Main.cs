@@ -35,16 +35,16 @@ public class Main : MonoBehaviour
     [SerializeField] Color entityOutFrumstrumColor;
     [SerializeField] Color entityInFrustrumColor;
     [SerializeField] Color entityOccludedColor;
-    [SerializeField] Color boudingSphereColor;
     [SerializeField] Color rootOctreeLayerColor;
     [SerializeField] Material[] octreeLayerMaterials;
+    [SerializeField] Material boundingAABBMaterial;
     [SerializeField] Color frustrumAABBColor;
     [SerializeField] Mesh cubeMesh;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
     [SerializeField] bool lockOnStart = false;
 
-    bool displayBoundingSpheres = false;
+    bool displayBoundingAABBs = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
 
@@ -95,20 +95,13 @@ public class Main : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void OnRenderObject()
     {
-        this.viewerCamera.Camera.DrawFrustrum(Color.yellow);
-
         if (World != null && !World.Equals(null))
         {
-            if (this.displayBoundingSpheres)
+            if (this.displayBoundingAABBs)
             {
-                DrawEntityBoundingSpheres();
-            }
-
-            if (this.displayFrustrumAABB)
-            {
-                DrawFrustrumAABB();
+                DrawEntityAABBs();
             }
         }
     }
@@ -142,30 +135,51 @@ public class Main : MonoBehaviour
             ToggleShowRootLayerEntities();
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha8))
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            this.displayBoundingAABBs = !this.displayBoundingAABBs;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha5))
         {
             this.displayFrustrumAABB = !this.displayFrustrumAABB;
         }
-
-        if (Input.GetKeyDown(KeyCode.Alpha9))
-        {
-            this.displayBoundingSpheres = !this.displayBoundingSpheres;
-        }
     }
 
-    void DrawEntityBoundingSpheres()
+    void DrawEntityAABBs()
     {
-        var translations = EntityQuery.ToComponentDataArray<Translation>(Allocator.Temp);
-        var radiuses = EntityQuery.ToComponentDataArray<WorldBoundingRadius>(Allocator.Temp);
+        var aabbs = EntityQuery.ToComponentDataArray<WorldRenderBounds>(Allocator.Temp);
+        var count = aabbs.Length;
 
-        for (int i = 0; i < translations.Length; ++i)
+        var batchCount = count / 1023;
+
+        // Add one additional batch for the rest
+        if (count % 1023 != 0)
         {
-            var center = translations[i].Value;
-            var radius = radiuses[i].Value;
+            ++batchCount;
+        }
 
-            Gizmos.matrix = Matrix4x4.identity;
-            Gizmos.color = this.boudingSphereColor;
-            Gizmos.DrawSphere(center, radius);
+        var matrices = new List<Matrix4x4>(1023);
+
+        for (int i = 0; i < batchCount; ++i)
+        {
+            matrices.Clear();
+
+            for (int j = 0; j < 1023; ++j)
+            {
+                var k = i * 1023 + j;
+
+                if (k >= count) break; // End of the rest batch processing
+
+                var aabb = aabbs[k].Value;
+                var center = aabb.Center;
+                var size = aabb.Extents * 2f;
+
+                var matrix = Matrix4x4.TRS(center, Quaternion.identity, size);
+                matrices.Add(matrix);
+            }
+
+            Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.boundingAABBMaterial, matrices);
         }
     }
 
@@ -204,7 +218,7 @@ public class Main : MonoBehaviour
                 var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
                 matrices.Add(matrix);
 
-                Draw.CubeCubeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
+                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
             }
 
             Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);

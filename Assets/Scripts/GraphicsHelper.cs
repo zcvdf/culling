@@ -5,14 +5,14 @@ using UnityEngine;
 
 public static class Draw
 {
-    public static void CubeCubeEdges(Mesh cubeMesh, Color color, float cubeExtent, Vector3 center, float thickness = 1f)
+    public static void AABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
     {
-        var size = cubeExtent * 2f;
+        var size = extent * 2f;
         var t = thickness;
 
-        var x = new Vector3(cubeExtent, 0, 0);
-        var y = new Vector3(0, cubeExtent, 0);
-        var z = new Vector3(0, 0, cubeExtent);
+        var x = new Vector3(extent.x, 0, 0);
+        var y = new Vector3(0, extent.y, 0);
+        var z = new Vector3(0, 0, extent.z);
 
         var centers = new Vector3[12]
         {
@@ -37,23 +37,23 @@ public static class Draw
 
         var scales = new Vector3[12]
         {
-            new Vector3(t, size, t),
-            new Vector3(t, size, t),
+            new Vector3(t, size.y, t),
+            new Vector3(t, size.y, t),
 
-            new Vector3(t, size, t),
-            new Vector3(t, size, t),
+            new Vector3(t, size.y, t),
+            new Vector3(t, size.y, t),
 
-            new Vector3(size, t, t),
-            new Vector3(size, t, t),
+            new Vector3(size.x, t, t),
+            new Vector3(size.x, t, t),
 
-            new Vector3(size, t, t),
-            new Vector3(size, t, t),
+            new Vector3(size.x, t, t),
+            new Vector3(size.x, t, t),
 
-            new Vector3(t, t, size),
-            new Vector3(t, t, size),
+            new Vector3(t, t, size.z),
+            new Vector3(t, t, size.z),
 
-            new Vector3(t, t, size),
-            new Vector3(t, t, size),
+            new Vector3(t, t, size.z),
+            new Vector3(t, t, size.z),
         };
 
         var edgeMatrices = new List<Matrix4x4>(12);

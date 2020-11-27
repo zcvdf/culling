@@ -16,7 +16,7 @@ public class SpawnerSystem : SystemBase
     {
         Main.World = this.World;
         Main.EntityManager = this.EntityManager;
-        Main.EntityQuery = this.EntityManager.CreateEntityQuery(typeof(EntityTag), typeof(Translation), typeof(WorldBoundingRadius));
+        Main.EntityQuery = this.EntityManager.CreateEntityQuery(typeof(EntityTag), typeof(WorldRenderBounds));
     }
 
     [BurstCompatible]
