@@ -26,9 +26,21 @@ public class SpawnerSystem : SystemBase
         if (!HasComponent<SpawnerUnusedTag>(spawnerEntity)) return;
 
         var spawner = GetSingleton<Spawner>();
-        var entities = this.EntityManager.Instantiate(spawner.Prefab, spawner.Count, Allocator.Temp);
-
         var rand = new Rand(10);
+
+        SpawnEntities(rand, spawner);
+        SpawnQuadOccluders(rand, spawner);
+
+        this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
+
+        Stats.TotalEntityNumber = spawner.EntityCount;
+        Stats.QuadOccluderNumber = spawner.QuadOccluderCount;
+        Stats.SphereOccluderNumber = spawner.SphereOccluderCount;
+    }
+
+    void SpawnEntities(Rand rand, in Spawner spawner)
+    {
+        var entities = this.EntityManager.Instantiate(spawner.EntityPrefab, spawner.EntityCount, Allocator.Temp);
 
         for (int i = 0; i < entities.Length; ++i)
         {
@@ -69,9 +81,40 @@ public class SpawnerSystem : SystemBase
                 this.EntityManager.AddComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
             }
         }
+    }
 
-        this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
+    void SpawnQuadOccluders(Rand rand, in Spawner spawner)
+    {
+        var entities = this.EntityManager.Instantiate(spawner.QuadOccluderPrefab, spawner.QuadOccluderCount, Allocator.Temp);
 
-        Stats.TotalEntityNumber = spawner.Count;
+        for (int i = 0; i < entities.Length; ++i)
+        {
+            var entity = entities[i];
+
+            var offset = rand.NextFloat(spawner.MinGenerationSpan, spawner.MaxGenerationSpan) * rand.NextFloat3Direction();
+            var position = new float3(spawner.Origin) + offset;
+            var scale = rand.NextFloat3(new float3(spawner.MinScale), new float3(spawner.MaxScale));
+            var rotation = rand.NextQuaternionRotation();
+
+            this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
+            this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+            this.EntityManager.SetComponentData(entity, new Rotation { Value = rotation });
+
+            var localRight = math.mul(rotation, new float3(1, 0, 0));
+            var localUp = math.mul(rotation, new float3(0, 0, 1));
+
+            var localRightLength = scale.x * 5f;
+            var localUpLength = scale.z * 5f;
+
+            var worldExtents = new WorldOccluderExtents
+            {
+                LocalRight = localRight,
+                LocalRightLength = localRightLength,
+                LocalUp = localUp,
+                LocalUpLength = localUpLength,
+            };
+
+            this.EntityManager.SetComponentData(entity, worldExtents);
+        }
     }
 }

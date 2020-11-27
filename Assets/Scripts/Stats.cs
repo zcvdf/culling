@@ -16,6 +16,8 @@ public static class Stats
     public static int FPS;
 
     public static int TotalEntityNumber;
+    public static int SphereOccluderNumber;
+    public static int QuadOccluderNumber;
     public static int VisibleOctreeClusters;
     public static int VisibleOctreeLeafs;
 

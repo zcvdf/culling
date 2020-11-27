@@ -8,8 +8,12 @@ using UnityEngine;
 struct Spawner : IComponentData
 {
     public Vector3 Origin;
-    public Entity Prefab;
-    public int Count;
+    public Entity EntityPrefab;
+    public int EntityCount;
+    public Entity SphereOccluderPrefab;
+    public int SphereOccluderCount;
+    public Entity QuadOccluderPrefab;
+    public int QuadOccluderCount;
     public float MinGenerationSpan;
     public float MaxGenerationSpan;
     public float MinScale;

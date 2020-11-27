@@ -8,8 +8,12 @@ using UnityEngine;
 
 public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConvertGameObjectToEntity
 {
-    [SerializeField] GameObject Prefab;
-    [SerializeField] int Count;
+    [SerializeField] GameObject EntityPrefab;
+    [SerializeField] int EntityCount;
+    [SerializeField] GameObject SphereOccluderPrefab;
+    [SerializeField] int SphereOccluderCount;
+    [SerializeField] GameObject QuadOccluderPrefab;
+    [SerializeField] int QuadOccluderCount;
     [SerializeField] float MinGenerationSpan = 200f;
     [SerializeField] float MaxGenerationSpan = 2000f;
     [SerializeField] float MinScale = 1f;
@@ -22,7 +26,9 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
-        referencedPrefabs.Add(this.Prefab);
+        referencedPrefabs.Add(this.EntityPrefab);
+        referencedPrefabs.Add(this.SphereOccluderPrefab);
+        referencedPrefabs.Add(this.QuadOccluderPrefab);
     }
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -30,8 +36,12 @@ public class SpawnerAuthoring : MonoBehaviour, IDeclareReferencedPrefabs, IConve
         var spawner = new Spawner
         {
             Origin = this.transform.position,
-            Prefab = conversionSystem.GetPrimaryEntity(this.Prefab),
-            Count = this.Count,
+            EntityPrefab = conversionSystem.GetPrimaryEntity(this.EntityPrefab),
+            EntityCount = this.EntityCount,
+            SphereOccluderPrefab = conversionSystem.GetPrimaryEntity(this.SphereOccluderPrefab),
+            SphereOccluderCount = this.SphereOccluderCount,
+            QuadOccluderPrefab = conversionSystem.GetPrimaryEntity(this.QuadOccluderPrefab),
+            QuadOccluderCount = this.QuadOccluderCount,
             MinGenerationSpan = this.MinGenerationSpan,
             MaxGenerationSpan = this.MaxGenerationSpan,
             MinScale = this.MinScale,

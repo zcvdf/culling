@@ -43,5 +43,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4f2663befaa4e24c98d65d977ff59cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 8357080306815164911, guid: 64453e7d18bddd145bd39a064050d785, type: 3}
-  Count: 262144
+  EntityPrefab: {fileID: 8357080306815164911, guid: 64453e7d18bddd145bd39a064050d785, type: 3}
+  SphereOccluderPrefab: {fileID: 4071409969668994283, guid: f2621b7f7e7d25b439407f70ec52a21e, type: 3}
+  QuadOccluderPrefab: {fileID: 3097455431020323791, guid: 026ca5c1af32dc14bb8fdd54badf50f4, type: 3}
+  Count: 524288
+  MinGenerationSpan: 500
+  MaxGenerationSpan: 10000
+  MinScale: 2
+  MaxScale: 20
+  MinSelfRotationSpeed: 0
+  MaxSelfRotationSpeed: 1
+  MinWorldRotationSpeed: 0
+  MaxWorldRotationSpeed: 0.05
+  StaticEntityPercentage: 80
