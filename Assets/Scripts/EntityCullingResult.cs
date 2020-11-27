@@ -6,12 +6,10 @@ using UnityEngine;
 public enum CullingResult
 {
     NotCulled,
-    CulledByOctreeClusters,
     CulledByOctreeNodes,
     CulledByFrustrumPlanes,
     CulledBySphereOccluder,
     CulledByQuadOccluder,
-    CulledByFrustrumAABB,
 }
 
 [GenerateAuthoringComponent]

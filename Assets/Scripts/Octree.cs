@@ -185,12 +185,6 @@ public static class Octree
         return new int4(nodeID.xyz >> rshift, parentLayer);
     }
 
-    public static UInt64 GetParentNodePackedID(UInt64 nodeID, int parentLayer)
-    {
-        // TODO : Try to optimize this if need
-        return PackID(GetParentNodeID(UnpackID(nodeID), parentLayer));
-    }
-
     public static int4 GetLeafParentNodeID(int3 leafID, int parentLayer)
     {
         if (parentLayer == LeafLayer) return new int4(leafID, LeafLayer);
@@ -199,20 +193,6 @@ public static class Octree
 
         var rshift = LeafLayer - parentLayer + additionalShift;
         return new int4(leafID >> rshift, parentLayer);
-    }
-
-    public static UInt64 GetLeafParentNodePackedID(UInt64 leafID, int parentLayer)
-    {
-        if (parentLayer == LeafLayer) return leafID;
-
-        var rshift = LeafLayer - parentLayer + (parentLayer == ClusterLayer ? 1 : 0);
-
-        var newXYZ = PackXYZ(UnpackXYZ(leafID) >> rshift);
-
-        var ul = (UInt64)parentLayer;
-        var newLayer = (ul << 60);
-
-        return newXYZ | newLayer;
     }
 
     private static void AssertValidPackedField(UInt64 x, UInt64 y, UInt64 z, UInt64 l)

@@ -11,8 +11,6 @@ using UnityEngine;
 [UpdateAfter(typeof(HybridRendererSystem))]
 public class UpdateStats : SystemBase
 {
-    const int NbFrameSample = 10;
-
     double lastElapsedTime;
     int frame;
 
@@ -42,59 +40,34 @@ public class UpdateStats : SystemBase
 
         if (Stats.Details == StatsDetails.Normal) return;
 
-        var stats = new NativeArray<int>(8, Allocator.TempJob);
-
-        foreach (var visibleCluster in visibleSets[0])
-        {
-            this.Entities
-            .WithAll<EntityTag>()
-            .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
-            .WithNativeDisableParallelForRestriction(stats)
-            .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
-            {
-                var id = (int)result.Value;
-                ++stats[id];  
-            })
-            .Run();
-        }
+        var stats = new NativeArray<int>(6, Allocator.TempJob);
 
         this.Entities
         .WithAll<EntityTag>()
-        .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
         .WithNativeDisableParallelForRestriction(stats)
-        .ForEach((in EntityCullingResult result) =>
+        .ForEach((in EntityCullingResult result, in OctreeNode octreeNode) =>
         {
-            if (result.Value == CullingResult.CulledByFrustrumAABB)
-            {
-                ++stats[6];
-            }
+            var id = (int)result.Value;
+            ++stats[id];
 
-            ++stats[7];
+            if (octreeNode.Value == Octree.PackedRoot)
+            {
+                ++stats[5];
+            }
         })
         .Run();
 
         var notCulled = stats[0];
-
-        // stats[1] is a placeholder. 
-        // Would contain the number of entities culled by the octree clusters if they were not excluded from the query
-        Debug.Assert(stats[1] == 0);
-
-        var culledByOctreeNodes = stats[2];
-        var culledByFrustrumPlanes = stats[3];
-        var culledBySphereOccluder = stats[4];
-        var culledByQuadOccluder = stats[5];
-        var culledByFrustrumAABB = stats[6];
-        var atRootOctreeLayer = stats[7];
-
-        var culledByOctreeClusters = Stats.TotalEntityNumber - culledByOctreeNodes 
-            - culledByFrustrumPlanes - culledByQuadOccluder - culledBySphereOccluder - notCulled - culledByFrustrumAABB;
+        var culledByOctreeNodes = stats[1];
+        var culledByFrustrumPlanes = stats[2];
+        var culledBySphereOccluder = stats[3];
+        var culledByQuadOccluder = stats[4];
+        var atRootOctreeLayer = stats[5];
 
         Stats.CulledByOctreeNodes = culledByOctreeNodes;
-        Stats.CulledByFrustrumAABB = culledByFrustrumAABB;
         Stats.CulledByFrustrumPlanes = culledByFrustrumPlanes;
         Stats.CulledByQuadOccluders = culledByQuadOccluder;
         Stats.CulledBySphereOccluders = culledBySphereOccluder;
-        Stats.CulledByOctreeClusters = culledByOctreeClusters;
         Stats.AtRootOctreeLayer = atRootOctreeLayer;
 
         stats.Dispose();
@@ -102,6 +75,8 @@ public class UpdateStats : SystemBase
 
     void UpdateFPSDatas()
     {
+        const int NbFrameSample = 10;
+
         ++this.frame;
 
         if (this.frame >= NbFrameSample)

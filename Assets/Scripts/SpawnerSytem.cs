@@ -68,8 +68,6 @@ public class SpawnerSystem : SystemBase
                 this.EntityManager.AddComponentData(entity, new WorldRotationAxis { Value = worldRotationAxis });
                 this.EntityManager.AddComponentData(entity, new WorldRotationSpeed { Value = worldRotationSpeed });
             }
-            
-            this.EntityManager.AddSharedComponentData(entity, new OctreeCluster());
         }
 
         this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);

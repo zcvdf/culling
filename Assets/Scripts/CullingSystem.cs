@@ -8,7 +8,6 @@ using Unity.Transforms;
 using Unity.Jobs;
 using UnityEngine;
 
-[UpdateAfter(typeof(UpdateEntityOctreeCluster))]
 [UpdateAfter(typeof(UpdateEntityOctreeNode))]
 [UpdateAfter(typeof(UpdateVisibleSets))]
 [UpdateAfter(typeof(TransformSystemGroup))]
@@ -25,12 +24,6 @@ public class CullingSystem : SystemBase
         [ReadOnly] public NativeArray<WorldOccluderExtents> QuadOccluderExtents;
         [ReadOnly] public float3 Viewer;
         [ReadOnly] public Quad NearPlane;
-    }
-
-    struct PerEntityCullingInput
-    {
-        [ReadOnly] public WorldRenderBounds Bounds; 
-        [ReadOnly] public OctreeNode OtreeNode;
     }
 
     protected override void OnCreate()
@@ -74,37 +67,14 @@ public class CullingSystem : SystemBase
             NearPlane = nearPlane,
         };
 
-        var jobsDependency = this.Dependency;
-
-        // This code is fine but triggers job safety checks if they are enabled.
-        // According to the DOTS team, there are no equally fast alternatives not triggering the safety checks at the moment.
-        foreach (var visibleCluster in visibleSets[0])
-        {
-            var clusterJobHandle = this.Entities
-            .WithAll<EntityTag>()
-            .WithSharedComponentFilter(new OctreeCluster { Value = visibleCluster })
-            .WithReadOnly(globalInputs)
-            .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in OctreeNode octreeNode) =>
-            {
-                cullingResult.Value = ProcessVisibleCluster(globalInputs, bounds, octreeNode);
-            })
-            .ScheduleParallel(jobsDependency);
-
-            this.Dependency = JobHandle.CombineDependencies(this.Dependency, clusterJobHandle);
-        }
-
-        // Process Octree root node
-        var rootJobHandle = this.Entities
+        this.Entities
         .WithAll<EntityTag>()
-        .WithSharedComponentFilter(new OctreeCluster { Value = Octree.PackedRoot })
         .WithReadOnly(globalInputs)
         .ForEach((ref EntityCullingResult cullingResult, in WorldRenderBounds bounds, in OctreeNode octreeNode) =>
         {
-            cullingResult.Value = ProcessOctreeRoot(globalInputs, bounds, octreeNode);
+            cullingResult.Value = ProcessVisibleCluster(globalInputs, bounds, octreeNode);
         })
-        .ScheduleParallel(jobsDependency);
-
-        this.Dependency = JobHandle.CombineDependencies(this.Dependency, rootJobHandle);
+        .ScheduleParallel();
 
         Main.VisibleOctreeNodes = visibleSets.RawIDs;
 
@@ -122,46 +92,18 @@ public class CullingSystem : SystemBase
             return CullingResult.CulledByOctreeNodes;
         }
 
-        var entityInputs = new PerEntityCullingInput
-        {
-            Bounds = bounds,
-            OtreeNode = octreeNode,
-        };
-
-        return PostOctreeCulling(in entityInputs, in global);
-    }
-
-    static CullingResult ProcessOctreeRoot(in GlobalCullingInput global,
-        in WorldRenderBounds bounds, in OctreeNode octreeNode)
-    {
-        if (!global.FrustrumAABB.Overlap(bounds.Value))
-        {
-            return CullingResult.CulledByFrustrumAABB;
-        }
-
-        var entityInputs = new PerEntityCullingInput
-        {
-            Bounds = bounds,
-            OtreeNode = octreeNode,
-        };
-
-        return PostOctreeCulling(in entityInputs, in global);
-    }
-
-    static CullingResult PostOctreeCulling(in PerEntityCullingInput entity, in GlobalCullingInput global)
-    {
-        if (!Math.IsInFrustrum(entity.Bounds.Value, global.FrustrumPlanes))
+        if (!Math.IsInFrustrum(bounds.Value, global.FrustrumPlanes))
         {
             return CullingResult.CulledByFrustrumPlanes;
         }
 
-        if (Math.IsOccludedBySphere(entity.Bounds.Value, global.Viewer, 
+        if (Math.IsOccludedBySphere(bounds.Value, global.Viewer,
             global.SphereOccluderTranslations, global.SphereOccluderRadiuses, global.FrustrumPlanes))
         {
             return CullingResult.CulledBySphereOccluder;
         }
 
-        if (Math.IsOccludedByPlane(entity.Bounds.Value, global.Viewer, 
+        if (Math.IsOccludedByPlane(bounds.Value, global.Viewer,
             global.NearPlane, global.QuadOccluderTranslations, global.QuadOccluderExtents))
         {
             return CullingResult.CulledByQuadOccluder;
@@ -172,6 +114,8 @@ public class CullingSystem : SystemBase
 
     public static bool IsNodeVisible(in OctreeNode node, in VisibleSets visibleSets)
     {
+        if (node.Value == Octree.PackedRoot) return true;
+
         var nodeLayer = Octree.UnpackLayer(node.Value);
 
         return visibleSets[nodeLayer].Contains(node.Value);

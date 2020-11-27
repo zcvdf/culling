@@ -2256,7 +2256,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: Count
-      value: 65536
+      value: 262144
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: GenerationSpan

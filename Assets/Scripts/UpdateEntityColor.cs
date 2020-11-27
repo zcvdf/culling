@@ -15,14 +15,12 @@ public class UpdateEntityColor : SystemBase
         var inFrumstrumColor = Main.EntityInFrustrumColor;
         var occludedColor = Main.EntityOccludedColor;
 
-        var colors = new NativeArray<float4>(7, Allocator.TempJob);
+        var colors = new NativeArray<float4>(5, Allocator.TempJob);
         colors[0] = inFrumstrumColor;
         colors[1] = outFrumstrumColor;
         colors[2] = outFrumstrumColor;
-        colors[3] = outFrumstrumColor;
+        colors[3] = occludedColor;
         colors[4] = occludedColor;
-        colors[5] = occludedColor;
-        colors[6] = outFrumstrumColor;
 
         var rootLayerColor = Main.EntityAtRootLayerColor;
         var showRootLayer = Main.ShowRootLayerEntities;
