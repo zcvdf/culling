@@ -30,6 +30,7 @@ public class SpawnerSystem : SystemBase
 
         SpawnEntities(rand, spawner);
         SpawnQuadOccluders(rand, spawner);
+        SpawnSphereOccluders(rand, spawner);
 
         this.EntityManager.RemoveComponent<SpawnerUnusedTag>(spawnerEntity);
 
@@ -115,6 +116,30 @@ public class SpawnerSystem : SystemBase
             };
 
             this.EntityManager.SetComponentData(entity, worldExtents);
+        }
+    }
+
+    void SpawnSphereOccluders(Rand rand, in Spawner spawner)
+    {
+        var entities = this.EntityManager.Instantiate(spawner.SphereOccluderPrefab, spawner.SphereOccluderCount, Allocator.Temp);
+
+        for (int i = 0; i < entities.Length; ++i)
+        {
+            var entity = entities[i];
+
+            var offset = rand.NextFloat(spawner.MinGenerationSpan, spawner.MaxGenerationSpan) * rand.NextFloat3Direction();
+            var position = new float3(spawner.Origin) + offset;
+            var scale = rand.NextFloat(10, 50f);
+
+            this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
+            this.EntityManager.SetComponentData(entity, new Translation { Value = position });
+
+            var radius = new WorldOccluderRadius
+            {
+                Value = 0.5f * scale
+            };
+
+            this.EntityManager.SetComponentData(entity, radius);
         }
     }
 }
