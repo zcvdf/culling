@@ -1127,7 +1127,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.5
-  far clip plane: 2000
+  far clip plane: 5000
   field of view: 45
   orthographic: 0
   orthographic size: 5
@@ -2256,7 +2256,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: Count
-      value: 262144
+      value: 524288
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: GenerationSpan
@@ -2296,11 +2296,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: MaxGenerationSpan
-      value: 5000
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: MinGenerationSpan
-      value: 200
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708348, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: m_LocalPosition.x
