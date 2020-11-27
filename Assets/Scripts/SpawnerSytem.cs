@@ -92,9 +92,9 @@ public class SpawnerSystem : SystemBase
         {
             var entity = entities[i];
 
-            var offset = rand.NextFloat(spawner.MinGenerationSpan, spawner.MaxGenerationSpan) * rand.NextFloat3Direction();
+            var offset = rand.NextFloat(spawner.QuadOccluderMinGenerationSpan, spawner.QuadOccluderMaxGenerationSpan) * rand.NextFloat3Direction();
             var position = new float3(spawner.Origin) + offset;
-            var scale = rand.NextFloat3(new float3(spawner.MinScale), new float3(spawner.MaxScale));
+            var scale = rand.NextFloat3(new float3(spawner.QuadOccluderMinScale), new float3(spawner.QuadOccluderMaxScale));
             var rotation = rand.NextQuaternionRotation();
 
             this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
@@ -127,9 +127,9 @@ public class SpawnerSystem : SystemBase
         {
             var entity = entities[i];
 
-            var offset = rand.NextFloat(spawner.MinGenerationSpan, spawner.MaxGenerationSpan) * rand.NextFloat3Direction();
+            var offset = rand.NextFloat(spawner.SphereOccluderMinGenerationSpan, spawner.SphereOccluderMaxGenerationSpan) * rand.NextFloat3Direction();
             var position = new float3(spawner.Origin) + offset;
-            var scale = rand.NextFloat(10, 50f);
+            var scale = rand.NextFloat(spawner.SphereOccluderMinScale, spawner.SphereOccluderMaxScale);
 
             this.EntityManager.AddComponentData(entity, new NonUniformScale { Value = scale });
             this.EntityManager.SetComponentData(entity, new Translation { Value = position });

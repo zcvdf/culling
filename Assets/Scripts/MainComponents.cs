@@ -23,6 +23,16 @@ struct Spawner : IComponentData
     public float MinWorldRotationSpeed;
     public float MaxWorldRotationSpeed;
     public int StaticEntityPercentage;
+
+    public float SphereOccluderMinGenerationSpan;
+    public float SphereOccluderMaxGenerationSpan;
+    public float SphereOccluderMinScale;
+    public float SphereOccluderMaxScale;
+
+    public float QuadOccluderMinGenerationSpan;
+    public float QuadOccluderMaxGenerationSpan;
+    public float QuadOccluderMinScale;
+    public float QuadOccluderMaxScale;
 }
 
 public struct WorldOccluderExtents : IComponentData
