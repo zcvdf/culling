@@ -90,7 +90,7 @@ public class Main : MonoBehaviour
 
     void LateUpdate()
     {
-        this.edgesThickness = Mathf.Max(this.orbitalCamera.Zoom * 0.005f, 0.05f);
+        this.edgesThickness = Mathf.Max(this.orbitalCamera.Zoom * 0.002f, 0.05f);
 
         this.viewerCamera.FrustrumEdgesThickness = this.edgesThickness;
 
@@ -226,7 +226,7 @@ public class Main : MonoBehaviour
                 var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
                 matrices.Add(matrix);
 
-                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center);
+                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, this.edgesThickness);
             }
 
             Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
