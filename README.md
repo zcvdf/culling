@@ -1,4 +1,4 @@
-## Unity ECS implementation of a typical Culling system including Frustrum Culling and Occlusion Culling
+## Unity ECS implementation of a typical Culling system supporting Frustrum Culling and Occlusion Culling
 ----------------------------------------------------------------------------------------
 ## Viewer perspective
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/0.png)
