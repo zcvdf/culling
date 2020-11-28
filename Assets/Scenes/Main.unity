@@ -182,6 +182,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 3132c2e4e6056b54c89eafbfb8a88a79, type: 2}
   - {fileID: 2100000, guid: 97d08b2d293dfb34e9d8a824bb43a433, type: 2}
   - {fileID: 2100000, guid: 66edc06c52814ba488fced8df3b2dc74, type: 2}
+  - {fileID: 2100000, guid: 9eb4f20d551ca6147a366c04b59aa88c, type: 2}
   boundingAABBMaterial: {fileID: 2100000, guid: 763fed648a3f7c247ad63c618c9ecb39, type: 2}
   frustrumAABBColor: {r: 0, g: 1, b: 0.40392157, a: 0.39215687}
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
