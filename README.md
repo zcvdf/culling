@@ -4,7 +4,7 @@
 ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) **Culled by Occluders**  
 ![#888888](https://via.placeholder.com/15/888888/000000?text=+) **Out of Frustrum**  
 
-## Viewer view
+## Viewer perspective
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/0.png)
 ## Debug view
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/1.png)
