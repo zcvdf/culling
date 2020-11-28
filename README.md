@@ -24,3 +24,17 @@
 ## Objects not fitting in any Octree node are moved in a particular Root layer for special processing
 ![#aaFF11](https://via.placeholder.com/15/aaFF11/000000?text=+) **Object at Root layer**  
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/8.png)
+
+# Inputs
+---------------------------------------------------------------
+**W,A,S,D + Mouse** : Basic movements when using the Viewer camera  
+**Mouse Right** : Rotate orbital camera around viewer when using the Debug camera  
+**Mouse Scroll** : Zoom/Dezoom when using the Debug camera  
+
+
+**Space** : Switch between Debug/Viewer camera  
+**L** : Lock/Unlock camera movements  
+**Alpha1** : Show/Hide stats panel  
+**Alpha2** : Display next Octree layer  
+**Alpha3** : Show/Hide objects at Root Octree layer  
+**Alpha4** : Show/Hide object AABBs  
