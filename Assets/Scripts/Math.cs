@@ -218,12 +218,14 @@ public static class Math
         }
 
         var isNearInOccluder = false;
+        // We need a certain margin to be sure the plane is never considered completely submerged while actually cliping the sphere
+        // Sphere meshes are not perfect spheres. That's why the epsilon depends on the occluder radius
+        var fullOverlapMargin = math.max(nearBoundingRadius, math.max(radius * 0.05f, 0.1f));
+        var maxNearDistance = radius - fullOverlapMargin;
 
-        if (nearBoundingRadius < radius)
+        if (maxNearDistance > 0f)
         {
-            var maxNearDistance = radius - nearBoundingRadius;
             var maxNearDistanceSq = maxNearDistance * maxNearDistance;
-
             isNearInOccluder = math.lengthsq(nearPlane.Center - center) < maxNearDistanceSq;
         }
 
@@ -282,7 +284,7 @@ public static class Math
     {
         var performOutOfSphereTest = nearOverlapResult == OverlapResult.Full;
         var performHiddenBySphereTest = nearOverlapResult == OverlapResult.None;
-        var performDiskTest = nearOverlapResult != OverlapResult.Full;
+        var performDiskTest = nearOverlapResult == OverlapResult.None;
 
         if (performOutOfSphereTest && IsOutOfSphere(aabb, occluderCenter, occluderRadius))
         {
