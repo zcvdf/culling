@@ -183,7 +183,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 97d08b2d293dfb34e9d8a824bb43a433, type: 2}
   - {fileID: 2100000, guid: 66edc06c52814ba488fced8df3b2dc74, type: 2}
   boundingAABBMaterial: {fileID: 2100000, guid: 763fed648a3f7c247ad63c618c9ecb39, type: 2}
-  frustrumAABBColor: {r: 1, g: 0.9506169, b: 0.48584908, a: 0.19607843}
+  frustrumAABBColor: {r: 0, g: 1, b: 0.40392157, a: 0.39215687}
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
@@ -721,6 +721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73a079c783ea0e24f847177de3a8e4ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   rotationSensitivity: 500
   moveSpeed: 50
   IsLocked: 0

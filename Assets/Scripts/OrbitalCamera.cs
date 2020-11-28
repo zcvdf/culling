@@ -53,7 +53,7 @@ public class OrbitalCamera : MonoBehaviour
 
         if (Input.mouseScrollDelta.y != 0)
         {
-            Zoom(-Input.mouseScrollDelta.y * this.ZoomSensitivity);
+            SetZoom(-Input.mouseScrollDelta.y * this.ZoomSensitivity);
         }
 
         this.transform.position = this.target + this.translation;
@@ -71,7 +71,7 @@ public class OrbitalCamera : MonoBehaviour
         }
     }
 
-    private void Zoom(float amount)
+    private void SetZoom(float amount)
     {
         float magnitude = this.translation.magnitude;
         Vector3 direction = this.translation.normalized;
@@ -93,4 +93,6 @@ public class OrbitalCamera : MonoBehaviour
     }
 
     public Camera Camera => this.camera;
+
+    public float Zoom => this.translation.magnitude;
 }

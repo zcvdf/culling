@@ -47,6 +47,7 @@ public class Main : MonoBehaviour
     bool displayBoundingAABBs = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
+    float edgesThickness = 0.1f;
 
     private void Awake()
     {
@@ -85,6 +86,13 @@ public class Main : MonoBehaviour
         nearPlane.LocalUp = this.viewerCamera.transform.up * this.viewerCamera.Camera.NearPlaneHalfHeight();
         nearPlane.Normal = FrustrumPlanes.Near.normal;
         NearPlane = nearPlane;
+    }
+
+    void LateUpdate()
+    {
+        this.edgesThickness = Mathf.Max(this.orbitalCamera.Zoom * 0.005f, 0.05f);
+
+        this.viewerCamera.FrustrumEdgesThickness = this.edgesThickness;
 
         if (World != null && !World.Equals(null))
         {

@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class ViewerCamera : MonoBehaviour
 {
+    [SerializeField] Mesh cubeMesh;
     [SerializeField] float rotationSensitivity = 500f;
     [SerializeField] float moveSpeed = 20f;
+    [HideInInspector] public bool IsLocked = false;
+    [HideInInspector] public float FrustrumEdgesThickness = 0.1f;
+
     private bool isUsed = false;
     private new Camera camera;
-    [HideInInspector] public bool IsLocked = false;
+    private MeshRenderer frustrumRenderer;
 
     private void Awake()
     {
+        this.frustrumRenderer = GetComponentInChildren<MeshRenderer>();
         this.camera = GetComponent<Camera>();
         Use(false);
     }
@@ -32,6 +37,14 @@ public class ViewerCamera : MonoBehaviour
 
         this.transform.position += this.transform.forward * Time.deltaTime * this.moveSpeed * vertical;
         this.transform.position += this.transform.right * Time.deltaTime * this.moveSpeed * horizontal;
+    }
+
+    void OnRenderObject()
+    {
+        if (!this.isUsed)
+        {
+            Draw.FrustrumEdges(this.cubeMesh, this.frustrumRenderer.material.color.Opaque(), this.Camera, this.FrustrumEdgesThickness);
+        }
     }
 
     public void Use(bool use)
