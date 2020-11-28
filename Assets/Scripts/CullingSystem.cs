@@ -24,6 +24,7 @@ public class CullingSystem : SystemBase
         [ReadOnly] public NativeArray<WorldOccluderExtents> QuadOccluderExtents;
         [ReadOnly] public float3 Viewer;
         [ReadOnly] public Quad NearPlane;
+        [ReadOnly] public float NearBoundingRadius;
     }
 
     protected override void OnCreate()
@@ -65,6 +66,7 @@ public class CullingSystem : SystemBase
             QuadOccluderTranslations = quadOccluderTranslations,
             VisibleSets = visibleSets,
             NearPlane = nearPlane,
+            NearBoundingRadius = math.length(nearPlane.LocalRight + nearPlane.LocalUp),
         };
 
         this.Entities
@@ -98,7 +100,8 @@ public class CullingSystem : SystemBase
         }
 
         if (Math.IsOccludedBySphere(bounds.Value, global.Viewer,
-            global.SphereOccluderTranslations, global.SphereOccluderRadiuses, global.FrustrumPlanes))
+            global.SphereOccluderTranslations, global.SphereOccluderRadiuses, 
+            global.FrustrumPlanes, global.NearPlane, global.NearBoundingRadius))
         {
             return CullingResult.CulledBySphereOccluder;
         }

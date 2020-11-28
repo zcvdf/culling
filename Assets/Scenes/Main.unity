@@ -1292,30 +1292,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawner
       objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: QuadOccluderMaxGenerationSpan
-      value: 5000
-      objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: SphereOccluderMaxGenerationSpan
-      value: 5000
-      objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: StaticEntityPercentage
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: MaxGenerationSpan
-      value: 20000
-      objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: MinScale
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7898555749998708339, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
-      propertyPath: MaxScale
-      value: 20
-      objectReference: {fileID: 0}
     - target: {fileID: 7898555749998708348, guid: 2837e4837688e3e4b889a575f678de76, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

@@ -36,6 +36,13 @@ public static class Math
 {
     public const float Sqrt3 = 1.73205080f;
 
+    public enum OverlapResult
+    {
+        None,
+        Partial,
+        Full,
+    }
+
     public static bool Overlap(in this AABB b0, in AABB b1)
     {
         if (b0.Min.x > b1.Max.x || b0.Min.y > b1.Max.y || b0.Min.z > b1.Max.z)
@@ -179,13 +186,14 @@ public static class Math
             || IsCubeClipped(center, extent, planes.Far);
     }
 
-    public static bool IsSphereOccluderInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes, out bool hasNearIntersection)
+    public static bool IsSphereOccluderInFrustrum(float3 center, float radius, in WorldFrustrumPlanes planes,
+        in Quad nearPlane, float nearBoundingRadius, out OverlapResult nearOverlapResult)
     {
-        // Special handling of the near clipping plane for occluders (planes[4])
+        // Special handling of the near clipping plane for sphere occluder
         // We want the occluder to be discarded if its center is behind the near plane
         // Otherwise the objects made visible by the clipping of the near plane get culled out
 
-        hasNearIntersection = false;
+        nearOverlapResult = OverlapResult.None;
 
         if
         (
@@ -200,107 +208,51 @@ public static class Math
         }
 
         var nearDist = planes.Near.GetDistanceToPoint(center);
-        if (nearDist < 0f)
+        if (nearDist > radius)
+        {
+            return true;
+        }
+        else if (nearDist < -radius)
         {
             return false;
         }
 
-        if (math.abs(nearDist) < radius)
+        var isNearInOccluder = false;
+
+        if (nearBoundingRadius < radius)
         {
-            hasNearIntersection = true;
+            var maxNearDistance = radius - nearBoundingRadius;
+            var maxNearDistanceSq = maxNearDistance * maxNearDistance;
+
+            isNearInOccluder = math.lengthsq(nearPlane.Center - center) < maxNearDistanceSq;
         }
+
+        nearOverlapResult = isNearInOccluder ? OverlapResult.Full : OverlapResult.Partial;
 
         return true;
     }
 
-    public static bool IsOccludedBySphere(float3 viewerToObject, float objectRadius, float3 viewerToOccluder, float3 occluderDirection,
-        float occluderDistance, float occluderRadius, bool cullInside)
+    public static bool IsOutOfSphere(in AABB aabb, float3 sphereCenter, float sphereRadius)
     {
-        // Handling of the objects in occluder sphere. Skip it if the object can't fit in the occluder
-        if (objectRadius < occluderRadius)
-        {
-            var occluderToObject = viewerToObject - viewerToOccluder;
+        var nearest = NearestAABBCornerFromPoint(aabb, sphereCenter);
 
-            // If it is requested to cull the inside of the sphere, we need to check if the bounding sphere of the object is completely submerged by the occluder.
-            // But if we don't want to cull the inside, the object must be visible when the bounding sphere is completely in the occluder OR when it intersects with it.
-            var maxDistToOccluderSq = occluderRadius + (cullInside ? -objectRadius : objectRadius);
-            maxDistToOccluderSq *= maxDistToOccluderSq;
+        var maxDistToOccluderSq = sphereRadius * sphereRadius;
 
-            var isInMaxDistToOccluder = math.lengthsq(occluderToObject) < maxDistToOccluderSq;
-            if (isInMaxDistToOccluder)
-            {
-                return cullInside;
-            }
-        }
-
-        // Handling of the objects behind the near slice of the occlusion cone
-        var objectProjectedDistance = math.dot(occluderDirection, viewerToObject);
-        var objectProjectedNear = objectProjectedDistance - objectRadius;
-
-        var isBehindNearSlice = objectProjectedNear < occluderDistance;
-        if (isBehindNearSlice) return false;
-
-        // Occlusion cone culling
-        var objectProjection = occluderDirection * objectProjectedDistance;
-        var ratio = objectProjectedDistance / occluderDistance;
-
-        var maxDist = ratio * occluderRadius - objectRadius;
-
-        // At this distance, the object is bigger than cone radius
-        if (maxDist < 0f) return false;
-
-        var maxDistSq = maxDist * maxDist;
-
-        var projectionToObject = viewerToObject - objectProjection;
-
-        // If the boudning sphere fits in the occlusion cone, cull it out
-        return math.lengthsq(projectionToObject) < maxDistSq;
+        return math.lengthsq(nearest - sphereCenter) > maxDistToOccluderSq;
     }
 
-    public static bool IsOccludedBySphere(float3 testedCenter, float testedRadius, float3 viewer,
-        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in WorldFrustrumPlanes frustrumPlanes)
+    public static bool IsHiddenInSphere(in AABB aabb, float3 sphereCenter, float sphereRadius)
     {
-        for (int i = 0; i < occluderTranslations.Length; ++i)
-        {
-            var occluderCenter = occluderTranslations[i].Value;
-            var occluderRadius = occluderRadiuses[i].Value;
+        var farest = FarestAABBCornerFromPoint(aabb, sphereCenter);
 
-            bool hasNearIntersection;
-            if (!IsSphereOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
+        var maxDistToOccluderSq = sphereRadius * sphereRadius;
 
-            var viewerToTested = testedCenter - viewer;
-            var viewerToOccluder = occluderCenter - viewer;
-            var occluderDistance = math.length(viewerToOccluder);
-            var occluderDirection = viewerToOccluder / occluderDistance;
-
-            if (IsOccludedBySphere(viewerToTested, testedRadius, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return math.lengthsq(farest - sphereCenter) < maxDistToOccluderSq;
     }
 
-    public static bool IsOccludedBySphere(in AABB aabb, float3 occluderPosition, float3 occluderDirection,
-        float occluderDistance, float occluderRadius, bool cullInside)
+    public static bool IsOccludedByDisk(in AABB aabb, float3 occluderDirection, float occluderDistance, float occluderRadius)
     {
-        // Handling of the objects in occluder sphere
-        var farestFromOccluder = FarestAABBCornerFromPoint(aabb, occluderPosition);
-        var nearestFromOccluder = NearestAABBCornerFromPoint(aabb, occluderPosition);
-
-        // If it is requested to cull the inside of the sphere, we need to check if the fares corner of the AABB is in the occluder's sphere.
-        // But if we don't want to cull the inside, the object is still visible when its AABB is completely in the occluder OR when it intersects with it.
-        // So we compare with the nearest in this case
-        var maxDistToOccluderSq = occluderRadius * occluderRadius;
-        var cornerForCullingInside = cullInside ? farestFromOccluder : nearestFromOccluder;
-
-        if (math.lengthsq(cornerForCullingInside - occluderPosition) < maxDistToOccluderSq)
-        {
-            return cullInside;
-        }
-
-        // Handling of the objects behind the near slice of the occlusion cone
+        // Discard object behind the disk
         var objectProjectedNear = math.dot(occluderDirection, NearestAABBCornerInDirection(aabb, occluderDirection));
 
         var isBehindNearSlice = objectProjectedNear < occluderDistance;
@@ -325,17 +277,25 @@ public static class Math
         return math.lengthsq(projectionToFarest) < maxDistSq;
     }
 
-    public static bool IsOccludedBySphere(in AABB aabb, float3 viewer,
-        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, in WorldFrustrumPlanes frustrumPlanes)
+    public static bool IsOccludedBySphere(in AABB aabb, float3 occluderCenter, float occluderRadius, 
+        float3 viewer, OverlapResult nearOverlapResult)
     {
-        for (int i = 0; i < occluderTranslations.Length; ++i)
+        var performOutOfSphereTest = nearOverlapResult == OverlapResult.Full;
+        var performHiddenBySphereTest = nearOverlapResult == OverlapResult.None;
+        var performDiskTest = nearOverlapResult != OverlapResult.Full;
+
+        if (performOutOfSphereTest && IsOutOfSphere(aabb, occluderCenter, occluderRadius))
         {
-            var occluderCenter = occluderTranslations[i].Value;
-            var occluderRadius = occluderRadiuses[i].Value;
+            return true;
+        }
 
-            bool hasNearIntersection;
-            if (!IsSphereOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, out hasNearIntersection)) continue;
+        if (performHiddenBySphereTest && IsHiddenInSphere(aabb, occluderCenter, occluderRadius))
+        {
+            return true;
+        }
 
+        if (performDiskTest)
+        {
             var viewerToOccluder = occluderCenter - viewer;
             var occluderDistance = math.length(viewerToOccluder);
             var occluderDirection = viewerToOccluder / occluderDistance;
@@ -344,7 +304,28 @@ public static class Math
             viewerAABB.Center = aabb.Center - viewer;
             viewerAABB.Extents = aabb.Extents;
 
-            if (IsOccludedBySphere(viewerAABB, viewerToOccluder, occluderDirection, occluderDistance, occluderRadius, !hasNearIntersection))
+            if (IsOccludedByDisk(viewerAABB, occluderDirection, occluderDistance, occluderRadius))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsOccludedBySphere(in AABB aabb, float3 viewer,
+        in NativeArray<Translation> occluderTranslations, in NativeArray<WorldOccluderRadius> occluderRadiuses, 
+        in WorldFrustrumPlanes frustrumPlanes, in Quad nearPlane, float nearBoundingRadius)
+    {
+        for (int i = 0; i < occluderTranslations.Length; ++i)
+        {
+            var occluderCenter = occluderTranslations[i].Value;
+            var occluderRadius = occluderRadiuses[i].Value;
+
+            OverlapResult nearOverlapResult;
+            if (!IsSphereOccluderInFrustrum(occluderCenter, occluderRadius, frustrumPlanes, nearPlane, nearBoundingRadius, out nearOverlapResult)) continue;
+
+            if (IsOccludedBySphere(aabb, occluderCenter, occluderRadius, viewer, nearOverlapResult))
             {
                 return true;
             }

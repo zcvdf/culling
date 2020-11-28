@@ -44,25 +44,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EntityPrefab: {fileID: 8357080306815164911, guid: 64453e7d18bddd145bd39a064050d785, type: 3}
-  EntityCount: 500000
+  EntityCount: 200000
   MinGenerationSpan: 200
-  MaxGenerationSpan: 10000
-  MinScale: 2
-  MaxScale: 10
+  MaxGenerationSpan: 20000
+  MinScale: 5
+  MaxScale: 20
   MinSelfRotationSpeed: 0
   MaxSelfRotationSpeed: 1
   MinWorldRotationSpeed: 0
   MaxWorldRotationSpeed: 0.05
-  StaticEntityPercentage: 80
+  StaticEntityPercentage: 90
   SphereOccluderPrefab: {fileID: 4071409969668994283, guid: f2621b7f7e7d25b439407f70ec52a21e, type: 3}
   SphereOccluderCount: 50
   SphereOccluderMinGenerationSpan: 500
-  SphereOccluderMaxGenerationSpan: 2000
+  SphereOccluderMaxGenerationSpan: 5000
   SphereOccluderMinScale: 200
   SphereOccluderMaxScale: 500
   QuadOccluderPrefab: {fileID: 3097455431020323791, guid: 026ca5c1af32dc14bb8fdd54badf50f4, type: 3}
   QuadOccluderCount: 50
   QuadOccluderMinGenerationSpan: 500
-  QuadOccluderMaxGenerationSpan: 2000
+  QuadOccluderMaxGenerationSpan: 5000
   QuadOccluderMinScale: 50
   QuadOccluderMaxScale: 100
