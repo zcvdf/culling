@@ -722,9 +722,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  rotationSensitivity: 500
+  rotationSensitivity: 300
   moveSpeed: 50
   IsLocked: 0
+  FrustrumEdgesThickness: 0.1
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
