@@ -23,6 +23,12 @@ public class ViewerCamera : MonoBehaviour
 
     void Update()
     {
+        // Wait 5 frame before processing inputs to avoid big early camera rotation due to high deltatime and stuff
+        if (Time.frameCount < 5)
+        {
+            return;
+        }
+
         if (!this.isUsed) return;
         if (this.IsLocked) return;
 
