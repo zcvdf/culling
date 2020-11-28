@@ -25,5 +25,5 @@
 ## Object bounding AABBs
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/7.png)
 ## Object not fiting in any Octree node are moved in a special root layer for special processing
-![#888888](https://via.placeholder.com/15/0000FF/000000?text=+) **Object at Root layer**  
+![#aaFF11](https://via.placeholder.com/15/aaFF11/000000?text=+) **Object at Root layer**  
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/8.png)
