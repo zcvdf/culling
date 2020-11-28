@@ -1,17 +1,14 @@
-## Unity ECS implementation of standard culling algorithms :
+## Unity ECS implementation of a typical Culling system including Frustrum Culling and Occlusion Culling
 ----------------------------------------------------------------------------------------
-- Frustrum culling using Octree + Plane cliping
-- AABB bounding volumes
-- Occlusion culling for Quads
-- Occlusion culling for Spheres
-
-## Color meaning
 ![#1589F0](https://via.placeholder.com/15/1589F0/000000?text=+) **Not culled**  
 ![#f03c15](https://via.placeholder.com/15/f03c15/000000?text=+) **Culled by Occluders**  
 ![#888888](https://via.placeholder.com/15/888888/000000?text=+) **Out of Frustrum**  
 
+## Viewer view
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/0.png)
+## Debug view
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/1.png)
+## Debug view
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/2.png)
 
 ## Octree layer 0
@@ -22,8 +19,8 @@
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/5.png)
 ## Octree layer 3
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/6.png)
-## Object bounding AABBs
+## Object AABBs
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/7.png)
-## Object not fiting in any Octree node are moved in a special root layer for special processing
+## Objects not fitting in any Octree node are moved in a particular Root layer for special processing
 ![#aaFF11](https://via.placeholder.com/15/aaFF11/000000?text=+) **Object at Root layer**  
 ![](https://raw.githubusercontent.com/vincent-breysse/culling/main/Screen/8.png)
