@@ -125,7 +125,7 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.L))
         {
-            //ToggleLock();
+            ToggleLock();
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
