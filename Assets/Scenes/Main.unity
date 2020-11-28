@@ -188,6 +188,7 @@ MonoBehaviour:
   cubeMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   frustrumPlanesMesh: {fileID: 753912383}
   statsPanel: {fileID: 447344027}
+  maxAABBDrawDistance: 1000
   lockOnStart: 0
 --- !u!114 &309434696
 MonoBehaviour:

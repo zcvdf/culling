@@ -95,4 +95,6 @@ public class OrbitalCamera : MonoBehaviour
     public Camera Camera => this.camera;
 
     public float Zoom => this.translation.magnitude;
+
+    public bool IsUsed => this.isUsed;
 }

@@ -42,6 +42,7 @@ public class Main : MonoBehaviour
     [SerializeField] Mesh cubeMesh;
     [SerializeField] MeshFilter frustrumPlanesMesh;
     [SerializeField] Canvas statsPanel;
+    [SerializeField] float maxAABBDrawDistance = 500f;
     [SerializeField] bool lockOnStart = false;
 
     bool displayBoundingAABBs = false;
@@ -159,36 +160,35 @@ public class Main : MonoBehaviour
         var aabbs = EntityQuery.ToComponentDataArray<WorldRenderBounds>(Allocator.Temp);
         var count = aabbs.Length;
 
-        var batchCount = count / 1023;
+        var viewer = this.viewerCamera.IsUsed ? 
+            this.viewerCamera.transform.position : this.orbitalCamera.transform.position;
 
-        // Add one additional batch for the rest
-        if (count % 1023 != 0)
+        var maxDistSq = this.maxAABBDrawDistance * this.maxAABBDrawDistance;
+
+        var matrices = new List<Matrix4x4>(1024);
+
+        for (int i = 0; i < count; ++i)
         {
-            ++batchCount;
-        }
+            var aabb = aabbs[i].Value;
 
-        var matrices = new List<Matrix4x4>(1023);
+            if (math.distancesq(viewer, aabb.Center) > maxDistSq) continue;
 
-        for (int i = 0; i < batchCount; ++i)
-        {
-            matrices.Clear();
+            var center = aabb.Center;
+            var size = aabb.Extents * 2.05f; // Draw it a liitle bit bigger to avoid artefacts
 
-            for (int j = 0; j < 1023; ++j)
+            var matrix = Matrix4x4.TRS(center, Quaternion.identity, size);
+            matrices.Add(matrix);
+
+            Draw.AABBEdges(this.cubeMesh, this.boundingAABBMaterial.color.Opaque(), aabb.Extents, aabb.Center, 1f);
+
+            if (matrices.Count == 1023)
             {
-                var k = i * 1023 + j;
-
-                if (k >= count) break; // End of the rest batch processing
-
-                var aabb = aabbs[k].Value;
-                var center = aabb.Center;
-                var size = aabb.Extents * 2f;
-
-                var matrix = Matrix4x4.TRS(center, Quaternion.identity, size);
-                matrices.Add(matrix);
+                Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.boundingAABBMaterial, matrices);
+                matrices.Clear();
             }
-
-            Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.boundingAABBMaterial, matrices);
         }
+
+        Graphics.DrawMeshInstanced(this.cubeMesh, 0, this.boundingAABBMaterial, matrices);
     }
 
     void DrawVisibleOctreeNodes(int layer)

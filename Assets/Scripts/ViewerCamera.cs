@@ -70,4 +70,6 @@ public class ViewerCamera : MonoBehaviour
     }
 
     public Camera Camera => this.camera;
+
+    public bool IsUsed => this.isUsed;
 }
