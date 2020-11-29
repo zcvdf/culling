@@ -176,7 +176,7 @@ public class Main : MonoBehaviour
             var matrix = Matrix4x4.TRS(center, Quaternion.identity, size);
             matrices.Add(matrix);
 
-            Draw.AABBEdges(this.cubeMesh, this.boundingAABBMaterial.color.Opaque(), aabb.Extents, aabb.Center, 1f);
+            Draw.EntityAABBEdges(this.cubeMesh, this.boundingAABBMaterial.color.Opaque(), aabb.Extents, aabb.Center, 1f);
 
             if (matrices.Count == 1023)
             {
@@ -224,7 +224,7 @@ public class Main : MonoBehaviour
                 var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
                 matrices.Add(matrix);
 
-                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, thickness);
+                Draw.OctreeAABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, thickness);
             }
 
             Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);

@@ -6,9 +6,10 @@ using UnityEngine;
 public static class Draw
 {
     static Material FrustrumEdgeMaterialInstance;
-    static Material AABBEdgeMaterialInstance;
+    static Material EntityAABBEdgeMaterialInstance;
+    static Material OctreeAABBEdgeMaterialInstance;
 
-    public static void AABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
+    static void AABBEdges(Mesh cubeMesh, Material material, float3 extent, Vector3 center, float thickness = 1f)
     {
         var size = extent * 2f;
         var t = thickness;
@@ -65,8 +66,19 @@ public static class Draw
             edgeMatrices.Add(Matrix4x4.TRS(centers[j], Quaternion.identity, scales[j]));
         }
 
-        AABBEdgeMaterial.color = color;
-        Graphics.DrawMeshInstanced(cubeMesh, 0, AABBEdgeMaterial, edgeMatrices);
+        Graphics.DrawMeshInstanced(cubeMesh, 0, material, edgeMatrices);
+    }
+
+    public static void EntityAABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
+    {
+        EntityAABBEdgeMaterial.color = color;
+        AABBEdges(cubeMesh, EntityAABBEdgeMaterial, extent, center, thickness);
+    }
+
+    public static void OctreeAABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
+    {
+        OctreeAABBEdgeMaterial.color = color;
+        AABBEdges(cubeMesh, OctreeAABBEdgeMaterial, extent, center, thickness);
     }
 
     public static void FrustrumEdges(Mesh cubeMesh, Color color, Camera camera, float thickness = 1f)
@@ -162,17 +174,31 @@ public static class Draw
         }
     }
 
-    static Material AABBEdgeMaterial
+    static Material EntityAABBEdgeMaterial
     {
         get
         {
-            if (AABBEdgeMaterialInstance == null)
+            if (EntityAABBEdgeMaterialInstance == null)
             {
-                AABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-                AABBEdgeMaterialInstance.enableInstancing = true;
+                EntityAABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                EntityAABBEdgeMaterialInstance.enableInstancing = true;
             }
 
-            return AABBEdgeMaterialInstance;
+            return EntityAABBEdgeMaterialInstance;
+        }
+    }
+
+    static Material OctreeAABBEdgeMaterial
+    {
+        get
+        {
+            if (OctreeAABBEdgeMaterialInstance == null)
+            {
+                OctreeAABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                OctreeAABBEdgeMaterialInstance.enableInstancing = true;
+            }
+
+            return OctreeAABBEdgeMaterialInstance;
         }
     }
 }
