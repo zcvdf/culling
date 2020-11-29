@@ -48,7 +48,6 @@ public class Main : MonoBehaviour
     bool displayBoundingAABBs = false;
     int displayOctreeDepth = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
-    float edgesThickness = 0.1f;
 
     private void Awake()
     {
@@ -91,9 +90,7 @@ public class Main : MonoBehaviour
 
     void LateUpdate()
     {
-        this.edgesThickness = Mathf.Max(this.orbitalCamera.Zoom * 0.002f, 0.05f);
-
-        this.viewerCamera.FrustrumEdgesThickness = this.edgesThickness;
+        this.viewerCamera.FrustrumEdgesThickness = this.viewerCamera.IsUsed ? 0.05f : Mathf.Max(this.orbitalCamera.Zoom * 0.005f, 0.05f);
 
         if (World != null && !World.Equals(null))
         {
@@ -193,6 +190,7 @@ public class Main : MonoBehaviour
 
     void DrawVisibleOctreeNodes(int layer)
     {
+        var thickness = this.viewerCamera.IsUsed ? 2f : Mathf.Max(this.orbitalCamera.Zoom * 0.002f, 2f);
         var matID = math.min(layer, this.octreeLayerMaterials.Length - 1);
         var material = this.octreeLayerMaterials[matID];
 
@@ -226,7 +224,7 @@ public class Main : MonoBehaviour
                 var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
                 matrices.Add(matrix);
 
-                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, this.edgesThickness);
+                Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, thickness);
             }
 
             Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
