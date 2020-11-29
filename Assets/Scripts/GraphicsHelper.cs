@@ -6,8 +6,8 @@ using UnityEngine;
 public static class Draw
 {
     static Material FrustrumEdgeMaterialInstance;
-    static Material EntityAABBEdgeMaterialInstance;
-    static Material OctreeAABBEdgeMaterialInstance;
+    static Material AABBEdgeMaterialInstance;
+    static Material OctreeNodeEdgeMaterialInstance;
 
     static void AABBEdges(Mesh cubeMesh, Material material, float3 extent, Vector3 center, float thickness = 1f)
     {
@@ -69,16 +69,16 @@ public static class Draw
         Graphics.DrawMeshInstanced(cubeMesh, 0, material, edgeMatrices);
     }
 
-    public static void EntityAABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
+    public static void AABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
     {
-        EntityAABBEdgeMaterial.color = color;
-        AABBEdges(cubeMesh, EntityAABBEdgeMaterial, extent, center, thickness);
+        AABBEdgeMaterial.color = color;
+        AABBEdges(cubeMesh, AABBEdgeMaterial, extent, center, thickness);
     }
 
-    public static void OctreeAABBEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
+    public static void OctreeNodeEdges(Mesh cubeMesh, Color color, float3 extent, Vector3 center, float thickness = 1f)
     {
-        OctreeAABBEdgeMaterial.color = color;
-        AABBEdges(cubeMesh, OctreeAABBEdgeMaterial, extent, center, thickness);
+        OctreeNodeEdgeMaterial.color = color;
+        AABBEdges(cubeMesh, OctreeNodeEdgeMaterial, extent, center, thickness);
     }
 
     public static void FrustrumEdges(Mesh cubeMesh, Color color, Camera camera, float thickness = 1f)
@@ -174,31 +174,31 @@ public static class Draw
         }
     }
 
-    static Material EntityAABBEdgeMaterial
+    static Material AABBEdgeMaterial
     {
         get
         {
-            if (EntityAABBEdgeMaterialInstance == null)
+            if (AABBEdgeMaterialInstance == null)
             {
-                EntityAABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-                EntityAABBEdgeMaterialInstance.enableInstancing = true;
+                AABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                AABBEdgeMaterialInstance.enableInstancing = true;
             }
 
-            return EntityAABBEdgeMaterialInstance;
+            return AABBEdgeMaterialInstance;
         }
     }
 
-    static Material OctreeAABBEdgeMaterial
+    static Material OctreeNodeEdgeMaterial
     {
         get
         {
-            if (OctreeAABBEdgeMaterialInstance == null)
+            if (OctreeNodeEdgeMaterialInstance == null)
             {
-                OctreeAABBEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-                OctreeAABBEdgeMaterialInstance.enableInstancing = true;
+                OctreeNodeEdgeMaterialInstance = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                OctreeNodeEdgeMaterialInstance.enableInstancing = true;
             }
 
-            return OctreeAABBEdgeMaterialInstance;
+            return OctreeNodeEdgeMaterialInstance;
         }
     }
 }

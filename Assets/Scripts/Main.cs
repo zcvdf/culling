@@ -46,7 +46,7 @@ public class Main : MonoBehaviour
     [SerializeField] bool lockOnStart = false;
 
     bool displayBoundingAABBs = false;
-    int displayOctreeDepth = -1; // -1 means do not display anything
+    int displayOctreeLayer = -1; // -1 means do not display anything
     bool displayFrustrumAABB = false;
 
     private void Awake()
@@ -94,9 +94,14 @@ public class Main : MonoBehaviour
 
         if (World != null && !World.Equals(null))
         {
-            if (this.displayOctreeDepth != -1)
+            if (this.displayOctreeLayer != -1)
             {
-                DrawVisibleOctreeNodes(this.displayOctreeDepth);
+                DrawVisibleOctreeNodes(this.displayOctreeLayer);
+            }
+
+            if (this.orbitalCamera.IsUsed && this.displayFrustrumAABB)
+            {
+                DrawFrustrumAABB();
             }
         }
     }
@@ -132,8 +137,8 @@ public class Main : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            ++this.displayOctreeDepth;
-            if (this.displayOctreeDepth > Octree.LeafLayer) this.displayOctreeDepth = -1;
+            ++this.displayOctreeLayer;
+            if (this.displayOctreeLayer > Octree.LeafLayer) this.displayOctreeLayer = -1;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha3))
@@ -176,7 +181,7 @@ public class Main : MonoBehaviour
             var matrix = Matrix4x4.TRS(center, Quaternion.identity, size);
             matrices.Add(matrix);
 
-            Draw.EntityAABBEdges(this.cubeMesh, this.boundingAABBMaterial.color.Opaque(), aabb.Extents, aabb.Center, 1f);
+            Draw.AABBEdges(this.cubeMesh, this.boundingAABBMaterial.color.Opaque(), aabb.Extents, aabb.Center, 1f);
 
             if (matrices.Count == 1023)
             {
@@ -224,7 +229,7 @@ public class Main : MonoBehaviour
                 var matrix = Matrix4x4.TRS(center, Quaternion.identity, Vector3.one * size);
                 matrices.Add(matrix);
 
-                Draw.OctreeAABBEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, thickness);
+                Draw.OctreeNodeEdges(this.cubeMesh, material.color.Opaque(), size * 0.5f, center, thickness);
             }
 
             Graphics.DrawMeshInstanced(this.cubeMesh, 0, material, matrices);
@@ -233,9 +238,11 @@ public class Main : MonoBehaviour
 
     void DrawFrustrumAABB()
     {
-        Gizmos.matrix = Matrix4x4.identity;
-        Gizmos.color = this.frustrumAABBColor;
-        Gizmos.DrawCube(FrustrumAABB.Center, FrustrumAABB.Size);
+        var material = this.boundingAABBMaterial;
+        var thickness = this.viewerCamera.IsUsed ? 0.05f : Mathf.Max(this.orbitalCamera.Zoom * 0.005f, 0.05f);
+
+        Graphics.DrawMesh(this.cubeMesh, Matrix4x4.TRS(FrustrumAABB.Center, Quaternion.identity, FrustrumAABB.Extents * 2f), material, 0);
+        Draw.AABBEdges(this.cubeMesh, material.color.Opaque(), FrustrumAABB.Extents, FrustrumAABB.Center, thickness);
     }
 
     void HideStatsPanel()
